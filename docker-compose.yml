@@ -7,7 +7,7 @@ services:
 
   mongodb:
     restart: unless-stopped
-    image: docker.io/bitnami/mongodb:7.0
+    image: mongo:6
     ports:
       - "27017:27017"
     volumes:

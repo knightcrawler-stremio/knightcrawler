@@ -56,7 +56,7 @@ function getDescription(config) {
   const mochsDesc = enabledMochs ? ` and ${enabledMochs} enabled` : '';
   return 'Provides torrent streams from scraped torrent providers.'
       + ` Currently supports ${enabledProvidersDesc}${mochsDesc}.`
-      + ` To configure providers, ${possibleMochs} support and other settings visit https://torrentio.strem.fun`
+      + ` To configure providers, ${possibleMochs} support and other settings visit https://torrentio.araec.com`
 }
 
 function getCatalogs(config) {

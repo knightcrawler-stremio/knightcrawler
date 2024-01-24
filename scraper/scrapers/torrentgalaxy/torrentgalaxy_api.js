@@ -7,9 +7,9 @@ const { getRandomUserAgent } = require('../../lib/requestHelper');
 const { parseSize } = require("../scraperHelper");
 
 const defaultProxies = [
-  // 'https://torrentgalaxy.to',
+  'https://torrentgalaxy.to'
   // 'https://torrentgalaxy.mx',
-  'https://torrentgalaxy.su'
+  //'https://torrentgalaxy.su'
 ];
 const defaultTimeout = 10000;
 

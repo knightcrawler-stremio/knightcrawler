@@ -10,7 +10,7 @@ export const PreConfigurations = {
       id: 'com.stremio.torrentio.lite.addon',
       name: 'Torrentio Lite',
       description: 'Preconfigured Lite version of Torrentio addon.'
-          + ' To configure advanced options visit https://torrentio.strem.fun/lite'
+          + ' To configure advanced options visit https://torrentio.araec.com/lite'
     }
   },
   brazuca: {
