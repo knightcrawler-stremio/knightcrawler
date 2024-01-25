@@ -1,21 +1,18 @@
----
-
-version: '3.9'
-name: torrentio-self-host
+version: '3.8'
+volumes:
+  mongo-data: {}
+  postgres-data: {}
 
 services:
-
   mongodb:
     restart: unless-stopped
-    image: docker.io/bitnami/mongodb:7.0
-    ports:
-      - "27017:27017"
+    image: bitnami/mongodb
     volumes:
       - mongo-data:/bitnami/mongodb
   
   scraper:
-    build: ./scraper
     restart: unless-stopped
+    image: ghcr.io/kubo6472/torrentio-ghcr:scraper
     environment:
       - PORT=7001
       - MONGODB_URI=mongodb://mongodb:27017/torrentio
@@ -23,10 +20,8 @@ services:
       - ENABLE_SYNC=true
   
   torrentio:
-    build: ./addon
     restart: unless-stopped
-    ports:
-      - "7000:7000"
+    image: ghcr.io/kubo6472/torrentio-ghcr:addon
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/torrentio
       - DATABASE_URI=postgres://postgres@postgres:5432/torrentio
@@ -35,15 +30,9 @@ services:
   postgres:
     image: postgres:14-alpine
     restart: unless-stopped
-    ports:
-      - 5432:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=postgres
       - POSTGRES_DB=torrentio
-
-volumes:
-  mongo-data:
-  postgres-data:
