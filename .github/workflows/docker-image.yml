@@ -25,11 +25,13 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: "{{defaultContext}}:scraper"
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:scraper
       - name: Build and push addon
         uses: docker/build-push-action@v5
         with:
           context: "{{defaultContext}}:addon"
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:addon
