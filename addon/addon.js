@@ -18,8 +18,8 @@ const STALE_ERROR_AGE = 7 * 24 * 60 * 60; // 7 days
 
 const builder = new addonBuilder(dummyManifest());
 const limiter = new Bottleneck({
-  maxConcurrent: process.env.LIMIT_MAX_CONCURRENT || 100,
-  highWater: process.env.LIMIT_QUEUE_SIZE || 120,
+  maxConcurrent: process.env.LIMIT_MAX_CONCURRENT || 40,
+  highWater: process.env.LIMIT_QUEUE_SIZE || 60,
   strategy: Bottleneck.strategy.OVERFLOW
 });
 const limiterOptions = { expiration: 2 * 60 * 1000 }
@@ -70,10 +70,18 @@ builder.defineMetaHandler((args) => {
 })
 
 async function streamHandler(args) {
+  console.log(`Current stats: `, limiter.counts())
+  const start = Date.now();
   if (args.type === Type.MOVIE) {
-    return movieRecordsHandler(args);
+    return movieRecordsHandler(args).then(result => {
+      console.log(`Execution time: ${Date.now() - start} ms`);
+      return result;
+    });
   } else if (args.type === Type.SERIES) {
-    return seriesRecordsHandler(args);
+    return seriesRecordsHandler(args).then(result => {
+      console.log(`Execution time: ${Date.now() - start} ms`);
+      return result;
+    });
   }
   return Promise.reject('not supported type');
 }
