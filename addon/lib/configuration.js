@@ -20,7 +20,7 @@ export const PreConfigurations = {
       id: 'com.stremio.torrentio.brazuca.addon',
       name: 'Torrentio Brazuca',
       description: 'Preconfigured version of Torrentio addon for Brazilian content.'
-          + ' To configure advanced options visit https://torrentio.strem.fun/brazuca',
+          + ' To configure advanced options visit https://torrentio.araec.com/brazuca',
       logo: 'https://i.ibb.co/8mgRZPp/GwxAcDV.png'
     }
   }

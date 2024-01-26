@@ -79,23 +79,47 @@ function browse(config = {}, retries = 2) {
       .catch((err) => browse(config, retries - 1));
 }
 
-function singleRequest(requestUrl, config = {}) {
+const singleRequest = (requestUrl, config = {}) => {
+  const defaultTimeout = 60000; // Define the default timeout if it's not provided in the config
   const timeout = config.timeout || defaultTimeout;
-  const options = { headers: { 'User-Agent': getRandomUserAgent() }, timeout: timeout };
 
-  return axios.get(requestUrl, options)
-      .then((response) => {
-        const body = response.data;
-        if (!body) {
-          throw new Error(`No body: ${requestUrl}`);
-        } else if (body.includes('502: Bad gateway') ||
-            body.includes('403 Forbidden') ||
-            !(body.includes('1337x</title>'))) {
-          throw new Error(`Invalid body contents: ${requestUrl}`);
-        }
-        return body;
-      });
-}
+  const payload = {
+    cmd: "request.get",
+    url: requestUrl,
+    maxTimeout: timeout
+  };
+
+  const headers = {
+    'Content-Type': 'application/json',
+    // Include other headers if necessary
+  };
+
+  const options = {
+    headers: headers,
+    timeout: timeout,
+  };
+
+  return axios.post(process.env.FLARESOLVERR_ENDPOINT, payload, options)
+    .then((response) => {
+      const body = response.data;
+      if (!body || !body.solution || !body.solution.response) {
+        throw new Error(`Invalid response structure: ${JSON.stringify(body)}`);
+      }
+      
+      const solutionResponse = body.solution.response;
+
+      // Here you can further process solutionResponse or return it
+      // For instance, check if it contains '502: Bad gateway', '403 Forbidden', or '1337x</title>'
+      if (solutionResponse.includes('502: Bad gateway') ||
+          solutionResponse.includes('403 Forbidden') ||
+          !(solutionResponse.includes('1337x</title>'))) {
+        throw new Error(`Invalid body contents: ${requestUrl}`);
+      }
+
+      return solutionResponse;
+    });
+};
+
 
 function parseTableBody(body) {
   return new Promise((resolve, reject) => {

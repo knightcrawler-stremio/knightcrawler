@@ -57,6 +57,7 @@ function getDescription(config) {
   return 'Provides torrent streams from scraped torrent providers.'
       + ` Currently supports ${enabledProvidersDesc}${mochsDesc}.`
       + ` To configure providers, ${possibleMochs} support and other settings visit https://torrentio.araec.com`
+      + ` For questions or concerns, please reach out to /u/nosit1 or nowai_david on Discord`
 }
 
 function getCatalogs(config) {
