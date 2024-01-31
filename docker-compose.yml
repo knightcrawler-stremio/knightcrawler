@@ -1,10 +1,7 @@
 ---
 
 version: '3.9'
-container_name: torrentio-sh
-
 services:
-
   mongodb:
     restart: unless-stopped
     image: docker.io/bitnami/mongodb:7.0
