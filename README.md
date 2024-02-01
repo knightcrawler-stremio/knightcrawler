@@ -3,6 +3,9 @@
 - [Torrentio self-hosted](#torrentio-self-hosted)
   - [Self-hosted quickstart](#self-hosted-quickstart)
   - [Raspberry Pi users](#raspberry-pi-users)
+  - [FAQ](#faq)
+    - [I have a Raspberry Pi](#i-have-a-raspberry-pi)
+    - [I don't have a Raspberry Pi](#i-dont-have-a-raspberry-pi)
 
 ## Self-hosted quickstart
 
@@ -43,3 +46,51 @@ services:
     volumes:
       - mongo-data:/bitnami/mongodb
 ```
+
+
+## FAQ
+
+<details>
+<summary>MongoDB not working</summary>
+
+### I have a Raspberry Pi
+
+You need to switch to a `linux/arm64` compatible image. Please see [Raspberry Pi users](#raspberry-pi-users)
+
+### I don't have a Raspberry Pi
+
+You may have an incompatible CPU. Try the following command:
+
+`lscpu | grep avx` or `grep avx /proc/cpuinfo`
+
+If you get a return value that contains `avx` or `avx2` such as: `flags : fpu ... sse sse2 ss syscall nx pdpe1gb rdtscp ... aes xsave avx avx2 hypervisor lahf_lm arat tsc_adjust xsaveopt` then your CPU is compatible and you should open an issue.
+
+If you get nothing back from the above two commands, your CPU is incompatible with MongoDB newer than version 4.
+
+Change the image to be:
+
+```
+services:
+  mongodb:
+    restart: unless-stopped
+    image: docker.io/bitnami/mongodb:7.0 # <--------- we are changing this line
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/bitnami/mongodb
+```
+
+to now read:
+
+```
+services:
+  mongodb:
+    restart: unless-stopped
+    image: mongo:4.4.6 # <--------- we have changed this line
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/bitnami/mongodb
+```
+
+</details>
