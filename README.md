@@ -4,8 +4,9 @@
   - [Self-hosted quickstart](#self-hosted-quickstart)
   - [Raspberry Pi users](#raspberry-pi-users)
   - [FAQ](#faq)
-    - [I have a Raspberry Pi](#i-have-a-raspberry-pi)
-    - [I don't have a Raspberry Pi](#i-dont-have-a-raspberry-pi)
+    - [MongoDB not working](#mongodb-not-working)
+      - [I have a Raspberry Pi](#i-have-a-raspberry-pi)
+      - [I don't have a Raspberry Pi](#i-dont-have-a-raspberry-pi)
 
 ## Self-hosted quickstart
 
@@ -50,14 +51,15 @@ services:
 
 ## FAQ
 
+### MongoDB not working
 <details>
-<summary>MongoDB not working</summary>
+<summary>You may need a different version of MongoDB</summary>
 
-### I have a Raspberry Pi
+#### I have a Raspberry Pi
 
 You need to switch to a `linux/arm64` compatible image. Please see [Raspberry Pi users](#raspberry-pi-users)
 
-### I don't have a Raspberry Pi
+#### I don't have a Raspberry Pi
 
 You may have an incompatible CPU. Try the following command:
 
