@@ -8,7 +8,7 @@ const { createTorrentEntry, checkAndUpdateTorrent } = require('../../lib/torrent
 const { isEpisodeImdbId } = require('../../lib/metadata');
 
 const NAME = 'EZTV';
-const UNTIL_PAGE = 10;
+const UNTIL_PAGE = 100;
 
 const entryLimiter = new Bottleneck({ maxConcurrent: 10 });
 
