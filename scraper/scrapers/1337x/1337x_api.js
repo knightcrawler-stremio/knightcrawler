@@ -10,8 +10,11 @@ const { parseSize } = require("../scraperHelper");
 const defaultProxies = [
   'https://1337x.to'
 ];
-const defaultTimeout = 10000;
+const defaultTimeout = 50000;
 const maxSearchPage = 50;
+
+let FlaresolverrUserAgent = '';
+let FlaresolverrCookies = '';
 
 const Categories = {
   MOVIE: 'Movies',
@@ -33,10 +36,10 @@ function torrent(torrentId, config = {}, retries = 2) {
   const slug = torrentId.startsWith('/torrent/') ? torrentId.replace('/torrent/', '') : torrentId;
 
   return Promises.first(proxyList
-          .map((proxyUrl) => singleRequest(`${proxyUrl}/torrent/${slug}`, config)))
-      .then((body) => parseTorrentPage(body))
-      .then((torrent) => ({ torrentId: slug, ...torrent }))
-      .catch((err) => torrent(slug, config, retries - 1));
+    .map((proxyUrl) => singleRequest(`${proxyUrl}/torrent/${slug}`, config)))
+    .then((body) => parseTorrentPage(body))
+    .then((torrent) => ({ torrentId: slug, ...torrent }))
+    .catch((err) => torrent(slug, config, retries - 1));
 }
 
 function search(keyword, config = {}, retries = 2) {
@@ -48,17 +51,17 @@ function search(keyword, config = {}, retries = 2) {
   const category = config.category;
   const extendToPage = Math.min(maxSearchPage, (config.extendToPage || 1))
   const requestUrl = proxyUrl => category
-      ? `${proxyUrl}/category-search/${keyword}/${category}/${page}/`
-      : `${proxyUrl}/search/${keyword}/${page}/`;
+    ? `${proxyUrl}/category-search/${keyword}/${category}/${page}/`
+    : `${proxyUrl}/search/${keyword}/${page}/`;
 
   return Promises.first(proxyList
-          .map(proxyUrl => singleRequest(requestUrl(proxyUrl), config)))
-      .then(body => parseTableBody(body))
-      .then(torrents => torrents.length === 40 && page < extendToPage
-          ? search(keyword, { ...config, page: page + 1 }).catch(() => [])
-              .then(nextTorrents => torrents.concat(nextTorrents))
-          : torrents)
-      .catch((err) => search(keyword, config, retries - 1));
+    .map(proxyUrl => singleRequest(requestUrl(proxyUrl), config)))
+    .then(body => parseTableBody(body))
+    .then(torrents => torrents.length === 40 && page < extendToPage
+      ? search(keyword, { ...config, page: page + 1 }).catch(() => [])
+        .then(nextTorrents => torrents.concat(nextTorrents))
+      : torrents)
+    .catch((err) => search(keyword, config, retries - 1));
 }
 
 function browse(config = {}, retries = 2) {
@@ -70,56 +73,68 @@ function browse(config = {}, retries = 2) {
   const category = config.category;
   const sort = config.sort;
   const requestUrl = proxyUrl => sort
-      ? `${proxyUrl}/sort-cat/${category}/${sort}/desc/${page}/`
-      : `${proxyUrl}/cat/${category}/${page}/`;
+    ? `${proxyUrl}/sort-cat/${category}/${sort}/desc/${page}/`
+    : `${proxyUrl}/cat/${category}/${page}/`;
 
   return Promises.first(proxyList
-          .map((proxyUrl) => singleRequest(requestUrl(proxyUrl), config)))
-      .then((body) => parseTableBody(body))
-      .catch((err) => browse(config, retries - 1));
+    .map((proxyUrl) => singleRequest(requestUrl(proxyUrl), config)))
+    .then((body) => parseTableBody(body))
+    .catch((err) => {
+      console.error(err);
+      browse(config, retries - 1);
+    });
 }
 
 const singleRequest = (requestUrl, config = {}) => {
   const defaultTimeout = 60000; // Define the default timeout if it's not provided in the config
   const timeout = config.timeout || defaultTimeout;
+  let options = { headers: { 'User-Agent': getRandomUserAgent() }, timeout: timeout };
 
-  const payload = {
-    cmd: "request.get",
-    url: requestUrl,
-    maxTimeout: timeout
-  };
+  if (FlaresolverrUserAgent === '' || FlaresolverrCookies === '') {
+    console.log("using flaresolverr");
+    return axios.post('http://flaresolverr:8191/v1', {
+      cmd: 'request.get',
+      url: requestUrl,
+    }, options)
+      .then((response) => {
+        if (response.data.status !== 'ok') {
+          throw new Error(`FlareSolverr did not return status 'ok': ${response.data.message}`)
+        }
 
-  const headers = {
-    'Content-Type': 'application/json',
-    // Include other headers if necessary
-  };
+        const body = response.data.solution.response;
+        if (!body) {
+          throw new Error(`No body: ${requestUrl}`);
+        } else if (body.includes('502: Bad gateway') ||
+          body.includes('403 Forbidden') ||
+          !(body.includes('1337x</title>'))) {
+          throw new Error(`Invalid body contents: ${requestUrl}`);
+        }
+        FlaresolverrUserAgent = response.data.solution.userAgent;
+        response.data.solution.cookies.forEach(cookie => {
+          FlaresolverrCookies = FlaresolverrCookies + `${cookie.name}=${cookie.value}; `;
+        });
 
-  const options = {
-    headers: headers,
-    timeout: timeout,
-  };
-
-  return axios.post(process.env.FLARESOLVERR_ENDPOINT, payload, options)
-    .then((response) => {
-      const body = response.data;
-      if (!body || !body.solution || !body.solution.response) {
-        throw new Error(`Invalid response structure: ${JSON.stringify(body)}`);
-      }
-      
-      const solutionResponse = body.solution.response;
-
-      // Here you can further process solutionResponse or return it
-      // For instance, check if it contains '502: Bad gateway', '403 Forbidden', or '1337x</title>'
-      if (solutionResponse.includes('502: Bad gateway') ||
-          solutionResponse.includes('403 Forbidden') ||
-          !(solutionResponse.includes('1337x</title>'))) {
-        throw new Error(`Invalid body contents: ${requestUrl}`);
-      }
-
-      return solutionResponse;
-    });
-};
-
+        return body;
+      });
+  }
+  else {
+    console.log("using direct request");
+    options.headers['User-Agent'] = FlaresolverrUserAgent;
+    options.headers['Cookie'] = FlaresolverrCookies;
+    return axios.get(requestUrl, options)
+      .then((response) => {
+        const body = response.data;
+        if (!body) {
+          throw new Error(`No body: ${requestUrl}`);
+        } else if (body.includes('502: Bad gateway') ||
+          body.includes('403 Forbidden') ||
+          !(body.includes('1337x</title>'))) {
+          throw new Error(`Invalid body contents: ${requestUrl}`);
+        }
+        return body;
+      })
+  }
+}
 
 function parseTableBody(body) {
   return new Promise((resolve, reject) => {
@@ -170,13 +185,13 @@ function parseTorrentPage(body) {
       uploadDate: parseDate(details.find('strong:contains(\'Date uploaded\')').next().text()),
       imdbId: imdbIdMatch && imdbIdMatch[1],
       files: details.find('div[id=\'files\']').first().find('li')
-          .map((i, elem) => $(elem).text())
-          .map((i, text) => ({
-            fileIndex: i,
-            name: text.match(/^(.+)\s\(.+\)$/)[1].replace(/^.+\//g, ''),
-            path: text.match(/^(.+)\s\(.+\)$/)[1],
-            size: parseSize(text.match(/^.+\s\((.+)\)$/)[1])
-          })).get()
+        .map((i, elem) => $(elem).text())
+        .map((i, text) => ({
+          fileIndex: i,
+          name: text.match(/^(.+)\s\(.+\)$/)[1].replace(/^.+\//g, ''),
+          path: text.match(/^(.+)\s\(.+\)$/)[1],
+          size: parseSize(text.match(/^.+\s\((.+)\)$/)[1])
+        })).get()
     };
     resolve(torrent);
   });
@@ -189,4 +204,4 @@ function parseDate(dateString) {
   return Sugar.Date.create(dateString);
 }
 
-module.exports = { torrent, search, browse, Categories };
+module.exports = { torrent, search, browse, Categories, FlaresolverrCookies, FlaresolverrUserAgent };

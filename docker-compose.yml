@@ -16,6 +16,9 @@ services:
   scraper:
     build: ./scraper
     restart: unless-stopped
+    depends_on:
+      - mongodb
+      - postgres
     environment:
       - PORT=7001
       - MONGODB_URI=mongodb://mongodb:27017/torrentio
@@ -25,6 +28,9 @@ services:
   torrentio:
     build: ./addon
     restart: unless-stopped
+    depends_on:
+      - mongodb
+      - postgres
     ports:
       - "7000:7000"
     environment:
@@ -43,6 +49,12 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_USER=postgres
       - POSTGRES_DB=torrentio
+  
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    restart: unless-stopped
+    ports:
+      - 8191:8191
 
 volumes:
   mongo-data:
