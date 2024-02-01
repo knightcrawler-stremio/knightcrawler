@@ -7,6 +7,9 @@ services:
 
   mongodb:
     restart: unless-stopped
+    # This image does not support linux/arm64
+    # If you are using linux/arm64 (for example, a Raspberry Pi)
+    # then change the below line to: `image: mongo:6.0`
     image: docker.io/bitnami/mongodb:7.0
     ports:
       - "27017:27017"
