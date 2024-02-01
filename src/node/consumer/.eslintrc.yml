@@ -1,0 +1,16 @@
+env:
+  es2021: true
+  node: true
+extends: eslint:recommended
+plugins:
+  - import
+rules:
+  import/no-unresolved: 2
+  import/no-commonjs: 2
+  import/extensions:
+    - 2
+    - ignorePackages
+parserOptions:
+  ecmaVersion: latest
+  sourceType: module
+  

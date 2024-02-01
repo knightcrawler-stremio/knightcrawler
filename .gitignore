@@ -1,5 +1,5 @@
-/.idea
 **/node_modules
-**.env
 .now
-/scraper/manual/examples.js
+.DS_Store
+.idea
+

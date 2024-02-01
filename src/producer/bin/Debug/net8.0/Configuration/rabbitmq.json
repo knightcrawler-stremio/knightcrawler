@@ -1,0 +1,9 @@
+{
+  "RabbitMqConfiguration": {
+    "Host": "localhost",
+    "Username": "guest",
+    "Password": "guest",
+    "QueueName": "test-queue",
+    "Durable": true
+  }
+}
