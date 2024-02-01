@@ -32,7 +32,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/bitnami/mongodb
+      - mongo-data:/bitnami/mongodb # <--------- we are changing this line
 ```
 
 to now read:
@@ -45,7 +45,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/bitnami/mongodb
+      - mongo-data:/data/db # <--------- we have changed this line
 ```
 
 
@@ -79,7 +79,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/bitnami/mongodb
+      - mongo-data:/bitnami/mongodb # <--------- we are changing this line
 ```
 
 to now read:
@@ -92,7 +92,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/bitnami/mongodb
+      mongo-data:/data/db # <--------- we have changed this line
 ```
 
 </details>
