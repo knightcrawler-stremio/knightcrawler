@@ -5,8 +5,8 @@
     "Password": "guest",
     "QueueName": "test-queue",
     "Durable": true,
-    "MaxQueueSize": 1000,
-    "MaxPublishBatchSize": 100,
+    "MaxQueueSize": 0,
+    "MaxPublishBatchSize": 1,
     "PublishIntervalInSeconds": 10
   }
 }

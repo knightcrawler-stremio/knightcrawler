@@ -10,7 +10,7 @@ public class RabbitMqConfiguration
     public string? Password { get; set; }
     public string? QueueName { get; set; }
     public bool Durable { get; set; }
-    public int MaxQueueSize { get; set; } = 1000;
-    public int MaxPublishBatchSize { get; set; } = 100;
+    public int MaxQueueSize { get; set; }
+    public int MaxPublishBatchSize { get; set; } = 500;
     public int PublishIntervalInSeconds { get; set; } = 1000 * 10;
 }

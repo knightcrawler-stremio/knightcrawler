@@ -103,13 +103,21 @@ public static class ServiceCollectionExtensions
 
         return githubConfiguration;
     }
-    
+
     private static RabbitMqConfiguration LoadRabbitMQConfiguration(IServiceCollection services, IConfiguration configuration)
     {
         var rabbitConfiguration = configuration.GetSection(RabbitMqConfiguration.SectionName).Get<RabbitMqConfiguration>();
-        
+
         ArgumentNullException.ThrowIfNull(rabbitConfiguration, nameof(rabbitConfiguration));
-        
+
+        if (rabbitConfiguration.MaxQueueSize > 0)
+        {
+            if (rabbitConfiguration.MaxPublishBatchSize > rabbitConfiguration.MaxQueueSize)
+            {
+                throw new InvalidOperationException("MaxPublishBatchSize cannot be greater than MaxQueueSize in RabbitMqConfiguration");
+            }
+        }
+
         services.TryAddSingleton(rabbitConfiguration);
 
         return rabbitConfiguration;

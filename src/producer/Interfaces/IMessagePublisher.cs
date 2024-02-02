@@ -2,5 +2,5 @@
 
 public interface IMessagePublisher
 {
-    Task PublishAsync(IEnumerable<Torrent> torrents, CancellationToken cancellationToken = default);
+    Task<bool> PublishAsync(IReadOnlyCollection<Torrent> torrents, CancellationToken cancellationToken = default);
 }

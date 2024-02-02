@@ -17,7 +17,13 @@ public class PublisherJob(IMessagePublisher publisher, IDataStorage storage, ILo
             return;
         }
         
-        await publisher.PublishAsync(torrents, cancellationToken);
+        var published = await publisher.PublishAsync(torrents, cancellationToken);
+
+        if (!published)
+        {
+            return;
+        }
+        
         var result = await storage.SetTorrentsProcessed(torrents, cancellationToken);
         
         if (!result.Success)
