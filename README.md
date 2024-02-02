@@ -62,3 +62,7 @@ It will take a while to find and add the torrents to the database. During initia
 To add the addon to Stremio, open a web browser and navigate to: [http://127.0.0.1:7000](http://127.0.0.1:7000)
 
 
+## To-do
+
+- [ ] Add a section on external access
+- [ ] Add a troubleshooting section
