@@ -1,4 +1,4 @@
-namespace Scraper.Extensions;
+namespace Producer.Extensions;
 
 public static class ServiceCollectionExtensions
 {
@@ -53,6 +53,7 @@ public static class ServiceCollectionExtensions
     {
         var scrapeConfiguration = LoadScrapeConfiguration(services, configuration);
         var githubConfiguration = LoadGithubConfiguration(services, configuration);
+        var rabbitConfig = LoadRabbitMQConfiguration(services, configuration);
 
         services
             .AddTransient<SyncEzTvJob>()
@@ -75,7 +76,7 @@ public static class ServiceCollectionExtensions
                AddJobWithTrigger<SyncYtsJob>(quartz, SyncYtsJob.Key, SyncYtsJob.Trigger, scrapeConfiguration);
                AddJobWithTrigger<SyncTgxJob>(quartz, SyncTgxJob.Key, SyncTgxJob.Trigger, scrapeConfiguration);
                AddJobWithTrigger<IPJob>(quartz, IPJob.Key, IPJob.Trigger, 60 * 5);
-               AddJobWithTrigger<PublisherJob>(quartz, PublisherJob.Key, PublisherJob.Trigger, 10);
+               AddJobWithTrigger<PublisherJob>(quartz, PublisherJob.Key, PublisherJob.Trigger, rabbitConfig.PublishIntervalInSeconds);
 
                 if (!string.IsNullOrEmpty(githubConfiguration.PAT))
                 {
@@ -98,9 +99,20 @@ public static class ServiceCollectionExtensions
         
         ArgumentNullException.ThrowIfNull(githubConfiguration, nameof(githubConfiguration));
         
-        services.AddSingleton(githubConfiguration);
+        services.TryAddSingleton(githubConfiguration);
 
         return githubConfiguration;
+    }
+    
+    private static RabbitMqConfiguration LoadRabbitMQConfiguration(IServiceCollection services, IConfiguration configuration)
+    {
+        var rabbitConfiguration = configuration.GetSection(RabbitMqConfiguration.SectionName).Get<RabbitMqConfiguration>();
+        
+        ArgumentNullException.ThrowIfNull(rabbitConfiguration, nameof(rabbitConfiguration));
+        
+        services.TryAddSingleton(rabbitConfiguration);
+
+        return rabbitConfiguration;
     }
 
     private static ScrapeConfiguration LoadScrapeConfiguration(IServiceCollection services, IConfiguration configuration)
@@ -109,7 +121,7 @@ public static class ServiceCollectionExtensions
         
         ArgumentNullException.ThrowIfNull(scrapeConfiguration, nameof(scrapeConfiguration));
 
-        services.AddSingleton(scrapeConfiguration);
+        services.TryAddSingleton(scrapeConfiguration);
 
         return scrapeConfiguration;
     }

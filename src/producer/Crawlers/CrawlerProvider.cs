@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers;
+namespace Producer.Crawlers;
 
 public class CrawlerProvider(IServiceProvider serviceProvider) : ICrawlerProvider
 {

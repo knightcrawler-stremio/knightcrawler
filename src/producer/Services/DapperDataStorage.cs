@@ -1,6 +1,6 @@
-namespace Scraper.Services;
+namespace Producer.Services;
 
-public class DapperDataStorage(ScrapeConfiguration configuration, ILogger<DapperDataStorage> logger) : IDataStorage
+public class DapperDataStorage(ScrapeConfiguration configuration, RabbitMqConfiguration rabbitConfig, ILogger<DapperDataStorage> logger) : IDataStorage
 {
     private const string InsertTorrentSql =
         """
@@ -65,7 +65,7 @@ public class DapperDataStorage(ScrapeConfiguration configuration, ILogger<Dapper
             await using var connection = new NpgsqlConnection(configuration.StorageConnectionString);
             await connection.OpenAsync(cancellationToken);
             var torrents = await connection.QueryAsync<Torrent>(GetMovieAndSeriesTorrentsNotProcessedSql);
-            return torrents.ToList();
+            return torrents.Take(rabbitConfig.MaxPublishBatchSize).ToList();
         }
         catch (Exception e)
         {

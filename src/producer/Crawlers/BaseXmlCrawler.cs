@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers;
+namespace Producer.Crawlers;
 
 public abstract class BaseXmlCrawler(IHttpClientFactory httpClientFactory, ILogger<BaseXmlCrawler> logger, IDataStorage storage) : BaseCrawler(logger, storage)
 {

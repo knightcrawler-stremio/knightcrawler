@@ -1,4 +1,6 @@
-namespace Scraper.Jobs;
+using TgxCrawler = Producer.Crawlers.Sites.TgxCrawler;
+
+namespace Producer.Jobs;
 
 [DisallowConcurrentExecution]
 public class SyncTgxJob(ICrawlerProvider crawlerProvider) : BaseJob(crawlerProvider)

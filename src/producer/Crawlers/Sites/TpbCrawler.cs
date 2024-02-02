@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers.Sites;
+namespace Producer.Crawlers.Sites;
 
 public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler> logger, IDataStorage storage) : BaseJsonCrawler(httpClientFactory, logger, storage)
 {

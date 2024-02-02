@@ -10,7 +10,7 @@ export const cacheConfig = {
 }
 
 export const databaseConfig = {
-    DATABASE_URI: process.env.POSTGRES_DATABASE_URI || 'postgres://postgres:postgres@localhost:5432/selfhostio',
+    DATABASE_URI: process.env.DATABASE_URI || 'postgres://postgres:postgres@localhost:5432/selfhostio',
     ENABLE_SYNC: parseBool(process.env.ENABLE_SYNC, true)
 }
 

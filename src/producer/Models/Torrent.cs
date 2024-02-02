@@ -1,4 +1,4 @@
-namespace Scraper.Models;
+namespace Producer.Models;
 
 // Torrent represents a crawled torrent from one of our
 // supported sources.

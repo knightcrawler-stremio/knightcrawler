@@ -1,4 +1,4 @@
-﻿namespace Scraper.Services;
+﻿namespace Producer.Services;
 
 public class TorrentPublisher(ISendEndpointProvider sendEndpointProvider, RabbitMqConfiguration configuration) : IMessagePublisher
 {

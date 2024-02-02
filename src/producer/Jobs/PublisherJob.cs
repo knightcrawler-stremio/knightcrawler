@@ -1,4 +1,4 @@
-﻿namespace Scraper.Jobs;
+﻿namespace Producer.Jobs;
 
 [DisallowConcurrentExecution]
 public class PublisherJob(IMessagePublisher publisher, IDataStorage storage, ILogger<PublisherJob> logger) : IJob

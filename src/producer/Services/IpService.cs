@@ -1,4 +1,4 @@
-namespace Scraper.Services;
+namespace Producer.Services;
 
 public class IpService(ILogger<IpService> logger, IHttpClientFactory httpClientFactory) : IIpService
 {

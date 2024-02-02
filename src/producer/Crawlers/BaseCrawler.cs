@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers;
+namespace Producer.Crawlers;
 
 public abstract class BaseCrawler(ILogger<BaseCrawler> logger, IDataStorage storage) : ICrawler
 {

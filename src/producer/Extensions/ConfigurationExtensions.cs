@@ -1,4 +1,4 @@
-namespace Scraper.Extensions;
+namespace Producer.Extensions;
 
 public static class ConfigurationExtensions
 {

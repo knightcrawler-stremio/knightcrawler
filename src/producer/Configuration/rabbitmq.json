@@ -4,6 +4,9 @@
     "Username": "guest",
     "Password": "guest",
     "QueueName": "test-queue",
-    "Durable": true
+    "Durable": true,
+    "MaxQueueSize": 1000,
+    "MaxPublishBatchSize": 100,
+    "PublishIntervalInSeconds": 10
   }
 }

@@ -1,4 +1,6 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using Producer.Extensions;
+
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .AddScrapeConfiguration();

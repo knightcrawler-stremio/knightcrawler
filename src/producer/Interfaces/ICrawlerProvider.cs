@@ -1,4 +1,4 @@
-namespace Scraper.Interfaces;
+namespace Producer.Interfaces;
 
 public interface ICrawlerProvider
 {

@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers.Sites;
+namespace Producer.Crawlers.Sites;
 
 public class EzTvCrawler(IHttpClientFactory httpClientFactory, ILogger<EzTvCrawler> logger, IDataStorage storage) : BaseXmlCrawler(httpClientFactory, logger, storage)
 {

@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers;
+namespace Producer.Crawlers;
 
 public abstract class BaseJsonCrawler(IHttpClientFactory httpClientFactory, ILogger<BaseJsonCrawler> logger, IDataStorage storage) : BaseCrawler(logger, storage)
 {

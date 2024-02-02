@@ -1,4 +1,4 @@
-﻿namespace Scraper.Models;
+﻿namespace Producer.Models;
 
 public class GithubConfiguration
 {

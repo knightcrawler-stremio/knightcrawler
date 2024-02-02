@@ -1,4 +1,4 @@
-namespace Scraper.Jobs;
+namespace Producer.Jobs;
 
 [DisallowConcurrentExecution]
 public class IPJob(IIpService ipService) : IJob

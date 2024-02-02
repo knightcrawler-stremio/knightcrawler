@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers.Sites;
+namespace Producer.Crawlers.Sites;
 
 public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<TgxCrawler> logger, IDataStorage storage) : BaseXmlCrawler(httpClientFactory, logger, storage)
 {

@@ -1,4 +1,4 @@
-namespace Scraper.Extensions;
+namespace Producer.Extensions;
 
 internal static class ConfigureHostBuilderExtensions
 {

@@ -1,4 +1,6 @@
-namespace Scraper.Jobs;
+using Producer.Crawlers.Sites;
+
+namespace Producer.Jobs;
 
 [DisallowConcurrentExecution]
 public class SyncTpbJob(ICrawlerProvider crawlerProvider) : BaseJob(crawlerProvider)

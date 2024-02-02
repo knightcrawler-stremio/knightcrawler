@@ -1,4 +1,6 @@
-namespace Scraper.Jobs;
+using DebridMediaManagerCrawler = Producer.Crawlers.Sites.DebridMediaManagerCrawler;
+
+namespace Producer.Jobs;
 
 [DisallowConcurrentExecution]
 public class SyncDmmJob(ICrawlerProvider crawlerProvider) : BaseJob(crawlerProvider)

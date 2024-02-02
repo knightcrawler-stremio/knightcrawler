@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers.Sites;
+namespace Producer.Crawlers.Sites;
 
 public class YtsCrawler(IHttpClientFactory httpClientFactory, ILogger<YtsCrawler> logger, IDataStorage storage) : BaseXmlCrawler(httpClientFactory, logger, storage)
 {

@@ -1,4 +1,4 @@
-namespace Scraper.Jobs;
+namespace Producer.Jobs;
 
 public abstract class BaseJob(ICrawlerProvider crawlerProvider) : IJob
 {

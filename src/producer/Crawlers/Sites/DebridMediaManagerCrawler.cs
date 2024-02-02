@@ -1,4 +1,4 @@
-namespace Scraper.Crawlers.Sites;
+namespace Producer.Crawlers.Sites;
 
 public partial class DebridMediaManagerCrawler(
     IHttpClientFactory httpClientFactory,
@@ -83,6 +83,7 @@ public partial class DebridMediaManagerCrawler(
         if (!result.Success)
         {
             logger.LogWarning("Failed to mark page as ingested: [{Error}]", result.ErrorMessage);
+            return;
         }
         
         logger.LogInformation("Successfully marked page as ingested");
