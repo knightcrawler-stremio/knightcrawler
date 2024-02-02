@@ -1,0 +1,103 @@
+version: '3.8'
+name: torrentio-selfhostio
+
+x-restart: &restart-policy
+  "unless-stopped"
+
+x-basehealth: &base-health
+  interval: 10s
+  timeout: 10s
+  retries: 3
+  start_period: 10s
+
+x-rabbithealth: &rabbitmq-health
+  test: rabbitmq-diagnostics -q ping
+  <<: *base-health
+  
+x-mongohealth: &mongodb-health
+  test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+  <<: *base-health
+
+x-postgreshealth: &postgresdb-health
+  test: pg_isready
+  <<: *base-health
+
+x-apps: &selfhostio-app
+  depends_on:
+    mongodb:
+      condition: service_healthy
+    postgres:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+  restart: *restart-policy
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: selfhostio
+      PGUSER: postgres # needed for healthcheck.
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck: *postgresdb-health
+    restart: *restart-policy
+    
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo:/data/db
+    restart: *restart-policy
+    healthcheck: *mongodb-health
+    
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    restart: *restart-policy
+    healthcheck: *rabbitmq-health
+
+  producer:
+    build:
+      context: src/producer
+      dockerfile: Dockerfile
+    env_file:
+      - env/producer.env
+    <<: *selfhostio-app
+
+  consumer:
+    build:
+      context: src/node/consumer
+      dockerfile: Dockerfile
+    env_file:
+      - env/consumer.env
+    deploy:
+      replicas: 3
+    <<: *selfhostio-app
+    
+  addon:
+    build:
+      context: src/node/addon
+      dockerfile: Dockerfile
+    ports:
+      - "7000:7000"
+    env_file:
+      - env/addon.env
+    <<: *selfhostio-app
+
+volumes:
+  postgres:
+  mongo:
+  rabbitmq:

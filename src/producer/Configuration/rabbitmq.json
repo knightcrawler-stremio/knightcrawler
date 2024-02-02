@@ -1,0 +1,12 @@
+{
+  "RabbitMqConfiguration": {
+    "Host": "localhost",
+    "Username": "guest",
+    "Password": "guest",
+    "QueueName": "test-queue",
+    "Durable": true,
+    "MaxQueueSize": 0,
+    "MaxPublishBatchSize": 1,
+    "PublishIntervalInSeconds": 10
+  }
+}

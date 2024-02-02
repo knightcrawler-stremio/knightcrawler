@@ -1,0 +1,32 @@
+{
+  "ScrapeConfiguration": {
+    "StorageConnectionString": "",
+    "Scrapers": [
+      {
+        "Name": "SyncEzTvJob",
+        "IntervalSeconds": 60,
+        "Enabled": true
+      },
+      {
+        "Name": "SyncTpbJob",
+        "IntervalSeconds": 60,
+        "Enabled": true
+      },
+      {
+        "Name": "SyncYtsJob",
+        "IntervalSeconds": 60,
+        "Enabled": true
+      },
+      {
+        "Name": "SyncTgxJob",
+        "IntervalSeconds": 60,
+        "Enabled": true
+      },
+      {
+        "Name": "SyncDmmJob",
+        "IntervalSeconds": 1800,
+        "Enabled": true
+      }
+    ]
+  }
+}

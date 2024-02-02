@@ -1,0 +1,48 @@
+{
+  "name": "jackettio-addon",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.js",
+    "dev": "tsx watch --ignore node_modules src/index.js",
+    "start": "node dist/index.cjs",
+    "lint": "eslint . --ext .ts,.js"
+  },
+  "dependencies": {
+    "@putdotio/api-client": "^8.42.0",
+    "all-debrid-api": "^1.1.0",
+    "axios": "^1.6.1",
+    "bottleneck": "^2.19.5",
+    "cache-manager": "^3.4.4",
+    "cache-manager-mongodb": "^0.3.0",
+    "cors": "^2.8.5",
+    "debrid-link-api": "^1.0.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "magnet-uri": "^6.2.0",
+    "named-queue": "^2.2.1",
+    "offcloud-api": "^1.0.2",
+    "parse-torrent-title": "git://github.com/TheBeastLT/parse-torrent-title.git#022408972c2a040f846331a912a6a8487746a654",
+    "premiumize-api": "^1.0.3",
+    "real-debrid-api": "git://github.com/TheBeastLT/node-real-debrid.git#d1f7eaa8593b947edbfbc8a92a176448b48ef445",
+    "request-ip": "^3.3.0",
+    "router": "^1.3.8",
+    "stremio-addon-sdk": "^1.6.10",
+    "ua-parser-js": "^1.0.36",
+    "url-join": "^5.0.0",
+    "user-agents": "^1.0.1444",
+    "video-name-parser": "^1.4.6",
+    "xml-js": "^1.6.11",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.6",
+    "@types/stremio-addon-sdk": "^1.6.10",
+    "esbuild": "^0.19.12",
+    "esbuild-plugin-copy": "^2.1.1",
+    "eslint": "^8.56.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-import-helpers": "^1.3.1",
+    "tsx": "^4.7.0"
+  }
+}
