@@ -1,7 +1,6 @@
 {
   "name": "jackettio-addon",
   "version": "0.0.1",
-  "exports": "./index.js",
   "type": "module",
   "scripts": {
     "build": "node esbuild.js",

@@ -1,6 +1,6 @@
 import axios from 'axios';
-import nameToImdb from 'name-to-imdb';
 import { search } from 'google-sr';
+import nameToImdb from 'name-to-imdb';
 import { cacheWrapImdbId, cacheWrapKitsuId, cacheWrapMetadata } from './cache.js';
 import { Type } from './types.js';
 

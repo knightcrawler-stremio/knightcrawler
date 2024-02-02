@@ -1,6 +1,6 @@
-import { cacheConfig } from './config.js';
 import cacheManager from 'cache-manager';
 import mangodbStore from 'cache-manager-mongodb';
+import { cacheConfig } from './config.js';
 
 const GLOBAL_KEY_PREFIX = 'selfhostio-consumer';
 const IMDB_ID_PREFIX = `${GLOBAL_KEY_PREFIX}|imdb_id`;

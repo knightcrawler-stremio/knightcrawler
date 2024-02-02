@@ -1,18 +1,29 @@
-FROM node:lts-buster-slim
-
-# RUN apk update && apk upgrade && \
-#     apk add --no-cache git curl
+FROM node:lts-buster-slim as builder
 
 RUN apt-get update && \
-    apt-get install -y curl git && \
-    apt-get clean && \
+    apt-get install -y git && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/node/app
+WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --only-production
+RUN npm install
 COPY . .
-RUN chmod a+x ./check-ip.sh
+RUN npm run build
 
-CMD [ "node", "--no-warnings=ExperimentalWarning", "index.js" ]
+# --- Runtime Stage ---
+FROM node:lts-buster-slim
+
+# Install pm2
+RUN npm install pm2 -g
+
+WORKDIR /app
+
+ENV NODE_ENV production
+
+COPY --from=builder /app ./
+RUN npm prune --omit=dev
+
+EXPOSE 7001
+
+ENTRYPOINT [ "pm2-runtime", "start", "ecosystem.config.cjs"]

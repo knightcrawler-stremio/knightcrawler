@@ -1,11 +1,11 @@
 import { parse } from 'parse-torrent-title';
-import { Type } from './types.js';
+import { getImdbId, getKitsuId } from './metadata.js';
+import { isPackTorrent } from './parseHelper.js';
 import * as Promises from './promises.js';
 import * as repository from './repository.js';
-import { getImdbId, getKitsuId } from './metadata.js';
 import { parseTorrentFiles } from './torrentFiles.js';
 import { assignSubtitles } from './torrentSubtitles.js';
-import { isPackTorrent } from './parseHelper.js';
+import { Type } from './types.js';
 
 export async function createTorrentEntry(torrent, overwrite = false) {
   const titleInfo = parse(torrent.title);

@@ -1,14 +1,14 @@
-import moment from 'moment';
 import Bottleneck from 'bottleneck';
 import distance from 'jaro-winkler';
+import moment from 'moment';
 import { parse } from 'parse-torrent-title';
-import * as Promises from './promises.js';
+import { metadataConfig } from './config.js';
+import { isDisk } from './extension.js';
 import { getMetadata, getImdbId, getKitsuId } from './metadata.js';
 import { parseSeriesVideos, isPackTorrent } from './parseHelper.js';
-import { Type } from './types.js';
-import { isDisk } from './extension.js';
+import * as Promises from './promises.js';
 import {torrentFiles} from "./torrent.js";
-import { metadataConfig } from './config.js';
+import { Type } from './types.js';
 
 const MIN_SIZE = 5 * 1024 * 1024; // 5 MB
 const imdb_limiter = new Bottleneck({ maxConcurrent: metadataConfig.IMDB_CONCURRENT, minTime: metadataConfig.IMDB_INTERVAL_MS });

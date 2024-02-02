@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "checkJs": true,
+    "isolatedModules": true,
+    "lib": ["es6"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "pretty": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "target": "ES6",
+    "types": ["node"],
+    "typeRoots": ["node_modules/@types", "src/@types"]
+  },
+  "exclude": ["node_modules"]
+}

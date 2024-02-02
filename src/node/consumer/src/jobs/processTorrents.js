@@ -1,7 +1,7 @@
-﻿import { rabbitConfig, jobConfig } from '../lib/config.js'
-import { processTorrentRecord } from "../lib/ingestedTorrent.js";
-import amqp from 'amqplib'
+﻿import amqp from 'amqplib'
 import Promise from 'bluebird'
+import { rabbitConfig, jobConfig } from '../lib/config.js'
+import { processTorrentRecord } from "../lib/ingestedTorrent.js";
 
 const assertQueueOptions = { durable: true }
 const consumeQueueOptions = { noAck: false }

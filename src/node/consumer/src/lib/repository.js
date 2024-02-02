@@ -1,7 +1,7 @@
 import moment from 'moment';
-import * as Promises from './promises.js';
 import { Sequelize, Op, DataTypes, fn, col, literal } from 'sequelize';
 import { databaseConfig } from './config.js';
+import * as Promises from './promises.js';
 
 const database = new Sequelize(
     databaseConfig.DATABASE_URI,
