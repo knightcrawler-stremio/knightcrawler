@@ -1,0 +1,155 @@
+import DebridLinkClient from 'debrid-link-api';
+import { isVideo, isArchive } from '../lib/extension.js';
+import { getMagnetLink } from '../lib/magnetHelper.js';
+import { Type } from '../lib/types.js';
+import { chunkArray, BadTokenError } from './mochHelper.js';
+import StaticResponse from './static.js';
+
+const KEY = 'debridlink';
+
+export async function getCachedStreams(streams, apiKey) {
+  const options = await getDefaultOptions();
+  const DL = new DebridLinkClient(apiKey, options);
+  const hashBatches = chunkArray(streams.map(stream => stream.infohash), 50)
+      .map(batch => batch.join(','));
+  const available = await Promise.all(hashBatches.map(hashes => DL.seedbox.cached(hashes)))
+      .then(results => results.map(result => result.value))
+      .then(results => results.reduce((all, result) => Object.assign(all, result), {}))
+      .catch(error => {
+        if (toCommonError(error)) {
+          return Promise.reject(error);
+        }
+        console.warn('Failed DebridLink cached torrent availability request:', error);
+        return undefined;
+      });
+  return available && streams
+      .reduce((mochStreams, stream) => {
+        const cachedEntry = available[stream.infohash];
+        mochStreams[stream.infohash] = {
+          url: `${apiKey}/${stream.infohash}/null/${stream.fileIdx}`,
+          cached: !!cachedEntry
+        };
+        return mochStreams;
+      }, {})
+}
+
+export async function getCatalog(apiKey, offset = 0) {
+  if (offset > 0) {
+    return [];
+  }
+  const options = await getDefaultOptions();
+  const DL = new DebridLinkClient(apiKey, options);
+  return DL.seedbox.list()
+      .then(response => response.value)
+      .then(torrents => (torrents || [])
+          .filter(torrent => torrent && statusReady(torrent))
+          .map(torrent => ({
+            id: `${KEY}:${torrent.id}`,
+            type: Type.OTHER,
+            name: torrent.name
+          })));
+}
+
+export async function getItemMeta(itemId, apiKey, ip) {
+  const options = await getDefaultOptions(ip);
+  const DL = new DebridLinkClient(apiKey, options);
+  return DL.seedbox.list(itemId)
+      .then(response => response.value[0])
+      .then(torrent => ({
+        id: `${KEY}:${torrent.id}`,
+        type: Type.OTHER,
+        name: torrent.name,
+        infohash: torrent.hashString.toLowerCase(),
+        videos: torrent.files
+            .filter(file => isVideo(file.name))
+            .map((file, index) => ({
+              id: `${KEY}:${torrent.id}:${index}`,
+              title: file.name,
+              released: new Date(torrent.created * 1000 - index).toISOString(),
+              streams: [{ url: file.downloadUrl }]
+            }))
+      }))
+}
+
+export async function resolve({ ip, apiKey, infohash, fileIndex }) {
+  console.log(`Unrestricting DebridLink ${infohash} [${fileIndex}]`);
+  const options = await getDefaultOptions(ip);
+  const DL = new DebridLinkClient(apiKey, options);
+
+  return _resolve(DL, infohash, fileIndex)
+      .catch(error => {
+        if (errorExpiredSubscriptionError(error)) {
+          console.log(`Access denied to DebridLink ${infohash} [${fileIndex}]`);
+          return StaticResponse.FAILED_ACCESS;
+        }
+        return Promise.reject(`Failed DebridLink adding torrent ${JSON.stringify(error)}`);
+      });
+}
+
+async function _resolve(DL, infohash, fileIndex) {
+  const torrent = await _createOrFindTorrent(DL, infohash);
+  if (torrent && statusReady(torrent)) {
+    return _unrestrictLink(DL, torrent, fileIndex);
+  } else if (torrent && statusDownloading(torrent)) {
+    console.log(`Downloading to DebridLink ${infohash} [${fileIndex}]...`);
+    return StaticResponse.DOWNLOADING;
+  }
+
+  return Promise.reject(`Failed DebridLink adding torrent ${JSON.stringify(torrent)}`);
+}
+
+async function _createOrFindTorrent(DL, infohash) {
+  return _findTorrent(DL, infohash)
+      .catch(() => _createTorrent(DL, infohash));
+}
+
+async function _findTorrent(DL, infohash) {
+  const torrents = await DL.seedbox.list().then(response => response.value);
+  const foundTorrents = torrents.filter(torrent => torrent.hashString.toLowerCase() === infohash);
+  return foundTorrents[0] || Promise.reject('No recent torrent found');
+}
+
+async function _createTorrent(DL, infohash) {
+  const magnetLink = await getMagnetLink(infohash);
+  const uploadResponse = await DL.seedbox.add(magnetLink, null, true);
+  return uploadResponse.value;
+}
+
+async function _unrestrictLink(DL, torrent, fileIndex) {
+  const targetFile = Number.isInteger(fileIndex)
+      ? torrent.files[fileIndex]
+      : torrent.files.filter(file => file.downloadPercent === 100).sort((a, b) => b.size - a.size)[0];
+
+  if (!targetFile && torrent.files.every(file => isArchive(file.downloadUrl))) {
+    console.log(`Only DebridLink archive is available for [${torrent.hashString}] ${fileIndex}`)
+    return StaticResponse.FAILED_RAR;
+  }
+  if (!targetFile || !targetFile.downloadUrl) {
+    return Promise.reject(`No DebridLink links found for index ${fileIndex} in: ${JSON.stringify(torrent)}`);
+  }
+  console.log(`Unrestricted DebridLink ${torrent.hashString} [${fileIndex}] to ${targetFile.downloadUrl}`);
+  return targetFile.downloadUrl;
+}
+
+async function getDefaultOptions(ip) {
+  return { ip, timeout: 10000 };
+}
+
+export function toCommonError(error) {
+  if (error === 'badToken') {
+    return BadTokenError;
+  }
+  return undefined;
+}
+
+function statusDownloading(torrent) {
+  return torrent.downloadPercent < 100
+}
+
+function statusReady(torrent) {
+  return torrent.downloadPercent === 100;
+}
+
+function errorExpiredSubscriptionError(error) {
+  return ['freeServerOverload', 'maxTorrent', 'maxLink', 'maxLinkHost', 'maxData', 'maxDataHost'].includes(error);
+}
