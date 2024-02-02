@@ -1,8 +1,16 @@
-# Torrentio
+# Selfhostio
 
-- [torrentio-addon](addon) - the Stremio addon which will query scraped entries and return Stremio stream results.
+A self-hosted Stremio addon for streaming torrents via a debrid service.
 
-## Self-hosted quickstart
+## Overview
+
+Stremio is a media player. On it's own it will not allow you to watch anything. This addon at it's core does the following:
+
+1. It will search the internet and collect information about movies and tv show torrents, then store it in a database.
+2. It will then allow you to click on the movie or tv show you desire in Stremio and play it with no further effort.
+
+## Using
+
 ```
 docker-compose up -d
 ```
