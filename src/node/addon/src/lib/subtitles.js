@@ -1,7 +1,5 @@
 import { parse } from 'parse-torrent-title';
 import { isExtension } from './extension.js';
-import { Providers } from './filter.js';
-import { languageFromCode } from './languages.js';
 
 const languageMapping = {
   'english': 'eng',
@@ -68,17 +66,12 @@ export function getSubtitles(record) {
 function parseLanguage(title, record) {
   const subtitlePathParts = title.split('/');
   const subtitleFileName = subtitlePathParts.pop();
-  const subtitleTitleNoExt = title.replace(/\.\w{2,5}$/, '');
   const videoFileName = record.title.split('/').pop().replace(/\.\w{2,5}$/, '');
   const fileNameLanguage = getSingleLanguage(subtitleFileName.replace(videoFileName, ''));
   if (fileNameLanguage) {
     return fileNameLanguage;
   }
-  const videoTitleNoExt = record.title.replace(/\.\w{2,5}$/, '');
-  if (subtitleTitleNoExt === record.title || subtitleTitleNoExt === videoTitleNoExt) {
-    const provider = Providers.options.find(provider => provider.label === record.torrent.provider);
-    return provider?.foreign && languageFromCode(provider.foreign) || 'eng';
-  }
+
   const folderName = subtitlePathParts.join('/');
   const folderNameLanguage = getSingleLanguage(folderName.replace(videoFileName, ''));
   if (folderNameLanguage) {

@@ -1,11 +1,11 @@
 import Bottleneck from 'bottleneck';
 import { addonBuilder } from 'stremio-addon-sdk';
-import { Type } from './lib/types.js';
-import { dummyManifest } from './lib/manifest.js';
 import { cacheWrapStream } from './lib/cache.js';
-import { toStreamInfo, applyStaticInfo } from './lib/streamInfo.js';
+import { dummyManifest } from './lib/manifest.js';
 import * as repository from './lib/repository.js';
 import applySorting from './lib/sort.js';
+import { toStreamInfo, applyStaticInfo } from './lib/streamInfo.js';
+import { Type } from './lib/types.js';
 import { applyMochs, getMochCatalog, getMochItemMeta } from './moch/moch.js';
 import StaticLinks from './moch/static.js';
 
@@ -79,27 +79,24 @@ async function streamHandler(args) {
 }
 
 async function seriesRecordsHandler(args) {
-  if (args.id.match(/^tt\d+:\d+:\d+$/)) {
-    const parts = args.id.split(':');
-    const imdbId = parts[0];
-    const season = parts[1] !== undefined ? parseInt(parts[1], 10) : 1;
-    const episode = parts[2] !== undefined ? parseInt(parts[2], 10) : 1;
-    return repository.getImdbIdSeriesEntries(imdbId, season, episode);
-  } else if (args.id.match(/^kitsu:\d+(?::\d+)?$/i)) {
-    const parts = args.id.split(':');
-    const kitsuId = parts[1];
-    const episode = parts[2] !== undefined ? parseInt(parts[2], 10) : undefined;
-    return episode !== undefined
-        ? repository.getKitsuIdSeriesEntries(kitsuId, episode)
-        : repository.getKitsuIdMovieEntries(kitsuId);
-  }
-  return Promise.resolve([]);
+    if (args.id.match(/^tt\d+:\d+:\d+$/)) {
+        const [imdbId, season = "1", episode = "1"] = args.id.split(':');
+        const parsedSeason = parseInt(season, 10);
+        const parsedEpisode = parseInt(episode, 10);
+        return repository.getImdbIdSeriesEntries(imdbId, parsedSeason, parsedEpisode);
+    } else if (args.id.match(/^kitsu:\d+(?::\d+)?$/i)) {
+        const [, kitsuId, episodePart] = args.id.split(':');
+        const episode = episodePart !== undefined ? parseInt(episodePart, 10) : undefined;
+        return episode !== undefined
+            ? repository.getKitsuIdSeriesEntries(kitsuId, episode)
+            : repository.getKitsuIdMovieEntries(kitsuId);
+    }
+    return Promise.resolve([]);
 }
 
 async function movieRecordsHandler(args) {
   if (args.id.match(/^tt\d+$/)) {
-    const parts = args.id.split(':');
-    const imdbId = parts[0];
+    const [imdbId] = args.id.split(':');
     console.log("imdbId", imdbId);
     return repository.getImdbIdMovieEntries(imdbId);
   } else if (args.id.match(/^kitsu:\d+(?::\d+)?$/i)) {

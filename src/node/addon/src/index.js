@@ -1,11 +1,10 @@
 import express from 'express';
-import serverless from './serverless.js';
 import { initBestTrackers } from './lib/magnetHelper.js';
-import {ipFilter} from "./lib/ipFilter.js";
+import serverless from './serverless.js';
 
 const app = express();
+
 app.enable('trust proxy');
-app.use(ipFilter);
 app.use(express.static('static', { maxAge: '1y' }));
 app.use((req, res, next) => serverless(req, res, next));
 app.listen(process.env.PORT || 7000, () => {

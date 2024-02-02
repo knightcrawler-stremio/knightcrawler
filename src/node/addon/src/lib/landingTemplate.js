@@ -184,14 +184,13 @@ a.install-link {
   box-shadow: 0 0 0 2pt rgb(30, 144, 255, 0.7);
 }
 `;
-import { Providers, QualityFilter, SizeFilter } from './filter.js';
-import { SortOptions } from './sort.js';
-import { LanguageOptions } from './languages.js';
-import { DebridOptions } from '../moch/options.js';
 import { MochOptions } from '../moch/moch.js';
+import { DebridOptions } from '../moch/options.js';
+import { QualityFilter, SizeFilter } from './filter.js';
+import { LanguageOptions } from './languages.js';
+import { SortOptions } from './sort.js';
 
 export default function landingTemplate(manifest, config = {}) {
-  const providers = config[Providers.key] || Providers.options.map(provider => provider.key);
   const sort = config[SortOptions.key] || SortOptions.options.qualitySeeders.key;
   const languages = config[LanguageOptions.key] || [];
   const qualityFilters = config[QualityFilter.key] || [];
@@ -211,9 +210,7 @@ export default function landingTemplate(manifest, config = {}) {
 
   const background = manifest.background || 'https://dl.strem.io/addon-background.jpg';
   const logo = manifest.logo || 'https://dl.strem.io/addon-logo.png';
-  const providersHTML = Providers.options
-      .map(provider => `<option value="${provider.key}">${provider.foreign ? provider.foreign + ' ' : ''}${provider.label}</option>`)
-      .join('\n');
+
   const sortOptionsHTML = Object.values(SortOptions.options)
       .map((option, i) => `<option value="${option.key}" ${i === 0 ? 'selected' : ''}>${option.description}</option>`)
       .join('\n');
@@ -267,11 +264,6 @@ export default function landingTemplate(manifest, config = {}) {
          </ul>
 
          <div class="separator"></div>
-         
-         <label class="label" for="iProviders">Providers:</label>
-         <select id="iProviders" class="input" onchange="generateInstallLink()" name="providers[]" multiple="multiple">
-            ${providersHTML}
-         </select>
          
          <label class="label" for="iSort">Sorting:</label>
          <select id="iSort" class="input" onchange="sortModeChange()">
@@ -356,12 +348,6 @@ export default function landingTemplate(manifest, config = {}) {
               const isTvAgent = /\\b(?:tv|wv)\\b/i.test(navigator.userAgent)
               const isDesktopMedia = window.matchMedia("(pointer:fine)").matches;
               if (isDesktopMedia && !isTvMedia && !isTvAgent) {
-                $('#iProviders').multiselect({ 
-                    nonSelectedText: 'All providers',
-                    buttonTextAlignment: 'left',
-                    onChange: () => generateInstallLink()
-                });
-                $('#iProviders').multiselect('select', [${providers.map(provider => '"' + provider + '"')}]);
                 $('#iLanguages').multiselect({ 
                     nonSelectedText: 'None',
                     buttonTextAlignment: 'left',
@@ -381,7 +367,6 @@ export default function landingTemplate(manifest, config = {}) {
                 });
                 $('#iDebridOptions').multiselect('select', [${debridOptions.map(option => '"' + option + '"')}]);
               } else {
-                $('#iProviders').val([${providers.map(provider => '"' + provider + '"')}]);
                 $('#iLanguages').val([${languages.map(language => '"' + language + '"')}]);
                 $('#iQualityFilter').val([${qualityFilters.map(filter => '"' + filter + '"')}]);
                 $('#iDebridOptions').val([${debridOptions.map(option => '"' + option + '"')}]);
@@ -422,8 +407,6 @@ export default function landingTemplate(manifest, config = {}) {
           }
           
           function generateInstallLink() {
-              const providersList = $('#iProviders').val() || [];
-              const providersValue = providersList.join(',');
               const qualityFilterValue = $('#iQualityFilter').val().join(',') || '';
               const sortValue = $('#iSort').val() || '';
               const languagesValue = $('#iLanguages').val().join(',') || [];
@@ -439,8 +422,6 @@ export default function landingTemplate(manifest, config = {}) {
               const putioClientIdValue = $('#iPutioClientId').val() || '';
               const putioTokenValue = $('#iPutioToken').val() || '';
               
-              
-              const providers = providersList.length && providersList.length < ${Providers.options.length} && providersValue;
               const qualityFilters = qualityFilterValue.length && qualityFilterValue;
               const sort = sortValue !== '${SortOptions.options.qualitySeeders.key}' && sortValue;
               const languages = languagesValue.length && languagesValue;
@@ -456,7 +437,6 @@ export default function landingTemplate(manifest, config = {}) {
               const putio = putioClientIdValue.length && putioTokenValue.length && putioClientIdValue.trim() + '@' + putioTokenValue.trim();
 
               let configurationValue = [
-                    ['${Providers.key}', providers],
                     ['${SortOptions.key}', sort],
                     ['${LanguageOptions.key}', languages],
                     ['${QualityFilter.key}', qualityFilters],

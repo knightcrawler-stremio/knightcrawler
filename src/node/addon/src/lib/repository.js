@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize';
-const Op = Sequelize.Op;
+
+const { Op } = Sequelize;
 
 const DATABASE_URI = process.env.DATABASE_URI || 'postgres://postgres:postgres@localhost:5432/postgres';
 

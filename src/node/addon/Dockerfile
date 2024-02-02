@@ -1,17 +1,29 @@
-FROM node:16-alpine
+# --- Build Stage ---
+FROM node:lts-alpine AS builder
 
 RUN apk update && apk upgrade && \
-    apk add --no-cache nodejs npm git curl && \
-    rm -fr /var/cache/apk/*
-    
+    apk add --no-cache git
+
 WORKDIR /app
 
-COPY package*.json .
-
-RUN npm ci --only-production
-
+COPY package*.json ./
+RUN npm install
 COPY . .
+RUN npm run build
+
+# --- Runtime Stage ---
+FROM node:lts-alpine
+
+# Install pm2
+RUN npm install pm2 -g
+
+WORKDIR /app
+
+ENV NODE_ENV production
+
+COPY --from=builder /app ./
+RUN npm prune --omit=dev
 
 EXPOSE 7000
 
-CMD ["/usr/bin/node", "--insecure-http-parser", "/app/index.js" ]
+ENTRYPOINT [ "pm2-runtime", "start", "ecosystem.config.cjs"]

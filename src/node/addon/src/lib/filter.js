@@ -1,30 +1,5 @@
-import { extractProvider, parseSize, extractSize } from './titleHelper.js';
+import { parseSize, extractSize } from './titleHelper.js';
 import { Type } from './types.js';
-export const Providers = {
-  key: 'providers',
-  options: [
-    {
-      key: 'YTS',
-      label: 'YTS'
-    },
-    {
-      key: 'EZTV',
-      label: 'EZTV'
-    },
-    {
-      key: 'DMM',
-      label: 'DMM'
-    },
-    {
-      key: 'TPB',
-      label: 'TPB'
-    },
-    {
-      key: 'TorrentGalaxy',
-      label: 'TorrentGalaxy'
-    }
-  ]
-};
 export const QualityFilter = {
   key: 'qualityfilter',
   options: [
@@ -121,25 +96,12 @@ export const QualityFilter = {
 export const SizeFilter = {
   key: 'sizefilter'
 }
-const defaultProviderKeys = Providers.options.map(provider => provider.key);
 
 export default function applyFilters(streams, config) {
   return [
-    filterByProvider,
     filterByQuality,
     filterBySize
   ].reduce((filteredStreams, filter) => filter(filteredStreams, config), streams);
-}
-
-function filterByProvider(streams, config) {
-  const providers = config.providers || defaultProviderKeys;
-  if (!providers?.length) {
-    return streams;
-  }
-  return streams.filter(stream => {
-    const provider = extractProvider(stream.title)
-    return providers.includes(provider);
-  })
 }
 
 function filterByQuality(streams, config) {
@@ -149,7 +111,7 @@ function filterByQuality(streams, config) {
   }
   const filterOptions = QualityFilter.options.filter(option => filters.includes(option.key));
   return streams.filter(stream => {
-    const streamQuality = stream.name.split('\n')[1];
+    const [ , streamQuality] = stream.name.split('\n');
     const bingeGroup = stream.behaviorHints?.bingeGroup;
     return !filterOptions.some(option => option.test(streamQuality, bingeGroup));
   });

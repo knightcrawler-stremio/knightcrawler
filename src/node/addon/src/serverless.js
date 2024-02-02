@@ -1,13 +1,13 @@
-import Router from 'router';
 import cors from 'cors';
 import rateLimit from "express-rate-limit";
+import qs from 'querystring';
 import requestIp from 'request-ip';
+import Router from 'router';
 import userAgentParser from 'ua-parser-js';
 import addonInterface from './addon.js';
-import qs from 'querystring';
-import { manifest } from './lib/manifest.js';
 import { parseConfiguration } from './lib/configuration.js';
 import landingTemplate from './lib/landingTemplate.js';
+import { manifest } from './lib/manifest.js';
 import * as moch from './moch/moch.js';
 
 const router = new Router();
@@ -104,4 +104,4 @@ export default function (req, res) {
     res.statusCode = 404;
     res.end();
   });
-};
+}

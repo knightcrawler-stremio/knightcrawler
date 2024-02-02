@@ -1,10 +1,10 @@
-import PremiumizeClient from 'premiumize-api';
 import magnet from 'magnet-uri';
-import { Type } from '../lib/types.js';
+import PremiumizeClient from 'premiumize-api';
 import { isVideo, isArchive } from '../lib/extension.js';
-import StaticResponse from './static.js';
 import { getMagnetLink } from '../lib/magnetHelper.js';
+import { Type } from '../lib/types.js';
 import { BadTokenError, chunkArray, sameFilename } from './mochHelper.js';
+import StaticResponse from './static.js';
 
 const KEY = 'premiumize';
 

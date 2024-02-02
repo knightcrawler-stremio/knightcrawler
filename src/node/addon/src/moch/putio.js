@@ -1,11 +1,11 @@
 import PutioClient from '@putdotio/api-client'
-import { isVideo } from '../lib/extension.js';
-import { delay } from '../lib/promises.js';
-import StaticResponse from './static.js';
-import { getMagnetLink } from '../lib/magnetHelper.js';
-import { Type } from "../lib/types.js";
 import { decode } from "magnet-uri";
+import { isVideo } from '../lib/extension.js';
+import { getMagnetLink } from '../lib/magnetHelper.js';
+import { delay } from '../lib/promises.js';
+import { Type } from "../lib/types.js";
 import { sameFilename } from "./mochHelper.js";
+import StaticResponse from './static.js';
 const PutioAPI = PutioClient.default;
 
 const KEY = 'putio';
@@ -196,10 +196,6 @@ function createPutioAPI(apiKey) {
   const Putio = new PutioAPI({ clientID: clientId });
   Putio.setToken(token);
   return Putio;
-}
-
-export function toCommonError(error) {
-  return undefined;
 }
 
 function statusError(status) {

@@ -1,9 +1,9 @@
 import AllDebridClient from 'all-debrid-api';
-import { Type } from '../lib/types.js';
 import { isVideo, isArchive } from '../lib/extension.js';
-import StaticResponse from './static.js';
 import { getMagnetLink } from '../lib/magnetHelper.js';
+import { Type } from '../lib/types.js';
 import { BadTokenError, AccessDeniedError, sameFilename } from './mochHelper.js';
+import StaticResponse from './static.js';
 
 const KEY = 'alldebrid';
 const AGENT = 'selfhostio';

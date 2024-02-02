@@ -1,8 +1,3 @@
-export function extractSeeders(title) {
-  const seedersMatch = title.match(/👤 (\d+)/);
-  return seedersMatch && parseInt(seedersMatch[1]) || 0;
-}
-
 export function extractSize(title) {
   const seedersMatch = title.match(/💾 ([\d.]+ \w+)/);
   return seedersMatch && parseSize(seedersMatch[1]) || 0;

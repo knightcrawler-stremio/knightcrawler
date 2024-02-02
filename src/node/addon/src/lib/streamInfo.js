@@ -1,8 +1,8 @@
 import titleParser from 'parse-torrent-title';
-import { Type } from './types.js';
 import { mapLanguages } from './languages.js';
-import { enrichStreamSources, getSources } from './magnetHelper.js';
+import { getSources } from './magnetHelper.js';
 import { getSubtitles } from './subtitles.js';
+import { Type } from './types.js';
 
 const ADDON_NAME = 'selfhostio';
 const SIZE_DELTA = 0.02;
@@ -108,7 +108,7 @@ export function applyStaticInfo(streams) {
 }
 
 function enrichStaticInfo(stream) {
-  return enrichSubtitles(enrichStreamSources({ ...stream }));
+  return enrichSubtitles(stream);
 }
 
 function enrichSubtitles(stream) {

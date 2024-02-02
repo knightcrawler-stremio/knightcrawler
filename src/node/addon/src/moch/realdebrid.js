@@ -1,11 +1,11 @@
 import RealDebridClient from 'real-debrid-api';
-import { Type } from '../lib/types.js';
-import { isVideo, isArchive } from '../lib/extension.js';
-import { delay } from '../lib/promises.js';
 import { cacheAvailabilityResults, getCachedAvailabilityResults } from '../lib/cache.js';
-import StaticResponse from './static.js';
+import { isVideo, isArchive } from '../lib/extension.js';
 import { getMagnetLink } from '../lib/magnetHelper.js';
+import { delay } from '../lib/promises.js';
+import { Type } from '../lib/types.js';
 import { chunkArray, BadTokenError, AccessDeniedError } from './mochHelper.js';
+import StaticResponse from './static.js';
 
 const MIN_SIZE = 5 * 1024 * 1024; // 5 MB
 const CATALOG_MAX_PAGE = 1;
