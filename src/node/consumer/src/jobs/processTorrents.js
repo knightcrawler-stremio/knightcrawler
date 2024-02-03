@@ -1,34 +1,37 @@
 ﻿import amqp from 'amqplib'
-import Promise from 'bluebird'
 import { rabbitConfig, jobConfig } from '../lib/config.js'
 import { processTorrentRecord } from "../lib/ingestedTorrent.js";
+import {logger} from "../lib/logger.js";
 
 const assertQueueOptions = { durable: true }
 const consumeQueueOptions = { noAck: false }
 
-const processMessage = msg =>
-    Promise.resolve(getMessageAsJson(msg))
-        .then(torrent => processTorrentRecord(torrent))
-        .then(() => Promise.resolve(msg));
-        
-const getMessageAsJson = msg => {
-    const torrent = JSON.parse(msg.content.toString());
-    return Promise.resolve(torrent.message);
-}
+const processMessage = msg => processTorrentRecord(getMessageAsJson(msg));
 
-const assertAndConsumeQueue = channel => {
-    console.log('Worker is running! Waiting for new torrents...')
+const getMessageAsJson = msg => 
+    JSON.parse(msg.content.toString()).message;
 
-    const ackMsg = msg => Promise.resolve(msg)
-        .then(msg => processMessage(msg))
-        .then(msg => channel.ack(msg))
-        .catch(error => console.error('Failed processing torrent', error));
+const assertAndConsumeQueue = async channel => {
+    logger.info('Worker is running! Waiting for new torrents...')
 
-    return channel.assertQueue(rabbitConfig.QUEUE_NAME, assertQueueOptions)
+    const ackMsg = msg => 
+    processMessage(msg)
+        .then(() => channel.ack(msg))
+        .catch(error => logger.error('Failed processing torrent', error));
+
+    channel.assertQueue(rabbitConfig.QUEUE_NAME, assertQueueOptions)
         .then(() => channel.prefetch(jobConfig.JOB_CONCURRENCY))
         .then(() => channel.consume(rabbitConfig.QUEUE_NAME, ackMsg, consumeQueueOptions))
+        .catch(error => logger.error('Failed to setup channel', error));
 }
 
-export const listenToQueue = () => amqp.connect(rabbitConfig.URI)
-    .then(connection => connection.createChannel())
-    .then(channel => assertAndConsumeQueue(channel))
+export const listenToQueue = async () => {
+        if (!jobConfig.JOBS_ENABLED) {
+            return;
+        }
+
+        return amqp.connect(rabbitConfig.URI)
+            .then(connection => connection.createChannel())
+            .then(channel => assertAndConsumeQueue(channel))
+            .catch(error => logger.error('Failed to connect and setup channel', error));
+    };
