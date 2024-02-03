@@ -79,8 +79,8 @@ Here's how to set up and use Grafana and Prometheus for monitoring RabbitMQ:
 
 1. **Start Grafana and Prometheus**: Run the following command to start both Grafana and Prometheus:
 
-   ```bash
-   docker-compose -f docker-compose-metrics.yml up -d
+   ```sh
+   docker compose -f docker-compose-metrics.yml up -d
    ```
 
    - Grafana will be available at [http://127.0.0.1:3000](http://127.0.0.1:3000).
