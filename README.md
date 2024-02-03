@@ -10,6 +10,9 @@ A self-hosted Stremio addon for streaming torrents via a debrid service.
   - [Using](#using)
     - [Initial setup (optional)](#initial-setup-optional)
     - [Run the project](#run-the-project)
+  - [Importing external dumps](#importing-external-dumps)
+    - [Import data into database](#import-data-into-database)
+    - [INSERT INTO ingested\_torrents](#insert-into-ingested_torrents)
   - [To-do](#to-do)
 
 
@@ -61,6 +64,35 @@ It will take a while to find and add the torrents to the database. During initia
 
 To add the addon to Stremio, open a web browser and navigate to: [http://127.0.0.1:7000](http://127.0.0.1:7000)
 
+## Importing external dumps
+
+A brief record of the steps required to import external data, in this case the rarbg dump which can be found on RD:
+
+### Import data into database
+
+I created a file `db.load` as follows..
+
+```
+load database
+     from sqlite:///tmp/rarbg_db.sqlite
+     into postgresql://postgres:postgres@localhost/selfhostio
+
+with include drop, create tables, create indexes, reset sequences
+
+  set work_mem to '16MB', maintenance_work_mem to '512 MB';
+```
+
+And ran `pgloader db.load` to create a new `items` table.
+
+### INSERT INTO ingested_torrents
+
+Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using:
+
+```
+INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, "createdAt", "updatedAt")
+SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
+FROM items where cat='tv' OR cat='movies';
+```
 
 ## To-do
 
