@@ -64,9 +64,9 @@ const cacheWrap = async (cacheType, key, method, options) => {
         return method();
     }
 
-    console.debug(`Cache type: ${cacheType}`);
-    console.debug(`Cache key: ${key}`);
-    console.debug(`Cache options: ${JSON.stringify(options)}`);
+    logger.debug(`Cache type: ${cacheType}`);
+    logger.debug(`Cache key: ${key}`);
+    logger.debug(`Cache options: ${JSON.stringify(options)}`);
         
     return cache.wrap(key, method, options.ttl);
 }
