@@ -1,0 +1,32 @@
+version: '3.8'
+name: torrentio-metrics
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.20.1
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    networks:
+      - torrentio-network
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin_password
+    depends_on:
+      - prometheus
+    networks:
+      - torrentio-network
+
+networks:
+  torrentio-network:
+    external: true
