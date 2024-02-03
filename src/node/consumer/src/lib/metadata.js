@@ -2,24 +2,24 @@ import axios from 'axios';
 import { search } from 'google-sr';
 import nameToImdb from 'name-to-imdb';
 import { cacheWrapImdbId, cacheWrapKitsuId, cacheWrapMetadata } from './cache.js';
-import { Type } from './types.js';
+import { TorrentType } from './types.js';
 
 const CINEMETA_URL = 'https://v3-cinemeta.strem.io';
 const KITSU_URL = 'https://anime-kitsu.strem.fun';
 const TIMEOUT = 20000;
 
-export function getMetadata(id, type = Type.SERIES) {
+export function getMetadata(id, type = TorrentType.SERIES) {
   if (!id) {
     return Promise.reject("no valid id provided");
   }
 
   const key = Number.isInteger(id) || id.match(/^\d+$/) ? `kitsu:${id}` : id;
-  const metaType = type === Type.MOVIE ? Type.MOVIE : Type.SERIES;
+  const metaType = type === TorrentType.MOVIE ? TorrentType.MOVIE : TorrentType.SERIES;
   return cacheWrapMetadata(key, () => _requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
       .catch(() => _requestMetadata(`${CINEMETA_URL}/meta/${metaType}/${key}.json`))
       .catch(() => {
         // try different type in case there was a mismatch
-        const otherType = metaType === Type.MOVIE ? Type.SERIES : Type.MOVIE;
+        const otherType = metaType === TorrentType.MOVIE ? TorrentType.SERIES : TorrentType.MOVIE;
         return _requestMetadata(`${CINEMETA_URL}/meta/${otherType}/${key}.json`)
       })
       .catch((error) => {

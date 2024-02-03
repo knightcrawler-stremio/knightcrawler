@@ -5,12 +5,13 @@ import * as Promises from './promises.js';
 import * as repository from './repository.js';
 import { parseTorrentFiles } from './torrentFiles.js';
 import { assignSubtitles } from './torrentSubtitles.js';
-import { Type } from './types.js';
+import { TorrentType } from './types.js';
+import {logger} from "./logger.js";
 
 export async function createTorrentEntry(torrent, overwrite = false) {
   const titleInfo = parse(torrent.title);
     
-  if (!torrent.imdbId && torrent.type !== Type.ANIME) {
+  if (!torrent.imdbId && torrent.type !== TorrentType.ANIME) {
     torrent.imdbId = await getImdbId(titleInfo, torrent.type)
         .catch(() => undefined);
   }
@@ -22,13 +23,13 @@ export async function createTorrentEntry(torrent, overwrite = false) {
     // sanitize imdbId from redundant zeros
     torrent.imdbId = torrent.imdbId.replace(/tt0+([0-9]{7,})$/, 'tt$1');
   }
-  if (!torrent.kitsuId && torrent.type === Type.ANIME) {
+  if (!torrent.kitsuId && torrent.type === TorrentType.ANIME) {
     torrent.kitsuId = await getKitsuId(titleInfo)
         .catch(() => undefined);
   }
 
   if (!torrent.imdbId && !torrent.kitsuId && !isPackTorrent(torrent)) {
-    console.log(`imdbId or kitsuId not found:  ${torrent.provider} ${torrent.title}`);
+    logger.warn(`imdbId or kitsuId not found:  ${torrent.provider} ${torrent.title}`);
     return;
   }
 
@@ -36,17 +37,17 @@ export async function createTorrentEntry(torrent, overwrite = false) {
       .then(torrentContents => overwrite ? overwriteExistingFiles(torrent, torrentContents) : torrentContents)
       .then(torrentContents => assignSubtitles(torrentContents))
       .catch(error => {
-        console.log(`Failed getting files for ${torrent.title}`, error.message);
+          logger.warn(`Failed getting files for ${torrent.title}`, error.message);
         return {};
       });
   if (!videos || !videos.length) {
-    console.log(`no video files found for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`);
+      logger.warn(`no video files found for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`);
     return;
   }
 
   return repository.createTorrent({ ...torrent, contents, subtitles })
       .then(() => Promises.sequence(videos.map(video => () => repository.createFile(video))))
-      .then(() => console.log(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
+      .then(() => logger.info(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
 }
 
 async function overwriteExistingFiles(torrent, torrentContents) {
@@ -106,7 +107,7 @@ export async function checkAndUpdateTorrent(torrent) {
   if (!storedTorrent.languages && torrent.languages && storedTorrent.provider !== 'RARBG') {
     storedTorrent.languages = torrent.languages;
     await storedTorrent.save();
-    console.log(`Updated [${storedTorrent.infoHash}] ${storedTorrent.title} language to ${torrent.languages}`);
+    logger.debug(`Updated [${storedTorrent.infoHash}] ${storedTorrent.title} language to ${torrent.languages}`);
   }
   return createTorrentContents({ ...storedTorrent.get(), torrentLink: torrent.torrentLink })
       .then(() => updateTorrentSeeders(torrent));
@@ -128,7 +129,7 @@ export async function createTorrentContents(torrent) {
       .then(torrentContents => notOpenedVideo ? torrentContents : { ...torrentContents, videos: storedVideos })
       .then(torrentContents => assignSubtitles(torrentContents))
       .catch(error => {
-        console.log(`Failed getting contents for [${torrent.infoHash}] ${torrent.title}`, error.message);
+        logger.warn(`Failed getting contents for [${torrent.infoHash}] ${torrent.title}`, error.message);
         return {};
       });
 
@@ -149,14 +150,14 @@ export async function createTorrentContents(torrent) {
   return repository.createTorrent({ ...torrent, contents, subtitles })
       .then(() => {
         if (shouldDeleteOld) {
-          console.error(`Deleting old video for [${torrent.infoHash}] ${torrent.title}`)
+          logger.debug(`Deleting old video for [${torrent.infoHash}] ${torrent.title}`)
           return storedVideos[0].destroy();
         }
         return Promise.resolve();
       })
       .then(() => Promises.sequence(videos.map(video => () => repository.createFile(video))))
-      .then(() => console.log(`Created contents for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`))
-      .catch(error => console.error(`Failed saving contents for [${torrent.infoHash}] ${torrent.title}`, error));
+      .then(() => logger.info(`Created contents for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`))
+      .catch(error => logger.error(`Failed saving contents for [${torrent.infoHash}] ${torrent.title}`, error));
 }
 
 export async function updateTorrentSeeders(torrent) {
@@ -166,7 +167,7 @@ export async function updateTorrentSeeders(torrent) {
 
   return repository.setTorrentSeeders(torrent, torrent.seeders)
       .catch(error => {
-        console.warn('Failed updating seeders:', error);
+        logger.warn('Failed updating seeders:', error);
         return undefined;
       });
 }
