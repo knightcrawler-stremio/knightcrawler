@@ -9,6 +9,7 @@ import { parseConfiguration } from './lib/configuration.js';
 import landingTemplate from './lib/landingTemplate.js';
 import { manifest } from './lib/manifest.js';
 import * as moch from './moch/moch.js';
+import { computeTorrentStatistics } from './lib/repository.js';
 
 const router = new Router();
 const limiter = rateLimit({
@@ -97,6 +98,20 @@ router.get('/:moch/:apiKey/:infoHash/:cachedEntryInfo/:fileIndex/:filename?', (r
         res.statusCode = 404;
         res.end();
       });
+});
+
+/**
+ * Temporary solution to provide statistics (NOT FOR PRODUCTION USE)
+ * easy way to know how many torrents are stored in the PG database
+ * These data should not be exposed to the public
+ */
+router.get('/statistics', async (req, res) => {
+  try {
+    const stats = await computeTorrentStatistics();
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to compute statistics' });
+  }
 });
 
 export default function (req, res) {
