@@ -101,7 +101,7 @@ services:
     labels:
       logging: "promtail"
     deploy:
-      replicas: 3
+      replicas: ${CONSUMER_REPLICAS}
     <<: *knightcrawler-app
     networks:
       - knightcrawler-network

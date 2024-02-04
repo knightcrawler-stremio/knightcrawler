@@ -16,6 +16,7 @@ A self-hosted Stremio addon for streaming torrents via a debrid service.
   - [Using](#using)
     - [Download Docker and Docker Compose v2](#download-docker-and-docker-compose-v2)
     - [Environment Setup](#environment-setup)
+      - [Optional Configuration Changes](#optional-configuration-changes)
     - [DebridMediaManager setup (optional)](#debridmediamanager-setup-optional)
     - [Run the project](#run-the-project)
     - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
@@ -53,6 +54,16 @@ cp .env.example .env
 ```
 
 Then set any of the values you wouldd like to customize.
+
+#### Optional Configuration Changes
+
+> [!WARNING]
+> These values should be tested and tuned for your specific machine.
+
+By default, Knight Crawler is configured to be *relatively* conservative in its resource usage. If running on a decent machine (16GB RAM, i5+ or equivalent), you can increase some settings to increase consumer throughput. This is especially helpful if you have a large backlog from [importing databases](#importing-external-dumps).
+
+In your `.env` file, under the `# Consumer` section increase `CONSUMER_REPLICAS` from `3` to `15`.
+You can also increase `JOB_CONCURRENCY` from `5` to `10`.
 
 ### DebridMediaManager setup (optional)
 
