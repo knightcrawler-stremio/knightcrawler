@@ -67,7 +67,7 @@ To add the addon to Stremio, open a web browser and navigate to: [http://127.0.0
 
 ### Monitoring with Grafana and Prometheus (Optional)
 
-To enhance your monitoring capabilities, you can use Grafana and Prometheus in addition to RabbitMQ's built-in management interface. This allows you to visualize and analyze RabbitMQ metrics with more flexibility.
+To enhance your monitoring capabilities, you can use Grafana and Prometheus in addition to RabbitMQ's built-in management interface. This allows you to visualize and analyze RabbitMQ metrics with more flexibility. With postgres-exporter service, you can also monitor Postgres metrics.
 
 #### Accessing RabbitMQ Management
 
@@ -92,10 +92,12 @@ Here's how to set up and use Grafana and Prometheus for monitoring RabbitMQ:
 
    - You can use the following dashboard from Grafana's official library: [RabbitMQ Overview Dashboard](https://grafana.com/grafana/dashboards/10991-rabbitmq-overview/).
 
+   - You can alse use the following dashboard [PostgreSQL Database](https://grafana.com/grafana/dashboards/9628-postgresql-database/) to monitor Postgres metrics.
+
    The Prometheus data source is already configured in Grafana, you just have to select it when importing the dashboard.
 
 
-Now, you can use the imported dashboard to visualize RabbitMQ metrics collected by Prometheus.
+Now, you can use these dashboards to monitor RabbitMQ and Postgres metrics.
 
 Note: If you encounter issues with missing or unavailable data in Grafana, please ensure on [Prometheus's target page](http://127.0.0.1:9090/targets) that the RabbitMQ target is up and running.
 
