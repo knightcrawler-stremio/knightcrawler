@@ -1,4 +1,4 @@
-﻿namespace Producer.Models;
+﻿namespace Producer.Models.Configuration;
 
 public class GithubConfiguration
 {

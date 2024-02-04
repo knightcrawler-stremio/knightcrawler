@@ -1,3 +1,5 @@
+using Producer.Models.Configuration;
+
 namespace Producer.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -20,6 +22,7 @@ public static class ServiceCollectionExtensions
     
     internal static IServiceCollection AddDataStorage(this IServiceCollection services)
     {
+        services.LoadConfigurationFromEnv<PostgresConfiguration>();
         services.AddTransient<IDataStorage, DapperDataStorage>();
         services.AddTransient<IMessagePublisher, TorrentPublisher>();
         return services;
@@ -36,9 +39,9 @@ public static class ServiceCollectionExtensions
         services.AddMassTransit(busConfigurator =>
         {
             busConfigurator.SetKebabCaseEndpointNameFormatter();
-            busConfigurator.UsingRabbitMq((context, busFactoryConfigurator) =>
+            busConfigurator.UsingRabbitMq((_, busFactoryConfigurator) =>
             {
-                busFactoryConfigurator.Host(rabbitConfig!.Host, hostConfigurator =>
+                busFactoryConfigurator.Host(rabbitConfig.Host, hostConfigurator =>
                 {
                     hostConfigurator.Username(rabbitConfig.Username);
                     hostConfigurator.Password(rabbitConfig.Password);
@@ -51,9 +54,9 @@ public static class ServiceCollectionExtensions
     
     internal static IServiceCollection AddQuartz(this IServiceCollection services, IConfiguration configuration)
     {
-        var scrapeConfiguration = LoadScrapeConfiguration(services, configuration);
-        var githubConfiguration = LoadGithubConfiguration(services, configuration);
-        var rabbitConfig = LoadRabbitMQConfiguration(services, configuration);
+        var scrapeConfiguration = services.LoadConfigurationFromConfig<ScrapeConfiguration>(configuration, ScrapeConfiguration.SectionName);
+        var githubConfiguration = services.LoadConfigurationFromConfig<GithubConfiguration>(configuration, GithubConfiguration.SectionName);
+        var rabbitConfig = services.LoadConfigurationFromConfig<RabbitMqConfiguration>(configuration, RabbitMqConfiguration.SectionName);
 
         services
             .AddTransient<SyncEzTvJob>()
@@ -92,46 +95,29 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-
-    private static GithubConfiguration LoadGithubConfiguration(IServiceCollection services, IConfiguration configuration)
+    
+    private static TConfiguration LoadConfigurationFromConfig<TConfiguration>(this IServiceCollection services, IConfiguration configuration, string sectionName)
+        where TConfiguration : class
     {
-        var githubConfiguration = configuration.GetSection(GithubConfiguration.SectionName).Get<GithubConfiguration>();
+        var instance = configuration.GetSection(sectionName).Get<TConfiguration>();
         
-        ArgumentNullException.ThrowIfNull(githubConfiguration, nameof(githubConfiguration));
-        
-        services.TryAddSingleton(githubConfiguration);
+        ArgumentNullException.ThrowIfNull(instance, nameof(instance));
 
-        return githubConfiguration;
+        services.TryAddSingleton(instance);
+
+        return instance;
     }
-
-    private static RabbitMqConfiguration LoadRabbitMQConfiguration(IServiceCollection services, IConfiguration configuration)
+    
+    private static TConfiguration LoadConfigurationFromEnv<TConfiguration>(this IServiceCollection services)
+        where TConfiguration : class
     {
-        var rabbitConfiguration = configuration.GetSection(RabbitMqConfiguration.SectionName).Get<RabbitMqConfiguration>();
-
-        ArgumentNullException.ThrowIfNull(rabbitConfiguration, nameof(rabbitConfiguration));
-
-        if (rabbitConfiguration.MaxQueueSize > 0)
-        {
-            if (rabbitConfiguration.MaxPublishBatchSize > rabbitConfiguration.MaxQueueSize)
-            {
-                throw new InvalidOperationException("MaxPublishBatchSize cannot be greater than MaxQueueSize in RabbitMqConfiguration");
-            }
-        }
-
-        services.TryAddSingleton(rabbitConfiguration);
-
-        return rabbitConfiguration;
-    }
-
-    private static ScrapeConfiguration LoadScrapeConfiguration(IServiceCollection services, IConfiguration configuration)
-    {
-        var scrapeConfiguration = configuration.GetSection(ScrapeConfiguration.SectionName).Get<ScrapeConfiguration>();
+        var instance = Activator.CreateInstance<TConfiguration>();
         
-        ArgumentNullException.ThrowIfNull(scrapeConfiguration, nameof(scrapeConfiguration));
+        ArgumentNullException.ThrowIfNull(instance, nameof(instance));
 
-        services.TryAddSingleton(scrapeConfiguration);
+        services.TryAddSingleton(instance);
 
-        return scrapeConfiguration;
+        return instance;
     }
 
     private static void AddJobWithTrigger<TJobType>(

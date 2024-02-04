@@ -1,3 +1,5 @@
+using Producer.Models.Configuration;
+
 namespace Producer.Extensions;
 
 public static class ConfigurationExtensions

@@ -1,6 +1,5 @@
 {
   "ScrapeConfiguration": {
-    "StorageConnectionString": "",
     "Scrapers": [
       {
         "Name": "SyncEzTvJob",

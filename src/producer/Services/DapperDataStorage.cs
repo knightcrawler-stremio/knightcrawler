@@ -1,6 +1,8 @@
+using Producer.Models.Configuration;
+
 namespace Producer.Services;
 
-public class DapperDataStorage(ScrapeConfiguration configuration, RabbitMqConfiguration rabbitConfig, ILogger<DapperDataStorage> logger) : IDataStorage
+public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConfiguration rabbitConfig, ILogger<DapperDataStorage> logger) : IDataStorage
 {
     private const string InsertTorrentSql =
         """
