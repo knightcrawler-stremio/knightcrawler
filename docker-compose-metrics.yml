@@ -29,8 +29,6 @@ services:
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter
-    ports:
-      - "9187:9187"
     environment:
       DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/knightcrawler?sslmode=disable"
     networks:
