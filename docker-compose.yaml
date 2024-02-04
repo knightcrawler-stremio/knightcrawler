@@ -46,7 +46,9 @@ services:
       - postgres:/var/lib/postgresql/data
     healthcheck: *postgresdb-health
     restart: *restart-policy
-    
+    networks:
+      - torrentio-network
+
   mongodb:
     image: mongo:latest
     environment:
@@ -58,16 +60,21 @@ services:
       - mongo:/data/db
     restart: *restart-policy
     healthcheck: *mongodb-health
-    
+    networks:
+      - torrentio-network
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
       - "5672:5672"
       - "15672:15672"
+      - "15692:15692"
     volumes:
       - rabbitmq:/var/lib/rabbitmq
     restart: *restart-policy
     healthcheck: *rabbitmq-health
+    networks:
+      - torrentio-network
 
   producer:
     build:
@@ -76,6 +83,8 @@ services:
     env_file:
       - env/producer.env
     <<: *selfhostio-app
+    networks:
+      - torrentio-network
 
   consumer:
     build:
@@ -86,7 +95,9 @@ services:
     deploy:
       replicas: 3
     <<: *selfhostio-app
-    
+    networks:
+      - torrentio-network
+
   addon:
     build:
       context: src/node/addon
@@ -96,6 +107,13 @@ services:
     env_file:
       - env/addon.env
     <<: *selfhostio-app
+    networks:
+      - torrentio-network
+
+networks:
+  torrentio-network:
+    driver: bridge
+    name: torrentio-network
 
 volumes:
   postgres:

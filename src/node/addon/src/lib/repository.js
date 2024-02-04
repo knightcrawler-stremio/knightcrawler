@@ -130,3 +130,32 @@ export function getKitsuIdSeriesEntries(kitsuId, episode) {
     ]
   });
 }
+
+
+export async function computeTorrentStatistics() {
+  try {
+    // Global Stats
+    const totalTorrents = await Torrent.count();
+
+    // Stats by Provider
+    const torrentsByProvider = await Torrent.findAll({
+      attributes: ['provider', [Sequelize.fn('COUNT', Sequelize.col('provider')), 'count']],
+      group: ['provider']
+    });
+
+    // Stats by Content Type (Movie, Series, etc.)
+    const torrentsByType = await Torrent.findAll({
+      attributes: ['type', [Sequelize.fn('COUNT', Sequelize.col('type')), 'count']],
+      group: ['type']
+    });
+
+    return {
+      totalTorrents,
+      torrentsByProvider,
+      torrentsByType,
+    };
+  } catch (error) {
+    console.error('Error computing statistics:', error);
+    throw error;
+  }
+}
