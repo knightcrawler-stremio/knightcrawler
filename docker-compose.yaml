@@ -40,7 +40,7 @@ services:
     environment:
       PGUSER: postgres # needed for healthcheck.
     # # If you need the database to be accessible from outside, please open the below port.
-    # # Furthermore, please, please, please, change the username and password above.
+    # # Furthermore, please, please, please, change the username and password in the .env file.
     # # If you want to enhance your security even more, create a new user for the database with a strong password.
     # ports:
     #   - "5432:5432"
@@ -55,8 +55,10 @@ services:
     image: mongo:latest
     env_file:
       - .env
-    ports:
-      - "27017:27017"
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, change the username and password in the .env file.
+    # ports:
+    #   - "27017:27017"
     volumes:
       - mongo:/data/db
     restart: *restart-policy
