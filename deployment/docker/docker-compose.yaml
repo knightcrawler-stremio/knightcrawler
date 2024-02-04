@@ -82,7 +82,7 @@ services:
 
   producer:
     build:
-      context: src/producer
+      context: ../../src/producer
       dockerfile: Dockerfile
     labels:
       logging: "promtail"
@@ -94,7 +94,7 @@ services:
 
   consumer:
     build:
-      context: src/node/consumer
+      context: ../../src/node/consumer
       dockerfile: Dockerfile
     env_file:
       - .env
@@ -108,7 +108,7 @@ services:
 
   addon:
     build:
-      context: src/node/addon
+      context: ../../src/node/addon
       dockerfile: Dockerfile
     ports:
       - "7000:7000"
