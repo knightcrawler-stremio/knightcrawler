@@ -1,8 +1,7 @@
-version: '3.8'
+version: "3.8"
 name: knightcrawler
 
-x-restart: &restart-policy
-  "unless-stopped"
+x-restart: &restart-policy "unless-stopped"
 
 x-basehealth: &base-health
   interval: 10s
@@ -13,9 +12,9 @@ x-basehealth: &base-health
 x-rabbithealth: &rabbitmq-health
   test: rabbitmq-diagnostics -q ping
   <<: *base-health
-  
+
 x-mongohealth: &mongodb-health
-  test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+  test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
   <<: *base-health
 
 x-postgreshealth: &postgresdb-health
