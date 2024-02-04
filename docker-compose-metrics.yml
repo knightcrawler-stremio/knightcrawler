@@ -27,6 +27,15 @@ services:
     networks:
       - torrentio-network
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/selfhostio?sslmode=disable"
+    networks:
+      - torrentio-network
+
 networks:
   torrentio-network:
     external: true
