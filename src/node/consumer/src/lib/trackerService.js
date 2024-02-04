@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {cacheTrackers} from "./cache.js";
 import { trackerConfig } from './config.js';
+import {logger} from "./logger.js";
 
 const downloadTrackers = async () => {
     const response = await axios.get(trackerConfig.TRACKERS_URL);
@@ -15,7 +16,7 @@ const downloadTrackers = async () => {
         urlTrackers = urlTrackers.filter(line => !line.startsWith('udp://'));    
     }
 
-    console.log(`Trackers updated at ${Date.now()}: ${urlTrackers.length} trackers`);
+    logger.info(`Trackers updated at ${Date.now()}: ${urlTrackers.length} trackers`);
 
     return urlTrackers;
 };

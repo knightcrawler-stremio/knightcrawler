@@ -1,12 +1,13 @@
 import { createTorrentEntry, checkAndUpdateTorrent } from './torrentEntries.js';
 import {getTrackers} from "./trackerService.js";
-import { Type } from './types.js';
+import { TorrentType } from './types.js';
+import {logger} from "./logger.js";
 
 export async function processTorrentRecord(torrent) {
   const {category} = torrent;
-  const type = category === 'tv' ? Type.SERIES : Type.MOVIE;
+  const type = category === 'tv' ? TorrentType.SERIES : TorrentType.MOVIE;
   const torrentInfo = await parseTorrent(torrent, type);
-  console.log(`Processing torrent ${torrentInfo.title} with infoHash ${torrentInfo.infoHash}`)
+  logger.info(`Processing torrent ${torrentInfo.title} with infoHash ${torrentInfo.infoHash}`)
 
   if (await checkAndUpdateTorrent(torrentInfo)) {
     return torrentInfo;

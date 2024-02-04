@@ -1,5 +1,5 @@
 import { parse } from 'parse-torrent-title';
-import { Type } from './types.js';
+import { TorrentType } from './types.js';
 
 const MULTIPLE_FILES_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
 
@@ -65,7 +65,7 @@ function isMovieVideo(video, otherVideos, type, hasMovies) {
     // movie if video explicitly has numbered movie keyword in the name, ie. 1 Movie or Movie 1
     return true;
   }
-  if (!hasMovies && type !== Type.ANIME) {
+  if (!hasMovies && type !== TorrentType.ANIME) {
     // not movie if torrent name does not contain movies keyword or is not a pack torrent and is not anime
     return false;
   }
@@ -85,7 +85,7 @@ export function isPackTorrent(torrent) {
     return true;
   }
   const parsedInfo = parse(torrent.title);
-  if (torrent.type === Type.MOVIE) {
+  if (torrent.type === TorrentType.MOVIE) {
     return parsedInfo.complete || typeof parsedInfo.year === 'string' || /movies/i.test(torrent.title);
   }
   const hasMultipleEpisodes = parsedInfo.complete ||

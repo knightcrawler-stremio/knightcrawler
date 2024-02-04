@@ -8,26 +8,27 @@ import { getMetadata, getImdbId, getKitsuId } from './metadata.js';
 import { parseSeriesVideos, isPackTorrent } from './parseHelper.js';
 import * as Promises from './promises.js';
 import {torrentFiles} from "./torrent.js";
-import { Type } from './types.js';
+import { TorrentType } from './types.js';
+import {logger} from "./logger.js";
 
 const MIN_SIZE = 5 * 1024 * 1024; // 5 MB
 const imdb_limiter = new Bottleneck({ maxConcurrent: metadataConfig.IMDB_CONCURRENT, minTime: metadataConfig.IMDB_INTERVAL_MS });
 
 export async function parseTorrentFiles(torrent) {
   const parsedTorrentName = parse(torrent.title);
-  const metadata = await getMetadata(torrent.kitsuId || torrent.imdbId, torrent.type || Type.MOVIE)
+  const metadata = await getMetadata(torrent.kitsuId || torrent.imdbId, torrent.type || TorrentType.MOVIE)
       .then(meta => Object.assign({}, meta))
       .catch(() => undefined);
 
   // if (metadata && metadata.type !== torrent.type && torrent.type !== Type.ANIME) {
   //   throw new Error(`Mismatching entry type for ${torrent.name}: ${torrent.type}!=${metadata.type}`);
   // }
-  if (torrent.type !== Type.ANIME && metadata && metadata.type && metadata.type !== torrent.type) {
+  if (torrent.type !== TorrentType.ANIME && metadata && metadata.type && metadata.type !== torrent.type) {
     // it's actually a movie/series
     torrent.type = metadata.type;
   }
 
-  if (torrent.type === Type.MOVIE && (!parsedTorrentName.seasons ||
+  if (torrent.type === TorrentType.MOVIE && (!parsedTorrentName.seasons ||
       parsedTorrentName.season === 5 && [1, 5].includes(parsedTorrentName.episode))) {
     return parseMovieFiles(torrent, parsedTorrentName, metadata);
   }
@@ -133,9 +134,9 @@ async function mapSeriesEpisode(file, torrent, files) {
 }
 
 async function mapSeriesMovie(file, torrent) {
-  const kitsuId = torrent.type === Type.ANIME ? await findMovieKitsuId(file) : undefined;
+  const kitsuId = torrent.type === TorrentType.ANIME ? await findMovieKitsuId(file) : undefined;
   const imdbId = !kitsuId ? await findMovieImdbId(file) : undefined;
-  const metadata = await getMetadata(kitsuId || imdbId, Type.MOVIE).catch(() => ({}));
+  const metadata = await getMetadata(kitsuId || imdbId, TorrentType.MOVIE).catch(() => ({}));
   const hasEpisode = metadata.videos && metadata.videos.length && (file.episode || metadata.videos.length === 1);
   const episodeVideo = hasEpisode && metadata.videos[(file.episode || 1) - 1];
   return [{
@@ -158,7 +159,7 @@ async function decomposeEpisodes(torrent, files, metadata = { episodeCount: [] }
 
   preprocessEpisodes(files);
 
-  if (torrent.type === Type.ANIME && torrent.kitsuId) {
+  if (torrent.type === TorrentType.ANIME && torrent.kitsuId) {
     if (needsCinemetaMetadataForAnime(files, metadata)) {
       // In some cases anime could be resolved to wrong kitsuId
       // because of imdb season naming/absolute per series naming/multiple seasons
@@ -240,7 +241,7 @@ function isDateEpisodeFiles(files, metadata) {
 
 function isAbsoluteEpisodeFiles(torrent, files, metadata) {
   const threshold = Math.ceil(files.length / 5);
-  const isAnime = torrent.type === Type.ANIME && torrent.kitsuId;
+  const isAnime = torrent.type === TorrentType.ANIME && torrent.kitsuId;
   const nonMovieEpisodes = files
       .filter(file => !file.isMovie && file.episodes);
   const absoluteEpisodes = files
@@ -255,7 +256,7 @@ function isNewEpisodeNotInMetadata(torrent, file, metadata) {
   // new episode might not yet been indexed by cinemeta.
   // detect this if episode number is larger than the last episode or season is larger than the last one
   // only for non anime metas
-  const isAnime = torrent.type === Type.ANIME && torrent.kitsuId;
+  const isAnime = torrent.type === TorrentType.ANIME && torrent.kitsuId;
   return !isAnime && !file.isMovie && file.episodes && file.season !== 1
       && /continuing|current/i.test(metadata.status)
       && file.season >= metadata.episodeCount.length
@@ -355,7 +356,7 @@ function getTimeZoneOffset(country) {
 
 function assignKitsuOrImdbEpisodes(torrent, files, metadata) {
   if (!metadata || !metadata.videos || !metadata.videos.length) {
-    if (torrent.type === Type.ANIME) {
+    if (torrent.type === TorrentType.ANIME) {
       // assign episodes as kitsu episodes for anime when no metadata available for imdb mapping
       files
           .filter(file => file.season && file.episodes)
@@ -364,7 +365,7 @@ function assignKitsuOrImdbEpisodes(torrent, files, metadata) {
             file.season = undefined;
             file.episodes = undefined;
           })
-      if (metadata.type === Type.MOVIE && files.every(file => !file.imdbId)) {
+      if (metadata.type === TorrentType.MOVIE && files.every(file => !file.imdbId)) {
         // sometimes a movie has episode naming, thus not recognized as a movie and imdbId not assigned
         files.forEach(file => file.imdbId = metadata.imdbId);
       }
@@ -465,18 +466,18 @@ async function updateToCinemetaMetadata(metadata) {
         metadata.totalCount = newMetadata.totalCount;
         return metadata;
       })
-      .catch(error => console.warn(`Failed ${metadata.imdbId} metadata cinemeta update due: ${error.message}`));
+      .catch(error => logger.warn(`Failed ${metadata.imdbId} metadata cinemeta update due: ${error.message}`));
 }
 
 function findMovieImdbId(title) {
   const parsedTitle = typeof title === 'string' ? parse(title) : title;
-  console.log(`Finding movie imdbId for ${title}`);
-  return imdb_limiter.schedule(() => getImdbId(parsedTitle, Type.MOVIE).catch(() => undefined));
+  logger.debug(`Finding movie imdbId for ${title}`);
+  return imdb_limiter.schedule(() => getImdbId(parsedTitle, TorrentType.MOVIE).catch(() => undefined));
 }
 
 function findMovieKitsuId(title) {
   const parsedTitle = typeof title === 'string' ? parse(title) : title;
-  return getKitsuId(parsedTitle, Type.MOVIE).catch(() => undefined);
+  return getKitsuId(parsedTitle, TorrentType.MOVIE).catch(() => undefined);
 }
 
 function isDiskTorrent(contents) {

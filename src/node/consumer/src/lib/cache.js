@@ -1,6 +1,8 @@
-import cacheManager from 'cache-manager';
-import mangodbStore from 'cache-manager-mongodb';
+import { createCache, memoryStore} from 'cache-manager';
+import { mongoDbStore } from '@tirke/node-cache-manager-mongodb'
 import { cacheConfig } from './config.js';
+import { logger } from './logger.js';
+import { CacheType } from "./types.js";
 
 const GLOBAL_KEY_PREFIX = 'selfhostio-consumer';
 const IMDB_ID_PREFIX = `${GLOBAL_KEY_PREFIX}|imdb_id`;
@@ -12,61 +14,71 @@ const GLOBAL_TTL = process.env.METADATA_TTL || 7 * 24 * 60 * 60; // 7 days
 const MEMORY_TTL = process.env.METADATA_TTL || 2 * 60 * 60; // 2 hours
 const TRACKERS_TTL = 2 * 24 * 60 * 60; // 2 days
 
-const memoryCache = initiateMemoryCache();
-const remoteCache = initiateRemoteCache();
+const initiateMemoryCache = () =>
+    createCache(memoryStore(), {
+        ttl: parseInt(MEMORY_TTL)
+    }); 
 
-function initiateRemoteCache() {
-    if (cacheConfig.NO_CACHE) {
-        return null;
-    } else if (cacheConfig.MONGO_URI) {
-        return cacheManager.caching({
-            store: mangodbStore,
-            uri: cacheConfig.MONGO_URI,
-            options: {
-                collection: cacheConfig.COLLECTION_NAME,
-                socketTimeoutMS: 120000,
-                useNewUrlParser: true,
-                useUnifiedTopology: false,
-                ttl: GLOBAL_TTL
-            },
-            ttl: GLOBAL_TTL,
-            ignoreCacheErrors: true
-        });
-    } else {
-        return cacheManager.caching({
-            store: 'memory',
-            ttl: MEMORY_TTL
-        });
-    }
-}
-
-function initiateMemoryCache() {
-    return cacheManager.caching({
-        store: 'memory',
-        ttl: MEMORY_TTL,
-        max: Infinity // infinite LRU cache size
+const initiateMongoCache = () => {
+    const store = mongoDbStore({
+        collectionName: cacheConfig.COLLECTION_NAME,
+        ttl: parseInt(GLOBAL_TTL),
+        url: cacheConfig.MONGO_URI,
+        mongoConfig:{
+            socketTimeoutMS: 120000,
+            appName: 'selfhostio-consumer',
+        }
+    });    
+    
+    return createCache(store, {
+        ttl: parseInt(GLOBAL_TTL),
     });
 }
 
-function cacheWrap(cache, key, method, options) {
+const initiateRemoteCache = ()=> {
+    if (cacheConfig.NO_CACHE) {
+        logger.debug('Cache is disabled');
+        return null;
+    }
+    return cacheConfig.MONGO_URI ? initiateMongoCache() : initiateMemoryCache();
+}
+
+const getCacheType = (cacheType) => {
+    switch (cacheType) {
+        case CacheType.MEMORY:
+            return memoryCache;
+        case CacheType.MONGODB:
+            return remoteCache;
+        default:
+            return null;
+    }
+}
+
+const memoryCache = initiateMemoryCache()
+const remoteCache = initiateRemoteCache()
+
+const cacheWrap = async (cacheType, key, method, options) => {
+    const cache = getCacheType(cacheType);
+    
     if (cacheConfig.NO_CACHE || !cache) {
         return method();
     }
-    return cache.wrap(key, method, options);
+
+    logger.debug(`Cache type: ${cacheType}`);
+    logger.debug(`Cache key: ${key}`);
+    logger.debug(`Cache options: ${JSON.stringify(options)}`);
+        
+    return cache.wrap(key, method, options.ttl);
 }
 
-export function cacheWrapImdbId(key, method) {
-    return cacheWrap(remoteCache, `${IMDB_ID_PREFIX}:${key}`, method, { ttl: GLOBAL_TTL });
-}
+export const cacheWrapImdbId = (key, method) => 
+    cacheWrap(CacheType.MONGODB, `${IMDB_ID_PREFIX}:${key}`, method, { ttl: parseInt(GLOBAL_TTL) });
 
-export function cacheWrapKitsuId(key, method) {
-    return cacheWrap(remoteCache, `${KITSU_ID_PREFIX}:${key}`, method, { ttl: GLOBAL_TTL });
-}
+export const cacheWrapKitsuId = (key, method) => 
+    cacheWrap(CacheType.MONGODB, `${KITSU_ID_PREFIX}:${key}`, method, { ttl: parseInt(GLOBAL_TTL) });
 
-export function cacheWrapMetadata(id, method) {
-    return cacheWrap(memoryCache, `${METADATA_PREFIX}:${id}`, method, { ttl: MEMORY_TTL });
-}
+export const cacheWrapMetadata = (id, method) => 
+    cacheWrap(CacheType.MEMORY, `${METADATA_PREFIX}:${id}`, method, { ttl: parseInt(MEMORY_TTL) });
 
-export function cacheTrackers(method) {
-    return cacheWrap(memoryCache, `${TRACKERS_KEY_PREFIX}`, method, { ttl: TRACKERS_TTL });
-}
+export const cacheTrackers = (method) => 
+    cacheWrap(CacheType.MEMORY, `${TRACKERS_KEY_PREFIX}`, method, { ttl: parseInt(TRACKERS_TTL) });
