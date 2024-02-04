@@ -6,13 +6,15 @@ const CatalogMochs = Object.values(MochOptions).filter(moch => moch.catalog);
 
 export function manifest(config = {}) {
   return {
-    id: 'com.stremio.selfhostio.selfhostio',
-    version: '0.0.1',
+    id: 'com.stremio.knightcrawler.knightcrawler',
+    version: 'v0.0.1',
     name: getName(config),
-    description: getDescription(config),
+    description: getDescription(),
     catalogs: getCatalogs(config),
     resources: getResources(config),
     types: [Type.MOVIE, Type.SERIES, Type.ANIME, Type.OTHER],
+    background: "https://i.ibb.co/9pXGycn/logo-color.png",
+    logo: "https://i.ibb.co/hYJPLdP/logo-only.png",
     behaviorHints: {
       configurable: true,
       configurationRequired: false,
@@ -28,7 +30,7 @@ export function dummyManifest() {
 }
 
 function getName(config) {
-  const rootName = 'selfhostio';
+  const rootName = 'Knight Crawler';
   const mochSuffix = Object.values(MochOptions)
       .filter(moch => config[moch.key])
       .map(moch => moch.shortName)
@@ -36,15 +38,15 @@ function getName(config) {
   return [rootName, mochSuffix].filter(v => v).join(' ');
 }
 
-function getDescription(config) {
-  return 'Selfhostio the Torrentio brings you much Funio';
+function getDescription() {
+  return 'Selfhost the Torrentio brings you much Funio';
 }
 
 function getCatalogs(config) {
   return CatalogMochs
       .filter(moch => showDebridCatalog(config) && config[moch.key])
       .map(moch => ({
-        id: `selfhostio-${moch.key}`,
+        id: `knightcrawler-${moch.key}`,
         name: `${moch.name}`,
         type: 'other',
         extra: [{ name: 'skip' }],

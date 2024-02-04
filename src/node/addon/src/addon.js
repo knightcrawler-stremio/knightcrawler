@@ -44,7 +44,7 @@ builder.defineStreamHandler((args) => {
 
 
 builder.defineCatalogHandler((args) => {
-  const mochKey = args.id.replace("selfhostio-", '');
+  const mochKey = args.id.replace("knightcrawler-", '');
   console.log(`Incoming catalog ${args.id} request with skip=${args.extra.skip || 0}`)
   return getMochCatalog(mochKey, args.extra)
       .then(metas => ({

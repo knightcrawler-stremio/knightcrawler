@@ -6,7 +6,7 @@ import { BadTokenError, AccessDeniedError, sameFilename } from './mochHelper.js'
 import StaticResponse from './static.js';
 
 const KEY = 'alldebrid';
-const AGENT = 'torrentio';
+const AGENT = 'knightcrawler';
 
 export async function getCachedStreams(streams, apiKey) {
   const options = await getDefaultOptions();

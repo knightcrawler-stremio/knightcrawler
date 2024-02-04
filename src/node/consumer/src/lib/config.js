@@ -4,13 +4,13 @@
 }
 
 export const cacheConfig = {
-    MONGO_URI: process.env.MONGODB_URI || 'mongodb://mongo:mongo@localhost:27017/selfhostio?authSource=admin',
+    MONGO_URI: process.env.MONGODB_URI || 'mongodb://mongo:mongo@localhost:27017/knightcrawler?authSource=admin',
     NO_CACHE: parseBool(process.env.NO_CACHE, false),
-    COLLECTION_NAME: process.env.MONGODB_COLLECTION || 'selfhostio_consumer_collection'
+    COLLECTION_NAME: process.env.MONGODB_COLLECTION || 'knightcrawler_consumer_collection'
 }
 
 export const databaseConfig = {
-    DATABASE_URI: process.env.DATABASE_URI || 'postgres://postgres:postgres@localhost:5432/selfhostio',
+    DATABASE_URI: process.env.DATABASE_URI || 'postgres://postgres:postgres@localhost:5432/knightcrawler',
     ENABLE_SYNC: parseBool(process.env.ENABLE_SYNC, true)
 }
 

@@ -1,5 +1,5 @@
 version: '3.8'
-name: torrentio-metrics
+name: knightcrawler-metrics
 
 services:
   prometheus:
@@ -11,7 +11,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
   grafana:
     image: grafana/grafana:latest
@@ -25,17 +25,17 @@ services:
     depends_on:
       - prometheus
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter
     ports:
       - "9187:9187"
     environment:
-      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/selfhostio?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/knightcrawler?sslmode=disable"
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
 networks:
-  torrentio-network:
+  knightcrawler-network:
     external: true

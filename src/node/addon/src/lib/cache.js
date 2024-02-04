@@ -2,7 +2,7 @@ import cacheManager from 'cache-manager';
 import mangodbStore from 'cache-manager-mongodb';
 import { isStaticUrl }  from '../moch/static.js';
 
-const GLOBAL_KEY_PREFIX = 'selfhostio-addon';
+const GLOBAL_KEY_PREFIX = 'knightcrawler-addon';
 const STREAM_KEY_PREFIX = `${GLOBAL_KEY_PREFIX}|stream`;
 const AVAILABILITY_KEY_PREFIX = `${GLOBAL_KEY_PREFIX}|availability`;
 const RESOLVED_URL_KEY_PREFIX = `${GLOBAL_KEY_PREFIX}|resolved`;
@@ -28,7 +28,7 @@ function initiateRemoteCache() {
       store: mangodbStore,
       uri: MONGO_URI,
       options: {
-        collection: 'selfhostio_addon_collection',
+        collection: 'knightcrawler_addon_collection',
         socketTimeoutMS: 120000,
         useNewUrlParser: true,
         useUnifiedTopology: false,
