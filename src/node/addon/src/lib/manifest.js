@@ -7,7 +7,7 @@ const CatalogMochs = Object.values(MochOptions).filter(moch => moch.catalog);
 export function manifest(config = {}) {
   return {
     id: 'com.stremio.knightcrawler.knightcrawler',
-    version: 'v0.0.1',
+    version: '0.0.1',
     name: getName(config),
     description: getDescription(),
     catalogs: getCatalogs(config),
