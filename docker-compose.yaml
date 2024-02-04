@@ -68,10 +68,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-      - "15692:15692"
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, look at the documentation for rabbit on how to secure the service.
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+    #   - "15692:15692"
     volumes:
       - rabbitmq:/var/lib/rabbitmq
     restart: *restart-policy
