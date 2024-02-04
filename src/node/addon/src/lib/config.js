@@ -1,56 +1,31 @@
-﻿export const rabbitConfig = {
-    URI: process.env.RABBIT_URI || 'amqp://localhost',
-    QUEUE_NAME: process.env.QUEUE_NAME || 'test-queue'
-}
-
 export const cacheConfig = {
     MONGODB_HOST: process.env.MONGODB_HOST || 'mongodb',
     MONGODB_PORT: process.env.MONGODB_PORT || '27017',
-    MONGODB_DB: process.env.MONGODB_DB || 'knightcrawler',
+    MONGODB_DB: process.env.MONGODB_DB || 'selfhostio',
     MONGO_INITDB_ROOT_USERNAME: process.env.MONGO_INITDB_ROOT_USERNAME || 'mongo',
     MONGO_INITDB_ROOT_PASSWORD: process.env.MONGO_INITDB_ROOT_PASSWORD || 'mongo',
+    COLLECTION_NAME: process.env.MONGODB_COLLECTION || 'selfhostio_consumer_collection',
     NO_CACHE: parseBool(process.env.NO_CACHE, false),
-    COLLECTION_NAME: process.env.MONGODB_COLLECTION || 'knightcrawler_consumer_collection'
 }
 
 // Combine the environment variables into a connection string
 // The combined string will look something like:
-// 'mongodb://mongo:mongo@localhost:27017/knightcrawler?authSource=admin'
+// 'mongodb://mongo:mongo@localhost:27017/selfhostio?authSource=admin'
 cacheConfig.MONGO_URI = 'mongodb://' + cacheConfig.MONGO_INITDB_ROOT_USERNAME + ':' + cacheConfig.MONGO_INITDB_ROOT_PASSWORD + '@' + cacheConfig.MONGODB_HOST + ':' + cacheConfig.MONGODB_PORT + '/' + cacheConfig.MONGODB_DB + '?authSource=admin';
 
 export const databaseConfig = {
     POSTGRES_HOST: process.env.POSTGRES_HOST || 'postgres',
     POSTGRES_PORT: process.env.POSTGRES_PORT || '5432',
-    POSTGRES_DATABASE: process.env.POSTGRES_DATABASE || 'knightcrawler',
+    POSTGRES_DATABASE: process.env.POSTGRES_DATABASE || 'selfhostio',
     POSTGRES_USERNAME: process.env.POSTGRES_USERNAME || 'postgres',
     POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD || 'postgres',
-    ENABLE_SYNC: true
 }
 
 // Combine the environment variables into a connection string
 // The combined string will look something like:
-// 'postgres://postgres:postgres@localhost:5432/knightcrawler'
+// 'postgres://postgres:postgres@localhost:5432/selfhostio'
 databaseConfig.POSTGRES_URI = 'postgres://' + databaseConfig.POSTGRES_USERNAME + ':' + databaseConfig.POSTGRES_PASSWORD + '@' + databaseConfig.POSTGRES_HOST + ':' + databaseConfig.POSTGRES_PORT + '/' + databaseConfig.POSTGRES_DATABASE;
 
-export const jobConfig = {
-    JOB_CONCURRENCY: parseInt(process.env.JOB_CONCURRENCY || 1),
-    JOBS_ENABLED: parseBool(process.env.JOBS_ENABLED || true)
-}
-
-export const metadataConfig = {
-    IMDB_CONCURRENT: parseInt(process.env.IMDB_CONCURRENT || 1),
-    IMDB_INTERVAL_MS: parseInt(process.env.IMDB_INTERVAL_MS || 1000),
-}
-
-export const trackerConfig = {
-    TRACKERS_URL: process.env.TRACKERS_URL || 'https://ngosang.github.io/trackerslist/trackers_all.txt',
-    UDP_ENABLED: parseBool(process.env.UDP_TRACKERS_ENABLED || false),
-}
-
-export const torrentConfig = {
-    MAX_CONNECTIONS_PER_TORRENT: parseInt(process.env.MAX_SINGLE_TORRENT_CONNECTIONS || 20),
-    TIMEOUT: parseInt(process.env.TORRENT_TIMEOUT || 30000),
-}
 
 function parseBool(boolString, defaultValue) {
     const isString = typeof boolString === 'string' || boolString instanceof String;
