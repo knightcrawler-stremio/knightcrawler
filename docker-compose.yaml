@@ -1,8 +1,7 @@
-version: '3.8'
+version: "3.8"
 name: knightcrawler
 
-x-restart: &restart-policy
-  "unless-stopped"
+x-restart: &restart-policy "unless-stopped"
 
 x-basehealth: &base-health
   interval: 10s
@@ -13,9 +12,9 @@ x-basehealth: &base-health
 x-rabbithealth: &rabbitmq-health
   test: rabbitmq-diagnostics -q ping
   <<: *base-health
-  
+
 x-mongohealth: &mongodb-health
-  test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+  test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
   <<: *base-health
 
 x-postgreshealth: &postgresdb-health
@@ -39,8 +38,11 @@ services:
       - .env
     environment:
       PGUSER: postgres # needed for healthcheck.
-    ports:
-      - "5432:5432"
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, change the username and password in the .env file.
+    # # If you want to enhance your security even more, create a new user for the database with a strong password.
+    # ports:
+    #   - "5432:5432"
     volumes:
       - postgres:/var/lib/postgresql/data
     healthcheck: *postgresdb-health
@@ -52,8 +54,10 @@ services:
     image: mongo:latest
     env_file:
       - .env
-    ports:
-      - "27017:27017"
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, change the username and password in the .env file.
+    # ports:
+    #   - "27017:27017"
     volumes:
       - mongo:/data/db
     restart: *restart-policy
@@ -63,10 +67,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-      - "15692:15692"
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, look at the documentation for rabbit on how to secure the service.
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+    #   - "15692:15692"
     volumes:
       - rabbitmq:/var/lib/rabbitmq
     restart: *restart-policy
