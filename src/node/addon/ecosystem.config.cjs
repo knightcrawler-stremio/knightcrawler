@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
         {
-            name: "torrentio-selfhostio",
+            name: "knightcrawler",
             script: "npm start",
             cwd: "/app",
             watch: ["./dist/index.cjs"],

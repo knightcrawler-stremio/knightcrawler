@@ -4,7 +4,7 @@ import { cacheConfig } from './config.js';
 import { logger } from './logger.js';
 import { CacheType } from "./types.js";
 
-const GLOBAL_KEY_PREFIX = 'selfhostio-consumer';
+const GLOBAL_KEY_PREFIX = 'knightcrawler-consumer';
 const IMDB_ID_PREFIX = `${GLOBAL_KEY_PREFIX}|imdb_id`;
 const KITSU_ID_PREFIX = `${GLOBAL_KEY_PREFIX}|kitsu_id`;
 const METADATA_PREFIX = `${GLOBAL_KEY_PREFIX}|metadata`;
@@ -26,7 +26,7 @@ const initiateMongoCache = () => {
         url: cacheConfig.MONGO_URI,
         mongoConfig:{
             socketTimeoutMS: 120000,
-            appName: 'selfhostio-consumer',
+            appName: 'knightcrawler-consumer',
         }
     });    
     

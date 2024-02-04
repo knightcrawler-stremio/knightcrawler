@@ -4,7 +4,7 @@ import { getSources } from './magnetHelper.js';
 import { getSubtitles } from './subtitles.js';
 import { Type } from './types.js';
 
-const ADDON_NAME = 'selfhostio';
+const ADDON_NAME = 'knightcrawler';
 const SIZE_DELTA = 0.02;
 const UNKNOWN_SIZE = 300000000;
 const CAM_SOURCES = ['CAM', 'TeleSync', 'TeleCine', 'SCR'];
@@ -38,7 +38,7 @@ export function toStreamInfo(record) {
       '\n'
   );
   const bingeGroupParts = getBingeGroupParts(record, sameInfo, quality, torrentInfo, fileInfo);
-  const bingeGroup = joinDetailParts(bingeGroupParts, "selfhostio|", "|")
+  const bingeGroup = joinDetailParts(bingeGroupParts, "knightcrawler|", "|")
   const behaviorHints = bingeGroup ? { bingeGroup } : undefined;
 
   return cleanOutputObject({

@@ -1,5 +1,5 @@
 version: '3.8'
-name: torrentio-selfhostio
+name: knightcrawler
 
 x-restart: &restart-policy
   "unless-stopped"
@@ -22,7 +22,7 @@ x-postgreshealth: &postgresdb-health
   test: pg_isready
   <<: *base-health
 
-x-apps: &selfhostio-app
+x-apps: &knightcrawler-app
   depends_on:
     mongodb:
       condition: service_healthy
@@ -38,7 +38,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: selfhostio
+      POSTGRES_DB: knightcrawler
       PGUSER: postgres # needed for healthcheck.
     ports:
       - "5432:5432"
@@ -47,7 +47,7 @@ services:
     healthcheck: *postgresdb-health
     restart: *restart-policy
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
   mongodb:
     image: mongo:latest
@@ -61,7 +61,7 @@ services:
     restart: *restart-policy
     healthcheck: *mongodb-health
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -74,7 +74,7 @@ services:
     restart: *restart-policy
     healthcheck: *rabbitmq-health
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
   producer:
     build:
@@ -82,9 +82,9 @@ services:
       dockerfile: Dockerfile
     env_file:
       - env/producer.env
-    <<: *selfhostio-app
+    <<: *knightcrawler-app
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
   consumer:
     build:
@@ -94,9 +94,9 @@ services:
       - env/consumer.env
     deploy:
       replicas: 3
-    <<: *selfhostio-app
+    <<: *knightcrawler-app
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
   addon:
     build:
@@ -106,14 +106,14 @@ services:
       - "7000:7000"
     env_file:
       - env/addon.env
-    <<: *selfhostio-app
+    <<: *knightcrawler-app
     networks:
-      - torrentio-network
+      - knightcrawler-network
 
 networks:
-  torrentio-network:
+  knightcrawler-network:
     driver: bridge
-    name: torrentio-network
+    name: knightcrawler-network
 
 volumes:
   postgres:

@@ -1,19 +1,26 @@
-# Selfhostio
+# Knight Crawler
+<img src="https://i.ibb.co/hYJPLdP/logo-only.png" alt="isolated" width="100"/>
 
 A self-hosted Stremio addon for streaming torrents via a debrid service.
 
 ## Contents
 
-- [Selfhostio](#selfhostio)
+**Note: Until we reach `v1.0.0`, please consider releases as alpha.**
+
+**Important: The latest change renames the project and requires a [small migration](#selfhostio-to-knightcrawler-migration).**
+- [Knight Crawler](#knight-crawler)
   - [Contents](#contents)
   - [Overview](#overview)
   - [Using](#using)
     - [Initial setup (optional)](#initial-setup-optional)
     - [Run the project](#run-the-project)
     - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
+      - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
+      - [Using Grafana and Prometheus](#using-grafana-and-prometheus)
   - [Importing external dumps](#importing-external-dumps)
     - [Import data into database](#import-data-into-database)
     - [INSERT INTO ingested\_torrents](#insert-into-ingested_torrents)
+  - [Selfhostio to KnightCrawler Migration](#selfhostio-to-knightcrawler-migration)
   - [To-do](#to-do)
 
 
@@ -39,7 +46,7 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
 3. Fill out the form (example data below):
    ```
     Token name:
-        Selfhostio
+        KnightCrawler
     Expiration:
         90 days
     Description:
@@ -112,7 +119,7 @@ I created a file `db.load` as follows..
 ```
 load database
      from sqlite:///tmp/rarbg_db.sqlite
-     into postgresql://postgres:postgres@localhost/selfhostio
+     into postgresql://postgres:postgres@localhost/knightcrawler
 
 with include drop, create tables, create indexes, reset sequences
 
@@ -130,6 +137,18 @@ INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders,
 SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
 FROM items where cat='tv' OR cat='movies';
 ```
+
+## Selfhostio to KnightCrawler Migration
+
+With the renaming of the project, you will have to change your database name in order to keep your existing data.
+
+**With your existing stack still running**, run:
+```
+docker exec -it torrentio-selfhostio-postgres-1 psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND datname = 'selfhostio'; ALTER DATABASE selfhostio RENAME TO knightcrawler;"
+```
+Make sure your postgres container is named `torrentio-selfhostio-postgres-1`, otherwise, adjust accordingly.
+
+This command should return: `ALTER DATABASE`. This means your database is now renamed. You can now pull the new changes if you haven't already and run `docker-compose up -d`.
 
 ## To-do
 
