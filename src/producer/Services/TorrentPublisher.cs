@@ -1,4 +1,6 @@
-﻿namespace Producer.Services;
+﻿using Producer.Models.Configuration;
+
+namespace Producer.Services;
 
 public class TorrentPublisher(
     ISendEndpointProvider sendEndpointProvider,

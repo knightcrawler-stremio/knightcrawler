@@ -1,4 +1,4 @@
-namespace Producer.Models;
+namespace Producer.Models.Configuration;
 
 public class ScrapeConfiguration
 {
@@ -6,5 +6,4 @@ public class ScrapeConfiguration
     public const string Filename = "scrapers.json";
     
     public List<Scraper> Scrapers { get; set; } = [];
-    public string StorageConnectionString { get; set; } = "";
 }

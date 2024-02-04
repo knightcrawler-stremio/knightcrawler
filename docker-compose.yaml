@@ -35,10 +35,9 @@ x-apps: &knightcrawler-app
 services:
   postgres:
     image: postgres:latest
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: knightcrawler
       PGUSER: postgres # needed for healthcheck.
     ports:
       - "5432:5432"
@@ -51,9 +50,8 @@ services:
 
   mongodb:
     image: mongo:latest
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: mongo
-      MONGO_INITDB_ROOT_PASSWORD: mongo
+    env_file:
+      - .env
     ports:
       - "27017:27017"
     volumes:
@@ -81,7 +79,7 @@ services:
       context: src/producer
       dockerfile: Dockerfile
     env_file:
-      - env/producer.env
+      - .env
     <<: *knightcrawler-app
     networks:
       - knightcrawler-network
@@ -91,7 +89,7 @@ services:
       context: src/node/consumer
       dockerfile: Dockerfile
     env_file:
-      - env/consumer.env
+      - .env
     deploy:
       replicas: 3
     <<: *knightcrawler-app
@@ -105,7 +103,7 @@ services:
     ports:
       - "7000:7000"
     env_file:
-      - env/addon.env
+      - .env
     <<: *knightcrawler-app
     networks:
       - knightcrawler-network
