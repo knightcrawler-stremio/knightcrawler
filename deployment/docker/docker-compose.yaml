@@ -84,6 +84,8 @@ services:
     build:
       context: src/producer
       dockerfile: Dockerfile
+    labels:
+      logging: "promtail"
     env_file:
       - .env
     <<: *knightcrawler-app
@@ -96,6 +98,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
+    labels:
+      logging: "promtail"
     deploy:
       replicas: 3
     <<: *knightcrawler-app
@@ -108,6 +112,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "7000:7000"
+    labels:
+      logging: "promtail"
     env_file:
       - .env
     <<: *knightcrawler-app

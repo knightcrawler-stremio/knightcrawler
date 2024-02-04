@@ -67,6 +67,7 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
 Before running the project, you need to set up the environment variables. Copy the `.env.example` file to `.env`:
 
 ```sh
+cd deployment/docker
 cp .env.example .env
 ```
 
@@ -77,6 +78,7 @@ Then set any of th values you'd like to customize.
 Open a terminal in the directory and run the command:
 
 ```sh
+cd deployment/docker
 docker compose up -d
 ```
 
@@ -99,6 +101,7 @@ Here's how to set up and use Grafana and Prometheus for monitoring RabbitMQ:
 1. **Start Grafana and Prometheus**: Run the following command to start both Grafana and Prometheus:
 
    ```sh
+   cd deployment/docker
    docker compose -f docker-compose-metrics.yml up -d
    ```
 
