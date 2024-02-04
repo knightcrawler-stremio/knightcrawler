@@ -13,6 +13,7 @@ A self-hosted Stremio addon for streaming torrents via a debrid service.
   - [Overview](#overview)
   - [Using](#using)
     - [Initial setup (optional)](#initial-setup-optional)
+    - [Environment Setup](#environment-setup)
     - [Run the project](#run-the-project)
     - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
       - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
@@ -60,11 +61,22 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
    GithubSettings__PAT=<YOUR TOKEN HERE>
    ```
 
+
+### Environment Setup
+
+Before running the project, you need to set up the environment variables. Copy the `.env.example` file to `.env`:
+
+```sh
+cp .env.example .env
+```
+
+Then set any of th values you'd like to customize.
+
 ### Run the project
 
 Open a terminal in the directory and run the command:
 
-``` sh
+```sh
 docker compose up -d
 ```
 
@@ -107,6 +119,7 @@ Here's how to set up and use Grafana and Prometheus for monitoring RabbitMQ:
 Now, you can use these dashboards to monitor RabbitMQ and Postgres metrics.
 
 Note: If you encounter issues with missing or unavailable data in Grafana, please ensure on [Prometheus's target page](http://127.0.0.1:9090/targets) that the RabbitMQ target is up and running.
+
 
 ## Importing external dumps
 
