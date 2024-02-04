@@ -5,15 +5,18 @@ A self-hosted Stremio addon for streaming torrents via a debrid service.
 
 ## Contents
 
-**Note: Until we reach `v1.0.0`, please consider releases as alpha.**
+> [!CAUTION] 
+> Until we reach `v1.0.0`, please consider releases as alpha.
 
-**Important: The latest change renames the project and requires a [small migration](#selfhostio-to-knightcrawler-migration).**
+> [!IMPORTANT]
+> The latest change renames the project and requires a [small migration](#selfhostio-to-knightcrawler-migration).
 - [Knight Crawler](#knight-crawler)
   - [Contents](#contents)
   - [Overview](#overview)
   - [Using](#using)
-    - [Initial setup (optional)](#initial-setup-optional)
+    - [Download Docker and Docker Compose v2](#download-docker-and-docker-compose-v2)
     - [Environment Setup](#environment-setup)
+    - [DebridMediaManager setup (optional)](#debridmediamanager-setup-optional)
     - [Run the project](#run-the-project)
     - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
       - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
@@ -36,9 +39,24 @@ Stremio is a media player. On it's own it will not allow you to watch anything. 
 
 The project is shipped as an all-in-one solution. The initial configuration is designed for hosting only on your local network. If you want it to be accessible from outside of your local network, please see [not yet available]()
 
-### Initial setup (optional)
+### Download Docker and Docker Compose v2
 
-After cloning the repository there are some steps you should take to maximise the number of movies/tv shows we can find. 
+Download and install [Docker Compose](https://docs.docker.com/compose/install/), bundled with [Docker Desktop](https://docs.docker.com/desktop/) or, if using Linux, you can install [Docker Engine](https://docs.docker.com/engine/install/) and the [Docker Compose Plugin.](https://docs.docker.com/compose/install/linux/)
+
+### Environment Setup
+
+Before running the project, you need to set up the environment variables. Copy the `.env.example` file to `.env`:
+
+```sh
+cd deployment/docker
+cp .env.example .env
+```
+
+Then set any of the values you wouldd like to customize.
+
+### DebridMediaManager setup (optional)
+
+There are some optional steps you should take to maximise the number of movies/tv shows we can find. 
 
 We can search DebridMediaManager hash lists which are hosted on GitHub. This allows us to add hundreds of thousands of movies and tv shows, but it requires a Personal Access Token to be generated. The software only needs read access and only for public respositories. To generate one, please follow these steps:
 
@@ -56,26 +74,15 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
         (checked) Public Repositories (read-only) 
    ```
 4. Click `Generate token`
-5. Take the new token and add it to the bottom of the [env/producer.env](env/producer.env) file
+5. Take the new token and add it to the bottom of the [.env](.env) file
    ```
    GithubSettings__PAT=<YOUR TOKEN HERE>
    ```
 
 
-### Environment Setup
-
-Before running the project, you need to set up the environment variables. Copy the `.env.example` file to `.env`:
-
-```sh
-cd deployment/docker
-cp .env.example .env
-```
-
-Then set any of th values you'd like to customize.
-
 ### Run the project
 
-Open a terminal in the directory and run the command:
+Open a terminal in the project directory and run the command:
 
 ```sh
 cd deployment/docker
@@ -121,7 +128,8 @@ Here's how to set up and use Grafana and Prometheus for monitoring RabbitMQ:
 
 Now, you can use these dashboards to monitor RabbitMQ and Postgres metrics.
 
-Note: If you encounter issues with missing or unavailable data in Grafana, please ensure on [Prometheus's target page](http://127.0.0.1:9090/targets) that the RabbitMQ target is up and running.
+> [!NOTE]
+>  If you encounter issues with missing or unavailable data in Grafana, please ensure on [Prometheus's target page](http://127.0.0.1:9090/targets) that the RabbitMQ target is up and running.
 
 
 ## Importing external dumps
@@ -130,7 +138,10 @@ A brief record of the steps required to import external data, in this case the r
 
 ### Import data into database
 
-I created a file `db.load` as follows..
+
+Using [pgloader](https://pgloader.readthedocs.io/en/latest/ref/sqlite.html) we can import other databases into Knight Crawler.
+
+For example, create a file called `db.load` containing the following:
 
 ```
 load database
@@ -142,16 +153,27 @@ with include drop, create tables, create indexes, reset sequences
   set work_mem to '16MB', maintenance_work_mem to '512 MB';
 ```
 
-And ran `pgloader db.load` to create a new `items` table.
+Then run `pgloader db.load` to create a new `items` table.
 
 ### INSERT INTO ingested_torrents
 
-Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using:
+
+> [!NOTE]
+> This is specific to this example external database, other databases may/will have different column names and the sql command will require tweaking
+
+> [!IMPORTANT]
+> The `processed` field should be false so that the consumers will properly process it.
+
+
+Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using `psql`.
+
+This can be done by attaching to the postgres docker container
 
 ```
-INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, "createdAt", "updatedAt")
-SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
-FROM items where cat='tv' OR cat='movies';
+docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "
+INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed)
+SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false
+FROM items where cat='tv' OR cat='movies';"
 ```
 
 ## Selfhostio to KnightCrawler Migration
@@ -160,11 +182,14 @@ With the renaming of the project, you will have to change your database name in 
 
 **With your existing stack still running**, run:
 ```
-docker exec -it torrentio-selfhostio-postgres-1 psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND datname = 'selfhostio'; ALTER DATABASE selfhostio RENAME TO knightcrawler;"
+docker exec -it torrentio-selfhostio-postgres-1 psql -c "
+SELECT pg_terminate_backend(pid) FROM pg_stat_activity 
+WHERE pid <> pg_backend_pid() AND datname = 'selfhostio'; 
+ALTER DATABASE selfhostio RENAME TO knightcrawler;"
 ```
 Make sure your postgres container is named `torrentio-selfhostio-postgres-1`, otherwise, adjust accordingly.
 
-This command should return: `ALTER DATABASE`. This means your database is now renamed. You can now pull the new changes if you haven't already and run `docker-compose up -d`.
+This command should return: `ALTER DATABASE`. This means your database is now renamed. You can now pull the new changes if you haven't already and run `docker compose up -d`.
 
 ## To-do
 
