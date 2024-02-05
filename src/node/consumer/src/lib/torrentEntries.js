@@ -1,6 +1,6 @@
 import { parse } from 'parse-torrent-title';
 import { getImdbId, getKitsuId } from './metadata';
-import { isPackTorrent } from './parseHelper.js';
+import { isPackTorrent } from './parseHelper';
 import * as Promises from './promises';
 import { repository } from '../repository/database_repository';
 import { parseTorrentFiles } from './torrentFiles.js';
