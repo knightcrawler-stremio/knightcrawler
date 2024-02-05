@@ -8,8 +8,8 @@ import addonInterface from './addon.js';
 import { parseConfiguration } from './lib/configuration.js';
 import landingTemplate from './lib/landingTemplate.js';
 import { manifest } from './lib/manifest.js';
-import * as moch from './moch/moch.js';
 import { computeTorrentStatistics } from './lib/repository.js';
+import * as moch from './moch/moch.js';
 
 const router = new Router();
 const limiter = rateLimit({

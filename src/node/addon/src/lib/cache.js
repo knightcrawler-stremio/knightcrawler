@@ -1,7 +1,7 @@
 import cacheManager from 'cache-manager';
 import mangodbStore from 'cache-manager-mongodb';
-import { cacheConfig } from './config.js';
 import { isStaticUrl } from '../moch/static.js';
+import { cacheConfig } from './config.js';
 
 const GLOBAL_KEY_PREFIX = 'knightcrawler-addon';
 const STREAM_KEY_PREFIX = `${GLOBAL_KEY_PREFIX}|stream`;
