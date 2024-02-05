@@ -6,19 +6,16 @@ RUN apk update && apk upgrade && \
 
 WORKDIR /app
 
-COPY ./addon/package*.json ./
+# Cache dependencies
+COPY ./addon/package*.json ./addon/
+COPY ./common/package*.json ./common/
+COPY package*.json ./
 RUN npm install
-COPY ./addon/ .
-RUN npm run build
 
-# Create the utility package
-
-WORKDIR /utility
-
-COPY ./utility/package*.json ./
-RUN npm install
-COPY ./utility/ .
-# RUN npm run build
+# Copy project and build
+COPY ./addon/ ./addon/
+COPY ./common/ ./common/
+RUN npm -w addon run build
 
 # --- Runtime Stage ---
 FROM node:lts-alpine
@@ -31,9 +28,8 @@ WORKDIR /app
 ENV NODE_ENV production
 
 COPY --from=builder /app ./
-COPY --from=builder /utility /utility
 RUN npm prune --omit=dev
 
 EXPOSE 7000
 
-ENTRYPOINT [ "pm2-runtime", "start", "ecosystem.config.cjs"]
+ENTRYPOINT [ "pm2-runtime", "start", "addon/ecosystem.config.cjs"]

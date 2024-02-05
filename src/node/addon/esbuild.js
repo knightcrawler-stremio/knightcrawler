@@ -2,8 +2,6 @@ import { build } from "esbuild";
 import { copy } from 'esbuild-plugin-copy';
 import { readFileSync, rmSync } from "fs";
 
-const { devDependencies } = JSON.parse(readFileSync("./package.json", "utf8"));
-
 const start = Date.now();
 
 try {
