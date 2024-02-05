@@ -9,7 +9,7 @@ import { parseSeriesVideos, isPackTorrent } from './parseHelper.js';
 import * as Promises from './promises.js';
 import {torrentFiles} from "./torrent.js";
 import { TorrentType } from './types.js';
-import {logger} from "./logger.js";
+import {logger} from "./logger";
 
 const MIN_SIZE = 5 * 1024 * 1024; // 5 MB
 const imdb_limiter = new Bottleneck({ maxConcurrent: metadataConfig.IMDB_CONCURRENT, minTime: metadataConfig.IMDB_INTERVAL_MS });

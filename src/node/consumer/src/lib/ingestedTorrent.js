@@ -1,7 +1,7 @@
 import { createTorrentEntry, checkAndUpdateTorrent } from './torrentEntries.js';
 import {getTrackers} from "./trackerService.js";
 import { TorrentType } from './types.js';
-import {logger} from "./logger.js";
+import {logger} from "./logger";
 
 export async function processTorrentRecord(torrent) {
   const {category} = torrent;

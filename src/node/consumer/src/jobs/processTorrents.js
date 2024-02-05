@@ -1,7 +1,7 @@
 ﻿import amqp from 'amqplib'
 import { rabbitConfig, jobConfig } from '../lib/config.js'
 import { processTorrentRecord } from "../lib/ingestedTorrent.js";
-import {logger} from "../lib/logger.js";
+import {logger} from "../lib/logger";
 
 const assertQueueOptions = { durable: true }
 const consumeQueueOptions = { noAck: false }

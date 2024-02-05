@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {cacheTrackers} from "./cache.js";
 import { trackerConfig } from './config.js';
-import {logger} from "./logger.js";
+import {logger} from "./logger";
 
 const downloadTrackers = async () => {
     const response = await axios.get(trackerConfig.TRACKERS_URL);
