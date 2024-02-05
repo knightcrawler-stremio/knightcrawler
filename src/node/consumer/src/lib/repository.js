@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { Sequelize, Op, DataTypes, fn, col, literal } from 'sequelize';
 import { databaseConfig } from './config.js';
-import {logger} from "./logger.js";
+import { logger } from "./logger.js";
 import * as Promises from './promises.js';
 
 const database = new Sequelize(
@@ -185,9 +185,9 @@ Subtitle.belongsTo(File, { foreignKey: 'fileId', constraints: false });
 
 export function connect() {
     if (databaseConfig.ENABLE_SYNC) {
-        return database.sync({ alter: true })
+        return database.sync()
             .catch(error => {
-                console.error('Failed syncing database: ', error);
+                console.error('Failed syncing database: ', error.message);
                 throw error;
             });
     }
