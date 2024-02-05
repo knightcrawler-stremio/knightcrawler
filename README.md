@@ -85,7 +85,7 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
         (checked) Public Repositories (read-only) 
    ```
 4. Click `Generate token`
-5. Take the new token and add it to the bottom of the [.env](.env) file
+5. Take the new token and add it to the bottom of the [.env](deployment/docker/.env) file
    ```
    GithubSettings__PAT=<YOUR TOKEN HERE>
    ```
@@ -157,7 +157,7 @@ For example, if you had a sql database called `rarbg_db.sqlite` stored in `/tmp/
 
 ```
 load database
-     from sqlite://tmp/rarbg_db.sqlite
+     from sqlite:///tmp/rarbg_db.sqlite
      into postgresql://postgres:postgres@<docker-ip>/knightcrawler
 
 with include drop, create tables, create indexes, reset sequences
