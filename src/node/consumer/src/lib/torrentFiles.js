@@ -3,7 +3,7 @@ import distance from 'jaro-winkler';
 import moment from 'moment';
 import { parse } from 'parse-torrent-title';
 import { metadataConfig } from './config.js';
-import { isDisk } from './extension.js';
+import { isDisk } from './extension';
 import { getMetadata, getImdbId, getKitsuId } from './metadata';
 import { parseSeriesVideos, isPackTorrent } from './parseHelper';
 import * as Promises from './promises';
