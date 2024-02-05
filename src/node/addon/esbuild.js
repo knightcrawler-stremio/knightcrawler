@@ -19,7 +19,6 @@ try {
             // "./src/**/*.hbs",
             // "./src/**/*.html"
         ],
-        external: [...(devDependencies && Object.keys(devDependencies))],
         keepNames: true,
         loader: {
             ".css": "copy",

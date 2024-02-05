@@ -15,7 +15,6 @@ try {
         entryPoints: [
             "./src/index.js",
         ],
-        external: [...(devDependencies && Object.keys(devDependencies))],
         keepNames: true,
         minify: true,
         outbase: "./src",
