@@ -1,7 +1,8 @@
 {
-  "name": "knightcrawler-addon",
+  "name": "@knightcrawler/addon",
   "version": "0.0.1",
   "type": "module",
+  "private": true,
   "scripts": {
     "build": "node esbuild.js",
     "dev": "tsx watch --ignore node_modules src/index.js",
@@ -9,6 +10,7 @@
     "lint": "eslint . --ext .ts,.js"
   },
   "dependencies": {
+    "@knightcrawler/common": "file:../common",
     "@putdotio/api-client": "^8.42.0",
     "all-debrid-api": "^1.1.0",
     "axios": "^1.6.1",
@@ -19,7 +21,6 @@
     "debrid-link-api": "^1.0.1",
     "express-rate-limit": "^6.7.0",
     "ip": "^1.1.8",
-    "knightcrawler-utility": "file:../utility",
     "magnet-uri": "^6.2.0",
     "name-to-imdb": "^3.0.4",
     "named-queue": "^2.2.1",
@@ -37,15 +38,5 @@
     "swagger-stats": "^0.99.7",
     "ua-parser-js": "^1.0.36",
     "user-agents": "^1.0.1444"
-  },
-  "devDependencies": {
-    "@types/node": "^20.11.6",
-    "@types/stremio-addon-sdk": "^1.6.10",
-    "esbuild": "^0.19.12",
-    "esbuild-plugin-copy": "^2.1.1",
-    "eslint": "^8.56.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-import-helpers": "^1.3.1",
-    "tsx": "^4.7.0"
   }
 }
