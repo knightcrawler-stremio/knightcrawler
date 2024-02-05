@@ -21,7 +21,7 @@ cacheConfig.MONGO_URI = 'mongodb://' + cacheConfig.MONGO_INITDB_ROOT_USERNAME + 
 export const databaseConfig = {
     POSTGRES_HOST: process.env.POSTGRES_HOST || 'postgres',
     POSTGRES_PORT: process.env.POSTGRES_PORT || '5432',
-    POSTGRES_DATABASE: process.env.POSTGRES_DATABASE || 'knightcrawler',
+    POSTGRES_DB: process.env.POSTGRES_DB || 'knightcrawler',
     POSTGRES_USER: process.env.POSTGRES_USER || 'postgres',
     POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD || 'postgres',
     ENABLE_SYNC: true
@@ -30,7 +30,7 @@ export const databaseConfig = {
 // Combine the environment variables into a connection string
 // The combined string will look something like:
 // 'postgres://postgres:postgres@localhost:5432/knightcrawler'
-databaseConfig.POSTGRES_URI = 'postgres://' + databaseConfig.POSTGRES_USER + ':' + databaseConfig.POSTGRES_PASSWORD + '@' + databaseConfig.POSTGRES_HOST + ':' + databaseConfig.POSTGRES_PORT + '/' + databaseConfig.POSTGRES_DATABASE;
+databaseConfig.POSTGRES_URI = 'postgres://' + databaseConfig.POSTGRES_USER + ':' + databaseConfig.POSTGRES_PASSWORD + '@' + databaseConfig.POSTGRES_HOST + ':' + databaseConfig.POSTGRES_PORT + '/' + databaseConfig.POSTGRES_DB;
 
 export const jobConfig = {
     JOB_CONCURRENCY: parseInt(process.env.JOB_CONCURRENCY || 1),
