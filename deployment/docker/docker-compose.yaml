@@ -108,8 +108,8 @@ services:
 
   addon:
     build:
-      context: ../../src/node/addon
-      dockerfile: Dockerfile
+      context: ../../src/node
+      dockerfile: addon/Dockerfile
     ports:
       - "7000:7000"
     labels:

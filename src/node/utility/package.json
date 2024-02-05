@@ -1,0 +1,9 @@
+{
+  "name": "knightcrawler-utility",
+  "version": "0.0.1",
+  "description": "A collection of utility scripts and configurations for the Knight Crawler addon and consumer.",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

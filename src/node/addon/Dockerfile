@@ -6,10 +6,19 @@ RUN apk update && apk upgrade && \
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY ./addon/package*.json ./
 RUN npm install
-COPY . .
+COPY ./addon/ .
 RUN npm run build
+
+# Create the utility package
+
+WORKDIR /utility
+
+COPY ./utility/package*.json ./
+RUN npm install
+COPY ./utility/ .
+# RUN npm run build
 
 # --- Runtime Stage ---
 FROM node:lts-alpine
@@ -22,6 +31,7 @@ WORKDIR /app
 ENV NODE_ENV production
 
 COPY --from=builder /app ./
+COPY --from=builder /utility /utility
 RUN npm prune --omit=dev
 
 EXPOSE 7000

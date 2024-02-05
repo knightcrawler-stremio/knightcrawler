@@ -19,6 +19,7 @@
     "debrid-link-api": "^1.0.1",
     "express-rate-limit": "^6.7.0",
     "ip": "^1.1.8",
+    "knightcrawler-utility": "file:../utility",
     "magnet-uri": "^6.2.0",
     "name-to-imdb": "^3.0.4",
     "named-queue": "^2.2.1",
