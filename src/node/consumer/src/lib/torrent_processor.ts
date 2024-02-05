@@ -2,7 +2,7 @@ import {TorrentInfo} from "./interfaces/torrent_info";
 import {TorrentType} from "./enums/torrent_types";
 import {logger} from "./logger";
 import {checkAndUpdateTorrent, createTorrentEntry} from "./torrentEntries.js";
-import {getTrackers} from "./trackerService.js";
+import {getTrackers} from "./trackerService";
 import {IngestedTorrentAttributes} from "../repository/interfaces/ingested_torrent_attributes";
 
 export async function processTorrentRecord(torrent: IngestedTorrentAttributes): Promise<void> {

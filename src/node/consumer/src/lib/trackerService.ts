@@ -1,19 +1,20 @@
-import axios from 'axios';
-import {cacheTrackers} from "./cache.js";
+import axios, { AxiosResponse } from 'axios';
+import { cacheTrackers } from "./cache.js";
 import { trackerConfig } from './config.js';
-import {logger} from "./logger";
+import { logger } from "./logger";
 
-const downloadTrackers = async () => {
-    const response = await axios.get(trackerConfig.TRACKERS_URL);
-    const trackersListText = response.data;
+const downloadTrackers = async (): Promise<string[]> => {
+    const response: AxiosResponse<string> = await axios.get(trackerConfig.TRACKERS_URL);
+    const trackersListText: string = response.data;
     // Trackers are separated by a newline character
     let urlTrackers = trackersListText.split("\n");
     // remove blank lines
     urlTrackers = urlTrackers.filter(line => line.trim() !== '');
-    
+
     if (!trackerConfig.UDP_ENABLED) {
         // remove any udp trackers
-        urlTrackers = urlTrackers.filter(line => !line.startsWith('udp://'));    
+        urlTrackers = urlTrackers.filter(line => !line.startsWith('udp://'));
+
     }
 
     logger.info(`Trackers updated at ${Date.now()}: ${urlTrackers.length} trackers`);
@@ -21,6 +22,6 @@ const downloadTrackers = async () => {
     return urlTrackers;
 };
 
-export const getTrackers = async () => {
+export const getTrackers = async (): Promise<string[]> => {
     return cacheTrackers(downloadTrackers);
 };
