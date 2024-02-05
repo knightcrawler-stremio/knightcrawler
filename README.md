@@ -4,6 +4,8 @@
 A self-hosted Stremio addon for streaming torrents via a debrid service.
 
 ## Contents
+> [!TIP]
+> Join our [Discord](https://discord.gg/8fQdxay9z2)!
 
 > [!CAUTION] 
 > Until we reach `v1.0.0`, please consider releases as alpha.
