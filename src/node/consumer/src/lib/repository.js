@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { Sequelize, Op, DataTypes, fn, col, literal } from 'sequelize';
 import { databaseConfig } from './config.js';
-import {logger} from "./logger.js";
+import { logger } from "./logger.js";
 import * as Promises from './promises.js';
 
 const database = new Sequelize(
@@ -184,14 +184,15 @@ File.hasMany(Subtitle, { foreignKey: 'fileId', constraints: false });
 Subtitle.belongsTo(File, { foreignKey: 'fileId', constraints: false });
 
 export function connect() {
-    if (databaseConfig.ENABLE_SYNC) {
-        return database.sync({ alter: true })
-            .catch(error => {
-                console.error('Failed syncing database: ', error);
-                throw error;
-            });
-    }
-    return Promise.resolve();
+    return database.sync({ alter: databaseConfig.AUTO_CREATE_AND_APPLY_MIGRATIONS })
+        .catch(error => {
+            console.error('Failed syncing database: ', error.message);
+            throw error;
+        });
+    // I'm not convinced this code is needed. If anyone can see where it leads, or what it does, please inform me.
+    // For now, I'm commenting it out. I don't think we ever reach this at the moment anyway as the previous ENABLE_SYNC
+    // was always on.
+    // return Promise.resolve();
 }
 
 export function getProvider(provider) {
