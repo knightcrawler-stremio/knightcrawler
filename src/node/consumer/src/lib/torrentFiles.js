@@ -3,20 +3,20 @@ import distance from 'jaro-winkler';
 import moment from 'moment';
 import { parse } from 'parse-torrent-title';
 import { metadataConfig } from './config';
-import { isDisk } from './extension';
-import { getMetadata, getImdbId, getKitsuId } from './metadata';
-import { parseSeriesVideos, isPackTorrent } from './parseHelper';
-import * as Promises from './promises';
-import {torrentFiles} from "./torrent.js";
+import { extensionService } from './services/extension_service';
+import { metadataService } from './services/metadata_service';
+import { parsingService } from './services/parsing_service';
+import {PromiseHelpers} from './helpers/promises_helpers.js';
+import {torrentDownloadService} from "./services/torrent_download_service";
 import { TorrentType } from './enums/torrent_types';
-import {logger} from "./logger";
+import {logger} from "./services/logging_service";
 
 const MIN_SIZE = 5 * 1024 * 1024; // 5 MB
 const imdb_limiter = new Bottleneck({ maxConcurrent: metadataConfig.IMDB_CONCURRENT, minTime: metadataConfig.IMDB_INTERVAL_MS });
 
 export async function parseTorrentFiles(torrent) {
   const parsedTorrentName = parse(torrent.title);
-  const metadata = await getMetadata(torrent.kitsuId || torrent.imdbId, torrent.type || TorrentType.MOVIE)
+  const metadata = await metadataService.getMetadata(torrent.kitsuId || torrent.imdbId, torrent.type || TorrentType.MOVIE)
       .then(meta => Object.assign({}, meta))
       .catch(() => undefined);
 
@@ -53,7 +53,7 @@ async function parseMovieFiles(torrent, parsedName, metadata) {
     return { contents, videos: parsedVideos, subtitles };
   }
 
-  const parsedVideos = await Promises.sequence(filteredVideos.map(video => () => isFeaturette(video)
+  const parsedVideos = await PromiseHelpers.sequence(filteredVideos.map(video => () => isFeaturette(video)
           ? Promise.resolve(video)
           : findMovieImdbId(video.name).then(imdbId => ({ ...video, imdbId }))))
       .then(videos => videos.map(video => ({
@@ -70,7 +70,7 @@ async function parseSeriesFiles(torrent, parsedName, metadata) {
   const { contents, videos, subtitles } = await getSeriesTorrentContent(torrent);
   const parsedVideos = await Promise.resolve(videos)
       .then(videos => videos.filter(video => videos.length === 1 || video.size > MIN_SIZE))
-      .then(videos => parseSeriesVideos(torrent, videos))
+      .then(videos => parsingService.parseSeriesVideos(torrent, videos))
       .then(videos => decomposeEpisodes(torrent, videos, metadata))
       .then(videos => assignKitsuOrImdbEpisodes(torrent, videos, metadata))
       .then(videos => Promise.all(videos.map(video => video.isMovie
@@ -97,9 +97,9 @@ async function getMoviesTorrentContent(torrent) {
 }
 
 async function getSeriesTorrentContent(torrent) {
-  return torrentFiles(torrent)
+  return torrentDownloadService.getTorrentFiles(torrent)
       .catch(error => {
-        if (!isPackTorrent(torrent)) {
+        if (!parsingService.isPackTorrent(torrent)) {
           return { videos: [{ name: torrent.title, path: torrent.title, size: torrent.size }] }
         }
         return Promise.reject(error);
@@ -136,7 +136,7 @@ async function mapSeriesEpisode(file, torrent, files) {
 async function mapSeriesMovie(file, torrent) {
   const kitsuId = torrent.type === TorrentType.ANIME ? await findMovieKitsuId(file) : undefined;
   const imdbId = !kitsuId ? await findMovieImdbId(file) : undefined;
-  const metadata = await getMetadata(kitsuId || imdbId, TorrentType.MOVIE).catch(() => ({}));
+  const metadata = await metadataService.getMetadata(kitsuId || imdbId, TorrentType.MOVIE).catch(() => ({}));
   const hasEpisode = metadata.videos && metadata.videos.length && (file.episode || metadata.videos.length === 1);
   const episodeVideo = hasEpisode && metadata.videos[(file.episode || 1) - 1];
   return [{
@@ -458,7 +458,7 @@ function needsCinemetaMetadataForAnime(files, metadata) {
 }
 
 async function updateToCinemetaMetadata(metadata) {
-  return getMetadata(metadata.imdbId, metadata.type)
+  return metadataService.getMetadata(metadata.imdbId, metadata.type)
       .then(newMetadata => !newMetadata.videos || !newMetadata.videos.length ? metadata : newMetadata)
       .then(newMetadata => {
         metadata.videos = newMetadata.videos;
@@ -478,7 +478,7 @@ function findMovieImdbId(title) {
           year: parsedTitle.year,
           type: TorrentType.MOVIE
       };
-      return getImdbId(imdbQuery).catch(() => undefined);
+      return metadataService.getImdbId(imdbQuery).catch(() => undefined);
   });
 }
 
@@ -490,11 +490,11 @@ function findMovieKitsuId(title) {
         season: parsedTitle.season,
         type: TorrentType.MOVIE
     };
-  return getKitsuId(kitsuQuery).catch(() => undefined);
+  return metadataService.getKitsuId(kitsuQuery).catch(() => undefined);
 }
 
 function isDiskTorrent(contents) {
-  return contents.some(content => isDisk(content.path));
+  return contents.some(content => extensionService.isDisk(content.path));
 }
 
 function isSingleMovie(videos) {

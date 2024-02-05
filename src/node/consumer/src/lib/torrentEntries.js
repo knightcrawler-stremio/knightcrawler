@@ -1,12 +1,12 @@
 import { parse } from 'parse-torrent-title';
-import { getImdbId, getKitsuId } from './metadata';
-import { isPackTorrent } from './parseHelper';
-import * as Promises from './promises';
+import { metadataService } from './services/metadata_service';
+import { parsingService } from './services/parsing_service';
+import {PromiseHelpers} from './helpers/promises_helpers.js';
 import { repository } from '../repository/database_repository';
 import { parseTorrentFiles } from './torrentFiles.js';
 import { assignSubtitles } from './torrentSubtitles.js';
 import { TorrentType } from './enums/torrent_types';
-import {logger} from "./logger";
+import {logger} from './services/logging_service';
 
 export async function createTorrentEntry(torrent, overwrite = false) {
   const titleInfo = parse(torrent.title);
@@ -17,7 +17,7 @@ export async function createTorrentEntry(torrent, overwrite = false) {
           year: titleInfo.year,
           type: torrent.type
       };
-      torrent.imdbId = await getImdbId(imdbQuery)
+      torrent.imdbId = await metadataService.getImdbId(imdbQuery)
         .catch(() => undefined);
   }
   if (torrent.imdbId && torrent.imdbId.length < 9) {
@@ -34,11 +34,11 @@ export async function createTorrentEntry(torrent, overwrite = false) {
           year: titleInfo.year,
           season: titleInfo.season,
       };
-      torrent.kitsuId = await getKitsuId(kitsuQuery)
+      torrent.kitsuId = await metadataService.getKitsuId(kitsuQuery)
         .catch(() => undefined);
   }
 
-  if (!torrent.imdbId && !torrent.kitsuId && !isPackTorrent(torrent)) {
+  if (!torrent.imdbId && !torrent.kitsuId && !parsingService.isPackTorrent(torrent)) {
     logger.warn(`imdbId or kitsuId not found:  ${torrent.provider} ${torrent.title}`);
     return;
   }
@@ -56,7 +56,7 @@ export async function createTorrentEntry(torrent, overwrite = false) {
   }
 
   return repository.createTorrent({ ...torrent, contents, subtitles })
-      .then(() => Promises.sequence(videos.map(video => () => repository.createFile(video))))
+      .then(() => PromiseHelpers.sequence(videos.map(video => () => repository.createFile(video))))
       .then(() => logger.info(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
 }
 
@@ -132,8 +132,8 @@ export async function createTorrentContents(torrent) {
     return;
   }
   const notOpenedVideo = storedVideos.length === 1 && !Number.isInteger(storedVideos[0].fileIndex);
-  const imdbId = Promises.mostCommonValue(storedVideos.map(stored => stored.imdbId));
-  const kitsuId = Promises.mostCommonValue(storedVideos.map(stored => stored.kitsuId));
+  const imdbId = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.imdbId));
+  const kitsuId = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.kitsuId));
 
   const { contents, videos, subtitles } = await parseTorrentFiles({ ...torrent, imdbId, kitsuId })
       .then(torrentContents => notOpenedVideo ? torrentContents : { ...torrentContents, videos: storedVideos })
@@ -165,7 +165,7 @@ export async function createTorrentContents(torrent) {
         }
         return Promise.resolve();
       })
-      .then(() => Promises.sequence(videos.map(video => () => repository.createFile(video))))
+      .then(() => PromiseHelpers.sequence(videos.map(video => () => repository.createFile(video))))
       .then(() => logger.info(`Created contents for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`))
       .catch(error => logger.error(`Failed saving contents for [${torrent.infoHash}] ${torrent.title}`, error));
 }

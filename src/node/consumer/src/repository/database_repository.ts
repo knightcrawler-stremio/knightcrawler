@@ -2,7 +2,7 @@ import moment from 'moment';
 import {literal, Op, WhereOptions} from "sequelize";
 import {Model, Sequelize} from 'sequelize-typescript';
 import {databaseConfig} from '../lib/config';
-import * as Promises from '../lib/promises';
+import {PromiseHelpers} from '../lib/helpers/promises_helpers';
 import {Provider} from "./models/provider";
 import {File} from "./models/file";
 import {Torrent} from "./models/torrent";
@@ -13,7 +13,7 @@ import {SkipTorrent} from "./models/skipTorrent";
 import {FileAttributes} from "./interfaces/file_attributes";
 import {TorrentAttributes} from "./interfaces/torrent_attributes";
 import {IngestedPage} from "./models/ingestedPage";
-import {logger} from "../lib/logger";
+import {logger} from "../lib/services/logging_service";
 
 class DatabaseRepository {
     private readonly database: Sequelize;
@@ -83,7 +83,7 @@ class DatabaseRepository {
     }
 
     public async setIngestedTorrentsProcessed(ingestedTorrents: IngestedTorrent[]): Promise<void> {
-        await Promises.sequence(ingestedTorrents
+        await PromiseHelpers.sequence(ingestedTorrents
             .map(ingestedTorrent => async () => {
                 ingestedTorrent.processed = true;
                 await ingestedTorrent.save();
@@ -194,7 +194,7 @@ class DatabaseRepository {
 
     public async upsertSubtitles(file: File, subtitles: Subtitle[]): Promise<void> {
         if (file.id && subtitles && subtitles.length) {
-            await Promises.sequence(subtitles
+            await PromiseHelpers.sequence(subtitles
                 .map(subtitle => {
                     subtitle.fileId = file.id;
                     subtitle.infoHash = subtitle.infoHash || file.infoHash;

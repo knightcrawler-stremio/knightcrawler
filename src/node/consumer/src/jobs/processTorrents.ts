@@ -1,7 +1,7 @@
 ﻿import client, {Channel, Connection, ConsumeMessage, Options} from 'amqplib'
 import {jobConfig, rabbitConfig} from '../lib/config';
-import {processTorrentRecord} from '../lib/torrent_processor';
-import {logger} from '../lib/logger';
+import {torrentProcessingService} from '../lib/services/torrent_processing_service';
+import {logger} from '../lib/services/logging_service';
 import {IngestedRabbitMessage, IngestedRabbitTorrent} from "../lib/interfaces/ingested_rabbit_message";
 import {IngestedTorrentAttributes} from "../repository/interfaces/ingested_torrent_attributes";
 
@@ -10,7 +10,7 @@ const consumeQueueOptions: Options.Consume = { noAck: false };
 
 const processMessage = (msg: ConsumeMessage | null): Promise<void> => {
     const ingestedTorrent: IngestedTorrentAttributes = getMessageAsJson(msg);    
-    return processTorrentRecord(ingestedTorrent);
+    return torrentProcessingService.processTorrentRecord(ingestedTorrent);
 };
 
 const getMessageAsJson = (msg: ConsumeMessage | null): IngestedTorrentAttributes => {
