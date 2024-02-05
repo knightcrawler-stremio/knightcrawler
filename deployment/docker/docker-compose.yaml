@@ -75,6 +75,7 @@ services:
     #   - "15692:15692"
     volumes:
       - rabbitmq:/var/lib/rabbitmq
+    hostname: ${RabbitMqConfiguration__Host}
     restart: *restart-policy
     healthcheck: *rabbitmq-health
     networks:
