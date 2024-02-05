@@ -8,7 +8,7 @@ import { getMetadata, getImdbId, getKitsuId } from './metadata.js';
 import { parseSeriesVideos, isPackTorrent } from './parseHelper.js';
 import * as Promises from './promises.js';
 import {torrentFiles} from "./torrent.js";
-import { TorrentType } from './types.js';
+import { TorrentType } from './enums/torrent_types';
 import {logger} from "./logger";
 
 const MIN_SIZE = 5 * 1024 * 1024; // 5 MB

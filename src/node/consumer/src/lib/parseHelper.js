@@ -1,5 +1,5 @@
 import { parse } from 'parse-torrent-title';
-import { TorrentType } from './types.js';
+import { TorrentType } from './enums/torrent_types';
 
 const MULTIPLE_FILES_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
 

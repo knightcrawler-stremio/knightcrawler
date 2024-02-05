@@ -31,6 +31,7 @@
     "user-agents": "^1.0.1444"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.4",
     "@types/node": "^20.11.16",
     "@types/stremio-addon-sdk": "^1.6.10",
     "@types/validator": "^13.11.8",

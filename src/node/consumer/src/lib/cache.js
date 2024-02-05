@@ -2,7 +2,7 @@ import { createCache, memoryStore} from 'cache-manager';
 import { mongoDbStore } from '@tirke/node-cache-manager-mongodb'
 import { cacheConfig } from './config.js';
 import { logger } from './logger';
-import { CacheType } from "./types.js";
+import { CacheType } from "./enums/cache_types";
 
 const GLOBAL_KEY_PREFIX = 'knightcrawler-consumer';
 const IMDB_ID_PREFIX = `${GLOBAL_KEY_PREFIX}|imdb_id`;

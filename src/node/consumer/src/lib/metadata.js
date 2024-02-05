@@ -2,7 +2,7 @@ import axios from 'axios';
 import { search } from 'google-sr';
 import nameToImdb from 'name-to-imdb';
 import { cacheWrapImdbId, cacheWrapKitsuId, cacheWrapMetadata } from './cache.js';
-import { TorrentType } from './types.js';
+import { TorrentType } from './enums/torrent_types';
 
 const CINEMETA_URL = 'https://v3-cinemeta.strem.io';
 const KITSU_URL = 'https://anime-kitsu.strem.fun';

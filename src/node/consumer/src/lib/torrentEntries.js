@@ -5,7 +5,7 @@ import * as Promises from './promises.js';
 import { repository } from '../repository/database_repository';
 import { parseTorrentFiles } from './torrentFiles.js';
 import { assignSubtitles } from './torrentSubtitles.js';
-import { TorrentType } from './types.js';
+import { TorrentType } from './enums/torrent_types';
 import {logger} from "./logger";
 
 export async function createTorrentEntry(torrent, overwrite = false) {

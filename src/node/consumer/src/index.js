@@ -1,4 +1,4 @@
-import { listenToQueue } from './jobs/processTorrents.js';
+import { listenToQueue } from './jobs/processTorrents';
 import { repository } from "./repository/database_repository";
 import { getTrackers } from "./lib/trackerService.js";
 
