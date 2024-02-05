@@ -167,9 +167,11 @@ with include drop, create tables, create indexes, reset sequences
 
 > [!TIP]
 > Your `docker-ip` can be found using the following command:
-> `docker network inspect knightcrawler-network | grep knightcrawler-postgres -A 4`
+> ```
+> docker network inspect knightcrawler-network | grep knightcrawler-postgres -A 4
+> ```
 
-Then run `pgloader db.load` to create a new `items` table.
+Then run `pgloader db.load` to create a new `items` table. This can take a few minutes, depending on the size of the database.
 
 ### INSERT INTO ingested_torrents
 
@@ -190,6 +192,15 @@ INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders,
 SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
 FROM items where cat='tv' OR cat='movies';"
 ```
+
+You should get a response similar to:
+
+`INSERT 0 669475`
+
+After, you can delete the `items` table by running:
+
+```docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "drop table items";```
+
 
 ## Selfhostio to KnightCrawler Migration
 
