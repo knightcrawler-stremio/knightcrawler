@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - 'master'
-      - 'feat/build_workflow'
+    paths:
+      - src/**
 
 jobs:
   build-and-push:
