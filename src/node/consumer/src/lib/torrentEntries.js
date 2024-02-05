@@ -1,5 +1,5 @@
 import { parse } from 'parse-torrent-title';
-import { getImdbId, getKitsuId } from './metadata.js';
+import { getImdbId, getKitsuId } from './metadata';
 import { isPackTorrent } from './parseHelper.js';
 import * as Promises from './promises.js';
 import { repository } from '../repository/database_repository';
@@ -12,7 +12,12 @@ export async function createTorrentEntry(torrent, overwrite = false) {
   const titleInfo = parse(torrent.title);
     
   if (!torrent.imdbId && torrent.type !== TorrentType.ANIME) {
-    torrent.imdbId = await getImdbId(titleInfo, torrent.type)
+      const imdbQuery = {
+          title: titleInfo.title,
+          year: titleInfo.year,
+          type: torrent.type
+      };
+      torrent.imdbId = await getImdbId(imdbQuery)
         .catch(() => undefined);
   }
   if (torrent.imdbId && torrent.imdbId.length < 9) {
@@ -24,7 +29,12 @@ export async function createTorrentEntry(torrent, overwrite = false) {
     torrent.imdbId = torrent.imdbId.replace(/tt0+([0-9]{7,})$/, 'tt$1');
   }
   if (!torrent.kitsuId && torrent.type === TorrentType.ANIME) {
-    torrent.kitsuId = await getKitsuId(titleInfo)
+      const kitsuQuery = {
+          title: titleInfo.title,
+          year: titleInfo.year,
+          season: titleInfo.season,
+      };
+      torrent.kitsuId = await getKitsuId(kitsuQuery)
         .catch(() => undefined);
   }
 

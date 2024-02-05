@@ -4,7 +4,7 @@ import moment from 'moment';
 import { parse } from 'parse-torrent-title';
 import { metadataConfig } from './config.js';
 import { isDisk } from './extension.js';
-import { getMetadata, getImdbId, getKitsuId } from './metadata.js';
+import { getMetadata, getImdbId, getKitsuId } from './metadata';
 import { parseSeriesVideos, isPackTorrent } from './parseHelper.js';
 import * as Promises from './promises.js';
 import {torrentFiles} from "./torrent.js";
@@ -472,12 +472,25 @@ async function updateToCinemetaMetadata(metadata) {
 function findMovieImdbId(title) {
   const parsedTitle = typeof title === 'string' ? parse(title) : title;
   logger.debug(`Finding movie imdbId for ${title}`);
-  return imdb_limiter.schedule(() => getImdbId(parsedTitle, TorrentType.MOVIE).catch(() => undefined));
+  return imdb_limiter.schedule(() => {
+      const imdbQuery = {
+          title: parsedTitle.title,
+          year: parsedTitle.year,
+          type: TorrentType.MOVIE
+      };
+      return getImdbId(imdbQuery).catch(() => undefined);
+  });
 }
 
 function findMovieKitsuId(title) {
   const parsedTitle = typeof title === 'string' ? parse(title) : title;
-  return getKitsuId(parsedTitle, TorrentType.MOVIE).catch(() => undefined);
+    const kitsuQuery = {
+        title: parsedTitle.title,
+        year: parsedTitle.year,
+        season: parsedTitle.season,
+        type: TorrentType.MOVIE
+    };
+  return getKitsuId(kitsuQuery).catch(() => undefined);
 }
 
 function isDiskTorrent(contents) {
