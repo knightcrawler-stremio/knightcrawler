@@ -1,5 +1,5 @@
 ﻿import client, {Channel, Connection, ConsumeMessage, Options} from 'amqplib'
-import {jobConfig, rabbitConfig} from '../lib/config';
+import {configurationService} from '../lib/services/configuration_service';
 import {torrentProcessingService} from '../lib/services/torrent_processing_service';
 import {logger} from '../lib/services/logging_service';
 import {IngestedRabbitMessage, IngestedRabbitTorrent} from "../lib/interfaces/ingested_rabbit_message";
@@ -33,21 +33,21 @@ const assertAndConsumeQueue = async (channel: Channel): Promise<void> => {
     }
 
     try {
-        await channel.assertQueue(rabbitConfig.QUEUE_NAME, assertQueueOptions);
-        await channel.prefetch(jobConfig.JOB_CONCURRENCY);
-        await channel.consume(rabbitConfig.QUEUE_NAME, ackMsg, consumeQueueOptions);
+        await channel.assertQueue(configurationService.rabbitConfig.QUEUE_NAME, assertQueueOptions);
+        await channel.prefetch(configurationService.jobConfig.JOB_CONCURRENCY);
+        await channel.consume(configurationService.rabbitConfig.QUEUE_NAME, ackMsg, consumeQueueOptions);
     } catch(error) {
         logger.error('Failed to setup channel', error);
     }
 }
 
 export const listenToQueue = async (): Promise<void> => {
-    if (!jobConfig.JOBS_ENABLED) {
+    if (!configurationService.jobConfig.JOBS_ENABLED) {
         return;
     }
 
     try {
-        const connection: Connection = await client.connect(rabbitConfig.RABBIT_URI);
+        const connection: Connection = await client.connect(configurationService.rabbitConfig.RABBIT_URI);
         const channel: Channel = await connection.createChannel();
         await assertAndConsumeQueue(channel);
     } catch (error) {

@@ -1,7 +1,7 @@
 import moment from 'moment';
 import {literal, Op, WhereOptions} from "sequelize";
 import {Model, Sequelize} from 'sequelize-typescript';
-import {databaseConfig} from '../lib/config';
+import {configurationService} from '../lib/services/configuration_service';
 import {PromiseHelpers} from '../lib/helpers/promises_helpers';
 import {Provider} from "./models/provider";
 import {File} from "./models/file";
@@ -244,7 +244,7 @@ class DatabaseRepository {
     
     private createDatabase(): Sequelize {
         const newDatabase = new Sequelize(
-            databaseConfig.POSTGRES_URI,
+            configurationService.databaseConfig.POSTGRES_URI,
             {
                 logging: false
             }

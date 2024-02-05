@@ -2,17 +2,17 @@ import Bottleneck from 'bottleneck';
 import distance from 'jaro-winkler';
 import moment from 'moment';
 import { parse } from 'parse-torrent-title';
-import { metadataConfig } from './config';
+import { configurationService } from './services/configuration_service';
 import { extensionService } from './services/extension_service';
 import { metadataService } from './services/metadata_service';
 import { parsingService } from './services/parsing_service';
-import {PromiseHelpers} from './helpers/promises_helpers.js';
+import {PromiseHelpers} from './helpers/promises_helpers';
 import {torrentDownloadService} from "./services/torrent_download_service";
 import { TorrentType } from './enums/torrent_types';
 import {logger} from "./services/logging_service";
 
 const MIN_SIZE = 5 * 1024 * 1024; // 5 MB
-const imdb_limiter = new Bottleneck({ maxConcurrent: metadataConfig.IMDB_CONCURRENT, minTime: metadataConfig.IMDB_INTERVAL_MS });
+const imdb_limiter = new Bottleneck({ maxConcurrent: configurationService.metadataConfig.IMDB_CONCURRENT, minTime: configurationService.metadataConfig.IMDB_INTERVAL_MS });
 
 export async function parseTorrentFiles(torrent) {
   const parsedTorrentName = parse(torrent.title);

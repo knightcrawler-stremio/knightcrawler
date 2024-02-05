@@ -1,13 +1,13 @@
 import { encode } from 'magnet-uri';
 import torrentStream from 'torrent-stream';
-import { torrentConfig } from '../config';
+import { configurationService } from './configuration_service';
 import {extensionService} from './extension_service';
 import {TorrentInfo} from "../interfaces/torrent_info";
 import {DownloadedTorrentFile} from "../interfaces/downloaded_torrent_file";
 
 class TorrentDownloadService {
     private engineOptions: TorrentStream.TorrentEngineOptions = {
-        connections: torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
+        connections: configurationService.torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
         uploads: 0,
         verify: false,
         dht: false,

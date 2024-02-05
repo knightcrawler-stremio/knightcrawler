@@ -1,6 +1,6 @@
 import {Cache, createCache, memoryStore} from 'cache-manager';
 import { mongoDbStore } from '@tirke/node-cache-manager-mongodb'
-import { cacheConfig } from '../config';
+import { configurationService } from './configuration_service';
 import { logger } from './logging_service';
 import { CacheType } from "../enums/cache_types";
 import {CacheOptions} from "../interfaces/cache_options";
@@ -19,7 +19,7 @@ type CacheMethod = () => any;
 
 class CacheService {
     constructor() {
-        if (!cacheConfig.NO_CACHE) {
+        if (!configurationService.cacheConfig.NO_CACHE) {
             logger.info('Cache is disabled');
             return;
         }
@@ -47,9 +47,9 @@ class CacheService {
 
     private initiateMongoCache = () => {
         const store = mongoDbStore({
-            collectionName: cacheConfig.COLLECTION_NAME,
+            collectionName: configurationService.cacheConfig.COLLECTION_NAME,
             ttl: GLOBAL_TTL,
-            url: cacheConfig.MONGO_URI,
+            url: configurationService.cacheConfig.MONGO_URI,
             mongoConfig:{
                 socketTimeoutMS: 120000,
                 appName: 'knightcrawler-consumer',
@@ -62,12 +62,12 @@ class CacheService {
     }
 
     private initiateRemoteCache = (): Cache => {
-        if (cacheConfig.NO_CACHE) {
+        if (configurationService.cacheConfig.NO_CACHE) {
             logger.debug('Cache is disabled');
             return null;
         }
 
-        return cacheConfig.MONGO_URI ? this.initiateMongoCache() : this.initiateMemoryCache();
+        return configurationService.cacheConfig.MONGO_URI ? this.initiateMongoCache() : this.initiateMemoryCache();
     }
 
     private getCacheType = (cacheType: CacheType): typeof this.memoryCache | null => {
@@ -88,7 +88,7 @@ class CacheService {
         cacheType: CacheType, key: string, method: CacheMethod, options: CacheOptions): Promise<any> => {
         const cache = this.getCacheType(cacheType);
 
-        if (cacheConfig.NO_CACHE || !cache) {
+        if (configurationService.cacheConfig.NO_CACHE || !cache) {
             return method();
         }
 

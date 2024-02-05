@@ -1,7 +1,7 @@
 import { parse } from 'parse-torrent-title';
 import { metadataService } from './services/metadata_service';
 import { parsingService } from './services/parsing_service';
-import {PromiseHelpers} from './helpers/promises_helpers.js';
+import {PromiseHelpers} from './helpers/promises_helpers';
 import { repository } from '../repository/database_repository';
 import { parseTorrentFiles } from './torrentFiles.js';
 import { assignSubtitles } from './torrentSubtitles.js';
