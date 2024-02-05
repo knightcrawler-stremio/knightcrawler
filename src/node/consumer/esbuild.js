@@ -1,8 +1,6 @@
 import { build } from "esbuild";
 import { readFileSync, rmSync } from "fs";
 
-const { devDependencies } = JSON.parse(readFileSync("./package.json", "utf8"));
-
 const start = Date.now();
 
 try {
@@ -15,7 +13,6 @@ try {
         entryPoints: [
             "./src/index.js",
         ],
-        external: [...(devDependencies && Object.keys(devDependencies))],
         keepNames: true,
         minify: true,
         outbase: "./src",
