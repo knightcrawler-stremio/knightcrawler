@@ -110,6 +110,7 @@ To enhance your monitoring capabilities, you can use Grafana and Prometheus in a
 
 #### Accessing RabbitMQ Management
 
+
 You can still monitor RabbitMQ by accessing its management interface at [http://127.0.0.1:15672/](http://127.0.0.1:15672/). Use the provided credentials to log in and explore RabbitMQ's monitoring features (the default username and password are `guest`).
 
 #### Using Grafana and Prometheus
@@ -152,17 +153,21 @@ A brief record of the steps required to import external data, in this case the r
 
 Using [pgloader](https://pgloader.readthedocs.io/en/latest/ref/sqlite.html) we can import other databases into Knight Crawler.
 
-For example, create a file called `db.load` containing the following:
+For example, if you had a sql database called `rarbg_db.sqlite` stored in `/tmp/` you would create a file called `db.load` containing the following:
 
 ```
 load database
-     from sqlite:///tmp/rarbg_db.sqlite
-     into postgresql://postgres:postgres@localhost/knightcrawler
+     from sqlite://tmp/rarbg_db.sqlite
+     into postgresql://postgres:postgres@<docker-ip>/knightcrawler
 
 with include drop, create tables, create indexes, reset sequences
 
   set work_mem to '16MB', maintenance_work_mem to '512 MB';
 ```
+
+> [!TIP]
+> Your `docker-ip` can be found using the following command:
+> `docker network inspect knightcrawler-network | grep knightcrawler-postgres -A 4`
 
 Then run `pgloader db.load` to create a new `items` table.
 
@@ -173,17 +178,16 @@ Then run `pgloader db.load` to create a new `items` table.
 > This is specific to this example external database, other databases may/will have different column names and the sql command will require tweaking
 
 > [!IMPORTANT]
-> The `processed` field should be false so that the consumers will properly process it.
-
+> The `processed` field should be `false` so that the consumers will properly process it.
 
 Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using `psql`.
 
-This can be done by attaching to the postgres docker container
+This can be done by running the following command:
 
 ```
 docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "
-INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed)
-SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false
+INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, \"createdAt\", \"updatedAt\")
+SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
 FROM items where cat='tv' OR cat='movies';"
 ```
 
