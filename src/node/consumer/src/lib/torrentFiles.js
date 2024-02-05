@@ -6,7 +6,7 @@ import { metadataConfig } from './config.js';
 import { isDisk } from './extension.js';
 import { getMetadata, getImdbId, getKitsuId } from './metadata';
 import { parseSeriesVideos, isPackTorrent } from './parseHelper.js';
-import * as Promises from './promises.js';
+import * as Promises from './promises';
 import {torrentFiles} from "./torrent.js";
 import { TorrentType } from './enums/torrent_types';
 import {logger} from "./logger";

@@ -2,7 +2,7 @@ import moment from 'moment';
 import {literal, Op, WhereOptions} from "sequelize";
 import {Model, Sequelize} from 'sequelize-typescript';
 import {databaseConfig} from '../lib/config';
-import * as Promises from '../lib/promises.js';
+import * as Promises from '../lib/promises';
 import {Provider} from "./models/provider";
 import {File} from "./models/file";
 import {Torrent} from "./models/torrent";
