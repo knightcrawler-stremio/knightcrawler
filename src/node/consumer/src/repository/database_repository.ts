@@ -36,7 +36,7 @@ class DatabaseRepository {
         try {
             await this.database.authenticate();
             logger.info('Database connection has been established successfully.');
-            await this.database.sync({alter: true});
+            await this.database.sync({alter: configurationService.databaseConfig.AUTO_CREATE_AND_APPLY_MIGRATIONS});
         } catch (error) {
             logger.error('Failed syncing database: ', error);
             throw error;
