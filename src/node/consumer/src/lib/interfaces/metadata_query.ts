@@ -5,4 +5,5 @@ export interface MetaDataQuery {
     date?: string
     season?: number
     episode?: number
+    id?: string | number
 }

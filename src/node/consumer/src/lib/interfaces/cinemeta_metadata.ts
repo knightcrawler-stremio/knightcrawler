@@ -61,8 +61,6 @@ export interface CinemetaVideo extends CommonVideoMetadata {
     rating?: string;
     overview?: string;
     thumbnail?: string;
-    id?: string;
-    released?: string;
     description?: string;
 }
 export interface CinemetaTrailerStream {

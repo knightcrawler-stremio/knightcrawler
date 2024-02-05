@@ -1,3 +1,5 @@
+import {CommonVideoMetadata} from "./common_video_metadata";
+
 export interface MetadataResponse {
     kitsuId?: number;
     imdbId?: number;
@@ -7,7 +9,7 @@ export interface MetadataResponse {
     country?: string;
     genres?: string[];
     status?: string;
-    videos?: any[];
+    videos?: CommonVideoMetadata[];
     episodeCount?: number[];
     totalCount?: number;
 }

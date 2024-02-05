@@ -3,8 +3,8 @@ import { metadataService } from './services/metadata_service';
 import { parsingService } from './services/parsing_service';
 import {PromiseHelpers} from './helpers/promises_helpers';
 import { repository } from '../repository/database_repository';
-import { parseTorrentFiles } from './torrentFiles.js';
-import { assignSubtitles } from './torrentSubtitles.js';
+import { torrentFileService } from './services/torrent_file_service';
+import { torrentSubtitleService } from './services/torrent_subtitle_service';
 import { TorrentType } from './enums/torrent_types';
 import {logger} from './services/logging_service';
 
@@ -43,9 +43,9 @@ export async function createTorrentEntry(torrent, overwrite = false) {
     return;
   }
 
-  const { contents, videos, subtitles } = await parseTorrentFiles(torrent)
+  const { contents, videos, subtitles } = await torrentFileService.parseTorrentFiles(torrent)
       .then(torrentContents => overwrite ? overwriteExistingFiles(torrent, torrentContents) : torrentContents)
-      .then(torrentContents => assignSubtitles(torrentContents))
+      .then(torrentContents => torrentSubtitleService.assignSubtitles(torrentContents))
       .catch(error => {
           logger.warn(`Failed getting files for ${torrent.title}`, error.message);
         return {};
@@ -135,9 +135,9 @@ export async function createTorrentContents(torrent) {
   const imdbId = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.imdbId));
   const kitsuId = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.kitsuId));
 
-  const { contents, videos, subtitles } = await parseTorrentFiles({ ...torrent, imdbId, kitsuId })
+  const { contents, videos, subtitles } = await torrentFileService.parseTorrentFiles({ ...torrent, imdbId, kitsuId })
       .then(torrentContents => notOpenedVideo ? torrentContents : { ...torrentContents, videos: storedVideos })
-      .then(torrentContents => assignSubtitles(torrentContents))
+      .then(torrentContents => torrentSubtitleService.assignSubtitles(torrentContents))
       .catch(error => {
         logger.warn(`Failed getting contents for [${torrent.infoHash}] ${torrent.title}`, error.message);
         return {};

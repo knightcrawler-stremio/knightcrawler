@@ -1,20 +1,20 @@
 import { parse } from 'parse-torrent-title';
 import { TorrentType } from '../enums/torrent_types';
 import {ParseTorrentTitleResult} from "../interfaces/parse_torrent_title_result";
-import {ParsableTorrentVideo} from "../interfaces/parsable_torrent_video";
-import {ParsableTorrent} from "../interfaces/parsable_torrent";
+import {ParsableTorrentFile} from "../interfaces/parsable_torrent_file";
+import {TorrentInfo} from "../interfaces/torrent_info";
 
 class ParsingService {
     private readonly MULTIPLE_FILES_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
 
-    public parseSeriesVideos(torrent: ParsableTorrent, videos: ParsableTorrentVideo[]): ParseTorrentTitleResult[] {
+    public parseSeriesVideos(torrent: TorrentInfo, videos: ParsableTorrentFile[]): ParsableTorrentFile[] {
         const parsedTorrentName = parse(torrent.title);
         const hasMovies = parsedTorrentName.complete || !!torrent.title.match(/movies?(?:\W|$)/i);
         const parsedVideos = videos.map(video => this.parseSeriesVideo(video, parsedTorrentName));
         return parsedVideos.map(video => ({ ...video, isMovie: this.isMovieVideo(video, parsedVideos, torrent.type, hasMovies) }));
     }
 
-    public isPackTorrent(torrent: ParsableTorrent): boolean {
+    public isPackTorrent(torrent: TorrentInfo): boolean {
         if (torrent.pack) {
             return true;
         }
@@ -31,7 +31,7 @@ class ParsingService {
         return hasMultipleEpisodes && !hasSingleEpisode;
     }
 
-    private parseSeriesVideo(video: ParsableTorrentVideo, parsedTorrentName: ParseTorrentTitleResult): ParseTorrentTitleResult {
+    private parseSeriesVideo(video: ParsableTorrentFile, parsedTorrentName: ParseTorrentTitleResult): ParseTorrentTitleResult {
         const videoInfo = parse(video.name);
         // the episode may be in a folder containing season number
         if (!Number.isInteger(videoInfo.season) && video.path.includes('/')) {

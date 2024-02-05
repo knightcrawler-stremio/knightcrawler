@@ -30,13 +30,10 @@ export interface KitsuMeta {
     year?: string;
 }
 export interface KitsuVideo extends CommonVideoMetadata {
-    id?: string;
     imdbEpisode?: number;
     imdbSeason?: number;
     imdb_id?: string;
-    released?: string;
     thumbnail?: string;
-    title?: string;
 }
 export interface KitsuTrailer {
     source?: string;

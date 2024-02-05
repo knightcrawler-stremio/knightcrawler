@@ -1,5 +1,5 @@
 export interface ParseTorrentTitleResult {
-    title: string;
+    title?: string;
     date?: string;
     year?: number | string;
     resolution?: string;

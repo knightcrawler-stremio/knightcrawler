@@ -53,13 +53,13 @@ class MetadataService {
         }
     }
 
-    public getMetadata(id: string | number, type: TorrentType = TorrentType.SERIES): Promise<MetadataResponse | Error> {
-        if (!id) {
+    public getMetadata(query: MetaDataQuery): Promise<MetadataResponse | Error> {
+        if (!query.id) {
             return Promise.reject("no valid id provided");
         }
 
-        const key = Number.isInteger(id) || id.toString().match(/^\d+$/) ? `kitsu:${id}` : id;
-        const metaType = type === TorrentType.MOVIE ? TorrentType.MOVIE : TorrentType.SERIES;
+        const key = Number.isInteger(query.id) || query.id.toString().match(/^\d+$/) ? `kitsu:${query.id}` : query.id;
+        const metaType = query.type === TorrentType.MOVIE ? TorrentType.MOVIE : TorrentType.SERIES;
         return cacheService.cacheWrapMetadata(key.toString(), () => this.requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
             .catch(() => this.requestMetadata(`${CINEMETA_URL}/meta/${metaType}/${key}.json`))
             .catch(() => {

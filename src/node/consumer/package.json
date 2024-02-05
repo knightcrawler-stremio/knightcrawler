@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.4",
+    "@types/jaro-winkler": "^0.2.3",
     "@types/magnet-uri": "^5.1.5",
     "@types/node": "^20.11.16",
     "@types/stremio-addon-sdk": "^1.6.10",
