@@ -24,7 +24,7 @@ export const databaseConfig = {
     POSTGRES_DATABASE: process.env.POSTGRES_DATABASE || 'knightcrawler',
     POSTGRES_USERNAME: process.env.POSTGRES_USERNAME || 'postgres',
     POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD || 'postgres',
-    ENABLE_SYNC: true
+    AUTO_CREATE_AND_APPLY_MIGRATIONS: parseBool(process.env.AUTO_CREATE_AND_APPLY_MIGRATIONS, false)
 }
 
 // Combine the environment variables into a connection string
