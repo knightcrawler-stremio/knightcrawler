@@ -81,9 +81,7 @@ services:
       - knightcrawler-network
 
   producer:
-    build:
-      context: ../../src/producer
-      dockerfile: Dockerfile
+    image: gabisonfire/knightcrawler-producer:latest
     labels:
       logging: "promtail"
     env_file:
@@ -93,9 +91,7 @@ services:
       - knightcrawler-network
 
   consumer:
-    build:
-      context: ../../src/node/consumer
-      dockerfile: Dockerfile
+    image: gabisonfire/knightcrawler-consumer:latest
     env_file:
       - .env
     labels:
@@ -107,9 +103,7 @@ services:
       - knightcrawler-network
 
   addon:
-    build:
-      context: ../../src/node/addon
-      dockerfile: Dockerfile
+    image: gabisonfire/knightcrawler-addon:latest
     ports:
       - "7000:7000"
     labels:
