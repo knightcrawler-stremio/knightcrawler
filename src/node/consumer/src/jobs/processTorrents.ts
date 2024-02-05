@@ -1,5 +1,5 @@
 ﻿import client, {Channel, Connection, ConsumeMessage, Options} from 'amqplib'
-import {jobConfig, rabbitConfig} from '../lib/config.js';
+import {jobConfig, rabbitConfig} from '../lib/config';
 import {processTorrentRecord} from '../lib/torrent_processor';
 import {logger} from '../lib/logger';
 import {IngestedRabbitMessage, IngestedRabbitTorrent} from "../lib/interfaces/ingested_rabbit_message";
@@ -47,7 +47,7 @@ export const listenToQueue = async (): Promise<void> => {
     }
 
     try {
-        const connection: Connection = await client.connect(rabbitConfig.URI);
+        const connection: Connection = await client.connect(rabbitConfig.RABBIT_URI);
         const channel: Channel = await connection.createChannel();
         await assertAndConsumeQueue(channel);
     } catch (error) {

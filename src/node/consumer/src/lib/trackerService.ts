@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
-import { cacheTrackers } from "./cache.js";
-import { trackerConfig } from './config.js';
+import { cacheTrackers } from "./cache";
+import { trackerConfig } from './config';
 import { logger } from "./logger";
 
 const downloadTrackers = async (): Promise<string[]> => {

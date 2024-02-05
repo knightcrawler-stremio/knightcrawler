@@ -1,7 +1,7 @@
 import axios, {AxiosResponse} from 'axios';
 import {search, ResultTypes} from 'google-sr';
 import nameToImdb from 'name-to-imdb';
-import { cacheWrapImdbId, cacheWrapKitsuId, cacheWrapMetadata } from './cache.js';
+import { cacheWrapImdbId, cacheWrapKitsuId, cacheWrapMetadata } from './cache';
 import { TorrentType } from './enums/torrent_types';
 import {MetadataResponse} from "./interfaces/metadata_response";
 import {CinemetaJsonResponse} from "./interfaces/cinemeta_metadata";

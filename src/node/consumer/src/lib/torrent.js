@@ -1,6 +1,6 @@
 import { decode } from 'magnet-uri';
 import torrentStream from 'torrent-stream';
-import { torrentConfig } from './config.js';
+import { torrentConfig } from './config';
 import {isSubtitle, isVideo} from './extension';
 
 export async function torrentFiles(torrent, timeout) {

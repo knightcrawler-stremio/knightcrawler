@@ -2,7 +2,7 @@ import Bottleneck from 'bottleneck';
 import distance from 'jaro-winkler';
 import moment from 'moment';
 import { parse } from 'parse-torrent-title';
-import { metadataConfig } from './config.js';
+import { metadataConfig } from './config';
 import { isDisk } from './extension';
 import { getMetadata, getImdbId, getKitsuId } from './metadata';
 import { parseSeriesVideos, isPackTorrent } from './parseHelper';
