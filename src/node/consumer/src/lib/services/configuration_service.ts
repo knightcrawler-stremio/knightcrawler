@@ -1,19 +1,17 @@
-﻿import {RabbitConfig} from "../models/configuration/rabbit_config";
-import {CacheConfig} from "../models/configuration/cache_config";
-import {DatabaseConfig} from "../models/configuration/database_config";
-import {JobConfig} from "../models/configuration/job_config";
-import {MetadataConfig} from "../models/configuration/metadata_config";
-import {TrackerConfig} from "../models/configuration/tracker_config";
-import {TorrentConfig} from "../models/configuration/torrent_config";
+﻿import {rabbitConfig} from "../models/configuration/rabbit_config";
+import {cacheConfig} from "../models/configuration/cache_config";
+import {databaseConfig} from "../models/configuration/database_config";
+import {jobConfig} from "../models/configuration/job_config";
+import {metadataConfig} from "../models/configuration/metadata_config";
+import {trackerConfig} from "../models/configuration/tracker_config";
+import {torrentConfig} from "../models/configuration/torrent_config";
 
-class ConfigurationService {
-    public readonly rabbitConfig = new RabbitConfig();
-    public readonly cacheConfig = new CacheConfig();
-    public readonly databaseConfig = new DatabaseConfig();
-    public readonly jobConfig = new JobConfig();
-    public readonly metadataConfig = new MetadataConfig();
-    public readonly trackerConfig = new TrackerConfig();
-    public readonly torrentConfig = new TorrentConfig();
-}
-
-export const configurationService = new ConfigurationService();
+export const configurationService = {
+    rabbitConfig: rabbitConfig,
+    cacheConfig: cacheConfig,
+    databaseConfig: databaseConfig,
+    jobConfig: jobConfig,
+    metadataConfig: metadataConfig,
+    trackerConfig: trackerConfig,
+    torrentConfig: torrentConfig
+};
