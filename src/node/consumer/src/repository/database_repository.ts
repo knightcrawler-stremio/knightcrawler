@@ -32,18 +32,16 @@ class DatabaseRepository {
         this.database = this.createDatabase();
     }
     
-    public async connect(): Promise<void> {
+    public async connect() {
         try {
-            await this.database.authenticate();
-            logger.info('Database connection has been established successfully.');
             await this.database.sync({alter: configurationService.databaseConfig.AUTO_CREATE_AND_APPLY_MIGRATIONS});
-        } catch (error) {
-            logger.error('Failed syncing database: ', error);
-            throw error;
+        } catch {
+            logger.error('Failed syncing database');
+            process.exit(1);
         }
     }
 
-    public async getProvider(provider: Provider): Promise<Provider> {
+    public async getProvider(provider: Provider) {
         try {
             const [result] = await Provider.findOrCreate({ where: { name: { [Op.eq]: provider.name } }, defaults: provider });
             return result;

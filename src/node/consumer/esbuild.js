@@ -43,9 +43,12 @@ try {
         ],
     }).then(() => {
         // biome-ignore lint/style/useTemplate: <explanation>
+        // eslint-disable-next-line no-undef
         console.log("⚡ " + "\x1b[32m" + `Done in ${Date.now() - start}ms`);
     });
 } catch (e) {
+    // eslint-disable-next-line no-undef
     console.log(e);
+    // eslint-disable-next-line no-undef
     process.exit(1);
 }

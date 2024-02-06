@@ -9,7 +9,7 @@ class ProcessTorrentsJob {
     private readonly assertQueueOptions: Options.AssertQueue = {durable: true};
     private readonly consumeQueueOptions: Options.Consume = {noAck: false};
 
-    public listenToQueue = async (): Promise<void> => {
+    public listenToQueue = async ()=> {
         if (!configurationService.jobConfig.JOBS_ENABLED) {
             return;
         }
@@ -51,6 +51,10 @@ class ProcessTorrentsJob {
         } catch (error) {
             logger.error('Failed to setup channel', error);
         }
+    }
+    
+    private test() {
+        
     }
 }
 

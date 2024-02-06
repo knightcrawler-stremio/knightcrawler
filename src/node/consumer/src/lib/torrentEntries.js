@@ -1,12 +1,12 @@
 import { parse } from 'parse-torrent-title';
+import { repository } from '../repository/database_repository';
+import { TorrentType } from './enums/torrent_types';
+import { PromiseHelpers } from './helpers/promises_helpers';
+import { logger } from './services/logging_service';
 import { metadataService } from './services/metadata_service';
 import { parsingService } from './services/parsing_service';
-import {PromiseHelpers} from './helpers/promises_helpers';
-import { repository } from '../repository/database_repository';
 import { torrentFileService } from './services/torrent_file_service';
 import { torrentSubtitleService } from './services/torrent_subtitle_service';
-import { TorrentType } from './enums/torrent_types';
-import {logger} from './services/logging_service';
 
 export async function createTorrentEntry(torrent, overwrite = false) {
   const titleInfo = parse(torrent.title);
