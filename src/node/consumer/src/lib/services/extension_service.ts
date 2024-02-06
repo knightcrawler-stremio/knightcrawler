@@ -19,6 +19,7 @@ class ExtensionService {
         "ogm",
         "divx"
     ];
+    
     private readonly SUBTITLE_EXTENSIONS: string[] = [
         "aqt",
         "gsub",
@@ -38,6 +39,7 @@ class ExtensionService {
         "idx",
         "vtt"
     ];
+    
     private readonly DISK_EXTENSIONS: string[] = [
         "iso",
         "m2ts",
@@ -64,6 +66,3 @@ class ExtensionService {
 }
 
 export const extensionService = new ExtensionService();
-
-
-
