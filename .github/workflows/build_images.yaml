@@ -1,43 +1,131 @@
-name: Build
+name: Build and Push Docker Images
 
 on:
   push:
-    branches:
-      - 'master'
-    paths:
-      - src/**
 
 jobs:
-  build-and-push:
+  build-and-push-images:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     strategy:
       matrix:
         include:
           - context: ./src/node/addon/
-            tag: gabisonfire/knightcrawler-addon:latest
+            image_name: knightcrawler-addon
+            platforms: linux/amd64,linux/arm64
           - context: ./src/node/addon-jackett/
-            tag: gabisonfire/knightcrawler-addon-jackett:latest
+            image_name: knightcrawler-addon-jackett
+            platforms: linux/amd64,linux/arm64
           - context: ./src/node/consumer/
-            tag: gabisonfire/knightcrawler-consumer:latest
+            image_name: knightcrawler-consumer
+            platforms: linux/amd64,linux/arm64
           - context: ./src/producer/
-            tag: gabisonfire/knightcrawler-producer:latest
+            image_name: knightcrawler-producer
+            platforms: linux/amd64,linux/arm64
+
+    name: Build - ${{ matrix.image_name }}
+
     steps:
-      - 
-        name: Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - 
-        name: Set up Docker Buildx
+
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - 
-        name: Login to Docker Hub
+        with:
+          driver-opts: network=host
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - 
-        name: Build and push ${{ matrix.tag }}
+
+      - name: Build Docker Metadata
+        id: docker-metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}
+          flavor: |
+            latest=auto
+          tags: |
+            type=edge,branch=main,commit=${{ github.sha }}
+            type=sha,commit=${{ github.sha }}
+            
+      - name: Build image for scanning ${{ matrix.image_name }}
         uses: docker/build-push-action@v5
         with:
           context: ${{ matrix.context }}
           push: true
-          tags: ${{ matrix.tag }}
+          provenance: false
+          tags: localhost:5000/dockle-examine-image:test
+          platforms: ${{ matrix.platforms }}
+          cache-from: type=gha,scope=${{ github.workflow }}
+          cache-to: type=gha,mode=max,scope=${{ github.workflow }}
+
+      - name: Pull Built Image for Scanning
+        run: |
+          docker pull localhost:5000/dockle-examine-image:test
+
+      - name: Dockle - Examine Best Practices
+        uses: davidjameshowell/dockle-action@ad7164c945d12d55ac5e639f91f0a5c708a4cdce
+        with:
+          image: localhost:5000/dockle-examine-image:test
+          dockle-ignores: CIS-DI-0005 # Ignore `Enable Content trust for Docker`
+
+      - name: Run Trivy vulnerability scanner - human readable output
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localhost:5000/dockle-examine-image:test
+          scan-type: 'image'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          scanners: 'vuln,secret,config'
+        env:
+          TRIVY_NON_SSL: true
+
+      - name: Run Trivy vulnerability scanner (sarif report)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: localhost:5000/dockle-examine-image:test
+          scan-type: 'image'
+          format: 'sarif'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          scanners: 'vuln,secret,config'
+          output: 'trivy-results-os.sarif'
+        env:
+          TRIVY_NON_SSL: true
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results-os.sarif'
+
+      - name: Push ${{ matrix.image_name }} to repo
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          provenance: false
+          tags: ${{ steps.docker-metadata.outputs.tags }}
+          labels: ${{ steps.docker-metadata.outputs.labels }}
+          platforms: ${{ matrix.platforms }}
+          cache-from: type=gha,scope=${{ github.workflow }}
+          cache-to: type=gha,mode=max,scope=${{ github.workflow }}
