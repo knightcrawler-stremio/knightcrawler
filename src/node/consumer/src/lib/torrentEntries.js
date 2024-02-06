@@ -11,7 +11,7 @@ import {logger} from './services/logging_service';
 export async function createTorrentEntry(torrent, overwrite = false) {
   const titleInfo = parse(torrent.title);
     
-  if (!torrent.imdbId && torrent.type !== TorrentType.ANIME) {
+  if (!torrent.imdbId && torrent.type !== TorrentType.Anime) {
       const imdbQuery = {
           title: titleInfo.title,
           year: titleInfo.year,
@@ -28,7 +28,7 @@ export async function createTorrentEntry(torrent, overwrite = false) {
     // sanitize imdbId from redundant zeros
     torrent.imdbId = torrent.imdbId.replace(/tt0+([0-9]{7,})$/, 'tt$1');
   }
-  if (!torrent.kitsuId && torrent.type === TorrentType.ANIME) {
+  if (!torrent.kitsuId && torrent.type === TorrentType.Anime) {
       const kitsuQuery = {
           title: titleInfo.title,
           year: titleInfo.year,

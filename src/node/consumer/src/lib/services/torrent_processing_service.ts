@@ -8,7 +8,7 @@ import {IngestedTorrentAttributes} from "../../repository/interfaces/ingested_to
 class TorrentProcessingService {
     public async processTorrentRecord(torrent: IngestedTorrentAttributes): Promise<void> {
         const { category } = torrent;
-        const type = category === 'tv' ? TorrentType.SERIES : TorrentType.MOVIE;
+        const type = category === 'tv' ? TorrentType.Series : TorrentType.Movie;
         const torrentInfo: TorrentInfo = await this.parseTorrent(torrent, type);
 
         logger.info(`Processing torrent ${torrentInfo.title} with infoHash ${torrentInfo.infoHash}`);

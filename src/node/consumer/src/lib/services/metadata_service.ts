@@ -59,12 +59,12 @@ class MetadataService {
         }
 
         const key = Number.isInteger(query.id) || query.id.toString().match(/^\d+$/) ? `kitsu:${query.id}` : query.id;
-        const metaType = query.type === TorrentType.MOVIE ? TorrentType.MOVIE : TorrentType.SERIES;
+        const metaType = query.type === TorrentType.Movie ? TorrentType.Movie : TorrentType.Series;
         return cacheService.cacheWrapMetadata(key.toString(), () => this.requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
             .catch(() => this.requestMetadata(`${CINEMETA_URL}/meta/${metaType}/${key}.json`))
             .catch(() => {
                 // try different type in case there was a mismatch
-                const otherType = metaType === TorrentType.MOVIE ? TorrentType.SERIES : TorrentType.MOVIE;
+                const otherType = metaType === TorrentType.Movie ? TorrentType.Series : TorrentType.Movie;
                 return this.requestMetadata(`${CINEMETA_URL}/meta/${otherType}/${key}.json`)
             })
             .catch((error) => {

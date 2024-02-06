@@ -10,7 +10,7 @@ export interface IngestedTorrentAttributes {
     leechers: number;
     imdb: string;
     processed: boolean;
-    createdAt: Date;
+    createdAt?: Date;
 }
 
 export interface IngestedTorrentCreationAttributes extends Optional<IngestedTorrentAttributes, 'processed'> {

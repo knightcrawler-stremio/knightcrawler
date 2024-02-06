@@ -19,7 +19,7 @@ class ParsingService {
             return true;
         }
         const parsedInfo = parse(torrent.title);
-        if (torrent.type === TorrentType.MOVIE) {
+        if (torrent.type === TorrentType.Movie) {
             return parsedInfo.complete || typeof parsedInfo.year === 'string' || /movies/i.test(torrent.title);
         }
         const hasMultipleEpisodes = parsedInfo.complete ||
@@ -86,7 +86,7 @@ class ParsingService {
             // movie if video explicitly has numbered movie keyword in the name, ie. 1 Movie or Movie 1
             return true;
         }
-        if (!hasMovies && type !== TorrentType.ANIME) {
+        if (!hasMovies && type !== TorrentType.Anime) {
             // not movie if torrent name does not contain movies keyword or is not a pack torrent and is not anime
             return false;
         }

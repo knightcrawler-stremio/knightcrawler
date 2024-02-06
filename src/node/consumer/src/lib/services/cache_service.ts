@@ -29,16 +29,16 @@ class CacheService {
     }
     
     public cacheWrapImdbId = (key: string, method: CacheMethod): Promise<any> =>
-        this.cacheWrap(CacheType.MONGODB, `${IMDB_ID_PREFIX}:${key}`, method, { ttl: GLOBAL_TTL });
+        this.cacheWrap(CacheType.MongoDb, `${IMDB_ID_PREFIX}:${key}`, method, { ttl: GLOBAL_TTL });
 
     public cacheWrapKitsuId = (key: string, method: CacheMethod): Promise<any> =>
-        this.cacheWrap(CacheType.MONGODB, `${KITSU_ID_PREFIX}:${key}`, method, { ttl: GLOBAL_TTL });
+        this.cacheWrap(CacheType.MongoDb, `${KITSU_ID_PREFIX}:${key}`, method, { ttl: GLOBAL_TTL });
 
     public cacheWrapMetadata = (id: string, method: CacheMethod): Promise<any> =>
-        this.cacheWrap(CacheType.MEMORY, `${METADATA_PREFIX}:${id}`, method, { ttl: MEMORY_TTL });
+        this.cacheWrap(CacheType.Memory, `${METADATA_PREFIX}:${id}`, method, { ttl: MEMORY_TTL });
 
     public cacheTrackers = (method: CacheMethod): Promise<any> =>
-        this.cacheWrap(CacheType.MEMORY, `${TRACKERS_KEY_PREFIX}`, method, { ttl: TRACKERS_TTL });
+        this.cacheWrap(CacheType.Memory, `${TRACKERS_KEY_PREFIX}`, method, { ttl: TRACKERS_TTL });
 
     private initiateMemoryCache = () =>
         createCache(memoryStore(), {
@@ -72,9 +72,9 @@ class CacheService {
 
     private getCacheType = (cacheType: CacheType): typeof this.memoryCache | null => {
         switch (cacheType) {
-            case CacheType.MEMORY:
+            case CacheType.Memory:
                 return this.memoryCache;
-            case CacheType.MONGODB:
+            case CacheType.MongoDb:
                 return this.remoteCache;
             default:
                 return null;

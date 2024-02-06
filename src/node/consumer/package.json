@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node esbuild.js",
-    "dev": "tsx watch --ignore node_modules src/index.js | pino-pretty",
+    "dev": "tsx watch --ignore node_modules src/index.ts | pino-pretty",
     "start": "node dist/index.cjs",
     "lint": "eslint . --ext .ts,.js"
   },

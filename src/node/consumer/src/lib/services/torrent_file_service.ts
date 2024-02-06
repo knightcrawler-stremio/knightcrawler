@@ -28,18 +28,18 @@ class TorrentFileService {
         const parsedTorrentName = parse(torrent.title);
         const query: MetaDataQuery = {
             id: torrent.kitsuId || torrent.imdbId,
-            type: torrent.type || TorrentType.MOVIE,
+            type: torrent.type || TorrentType.Movie,
         };
         const metadata = await metadataService.getMetadata(query)
             .then(meta => Object.assign({}, meta))
             .catch(() => undefined);
 
-        if (torrent.type !== TorrentType.ANIME && metadata && metadata.type && metadata.type !== torrent.type) {
+        if (torrent.type !== TorrentType.Anime && metadata && metadata.type && metadata.type !== torrent.type) {
             // it's actually a movie/series
             torrent.type = metadata.type;
         }
 
-        if (torrent.type === TorrentType.MOVIE && (!parsedTorrentName.seasons ||
+        if (torrent.type === TorrentType.Movie && (!parsedTorrentName.seasons ||
             parsedTorrentName.season === 5 && [1, 5].includes(parsedTorrentName.episode))) {
             return this.parseMovieFiles(torrent, metadata);
         }
@@ -145,7 +145,7 @@ class TorrentFileService {
     }
 
     private async mapSeriesMovie(file: ParsableTorrentFile, torrent: TorrentInfo): Promise<ParsableTorrentFile> {
-        const kitsuId= torrent.type === TorrentType.ANIME ? await this.findMovieKitsuId(file)
+        const kitsuId= torrent.type === TorrentType.Anime ? await this.findMovieKitsuId(file)
             .then(result => {
                 if (result instanceof Error) {
                     logger.warn(`Failed to retrieve kitsuId due to error: ${result.message}`);
@@ -158,7 +158,7 @@ class TorrentFileService {
 
         const query: MetaDataQuery = {
             id: kitsuId || imdbId,
-            type: TorrentType.MOVIE
+            type: TorrentType.Movie
         };
         
         const metadataOrError = await metadataService.getMetadata(query);
@@ -201,7 +201,7 @@ class TorrentFileService {
 
         this.preprocessEpisodes(files);
 
-        if (torrent.type === TorrentType.ANIME && torrent.kitsuId) {
+        if (torrent.type === TorrentType.Anime && torrent.kitsuId) {
             if (this.needsCinemetaMetadataForAnime(files, metadata)) {
                 // In some cases anime could be resolved to wrong kitsuId
                 // because of imdb season naming/absolute per series naming/multiple seasons
@@ -283,7 +283,7 @@ class TorrentFileService {
 
     private isAbsoluteEpisodeFiles(torrent: TorrentInfo, files: ParsableTorrentFile[], metadata: MetadataResponse) {
         const threshold = Math.ceil(files.length / 5);
-        const isAnime = torrent.type === TorrentType.ANIME && torrent.kitsuId;
+        const isAnime = torrent.type === TorrentType.Anime && torrent.kitsuId;
         const nonMovieEpisodes = files
             .filter(file => !file.isMovie && file.episodes);
         const absoluteEpisodes = files
@@ -298,7 +298,7 @@ class TorrentFileService {
         // new episode might not yet been indexed by cinemeta.
         // detect this if episode number is larger than the last episode or season is larger than the last one
         // only for non anime metas
-        const isAnime = torrent.type === TorrentType.ANIME && torrent.kitsuId;
+        const isAnime = torrent.type === TorrentType.Anime && torrent.kitsuId;
         return !isAnime && !file.isMovie && file.episodes && file.season !== 1
             && /continuing|current/i.test(metadata.status)
             && file.season >= metadata.episodeCount.length
@@ -377,7 +377,7 @@ class TorrentFileService {
 
     private assignKitsuOrImdbEpisodes(torrent: TorrentInfo, files: ParsableTorrentFile[], metadata: MetadataResponse) {
         if (!metadata || !metadata.videos || !metadata.videos.length) {
-            if (torrent.type === TorrentType.ANIME) {
+            if (torrent.type === TorrentType.Anime) {
                 // assign episodes as kitsu episodes for anime when no metadata available for imdb mapping
                 files
                     .filter(file => file.season && file.episodes)
@@ -385,7 +385,7 @@ class TorrentFileService {
                         file.season = undefined;
                         file.episodes = undefined;
                     })
-                if (metadata.type === TorrentType.MOVIE && files.every(file => !file.imdbId)) {
+                if (metadata.type === TorrentType.Movie && files.every(file => !file.imdbId)) {
                     // sometimes a movie has episode naming, thus not recognized as a movie and imdbId not assigned
                     files.forEach(file => file.imdbId = metadata.imdbId);
                 }
@@ -507,7 +507,7 @@ class TorrentFileService {
             const imdbQuery = {
                 title: parsedTitle.title,
                 year: parsedTitle.year,
-                type: TorrentType.MOVIE
+                type: TorrentType.Movie
             };
             try {
                 return await metadataService.getImdbId(imdbQuery);
@@ -523,7 +523,7 @@ class TorrentFileService {
             title: parsedTitle.title,
             year: parsedTitle.year,
             season: parsedTitle.season,
-            type: TorrentType.MOVIE
+            type: TorrentType.Movie
         };
         try {
             return await metadataService.getKitsuId(kitsuQuery);

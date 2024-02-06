@@ -1,4 +1,4 @@
 export enum CacheType {
-    MEMORY = 'memory',
-    MONGODB = 'mongodb'
+    Memory = 'memory',
+    MongoDb = 'mongodb'
 }

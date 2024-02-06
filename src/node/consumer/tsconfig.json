@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "checkJs": true,
+    "allowJs": true,
     "isolatedModules": true,
     "lib": ["ESNext"],
     "module": "ESNext",
