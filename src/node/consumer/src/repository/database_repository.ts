@@ -50,7 +50,7 @@ class DatabaseRepository {
         }
     }
 
-    public async getTorrent(torrent: Torrent): Promise<Torrent | null> {
+    public async getTorrent(torrent: TorrentAttributes): Promise<Torrent | null> {
         const where = torrent.infoHash
             ? { infoHash: torrent.infoHash }
             : { provider: torrent.provider, torrentId: torrent.torrentId };
@@ -67,25 +67,6 @@ class DatabaseRepository {
 
     public async getFilesBasedOnQuery(where: WhereOptions<FileAttributes>): Promise<File[]> {
         return await File.findAll({ where });
-    }
-
-    public async getUnprocessedIngestedTorrents(): Promise<IngestedTorrent[]> {
-        return await IngestedTorrent.findAll({
-            where: {
-                processed: false,
-                category: {
-                    [Op.or]: ['tv', 'movies']
-                }
-            },
-        });
-    }
-
-    public async setIngestedTorrentsProcessed(ingestedTorrents: IngestedTorrent[]): Promise<void> {
-        await PromiseHelpers.sequence(ingestedTorrents
-            .map(ingestedTorrent => async () => {
-                ingestedTorrent.processed = true;
-                await ingestedTorrent.save();
-            }));
     }
 
     public async getTorrentsWithoutSize(): Promise<Torrent[]> {
@@ -148,8 +129,8 @@ class DatabaseRepository {
         );
     }
 
-    public async deleteTorrent(torrent: TorrentAttributes): Promise<number> {
-        return await Torrent.destroy({ where: { infoHash: torrent.infoHash } });
+    public async deleteTorrent(infoHash: string): Promise<number> {
+        return await Torrent.destroy({ where: { infoHash: infoHash } });
     }
 
     public async createFile(file: File): Promise<void> {
@@ -171,16 +152,16 @@ class DatabaseRepository {
         }
     }
 
-    public async getFiles(torrent: Torrent): Promise<File[]> {
-        return File.findAll({ where: { infoHash: torrent.infoHash } });
+    public async getFiles(infoHash: string): Promise<File[]> {
+        return File.findAll({ where: { infoHash: infoHash } });
     }
 
     public async getFilesBasedOnTitle(titleQuery: string): Promise<File[]> {
         return File.findAll({ where: { title: { [Op.regexp]: `${titleQuery}` } } });
     }
 
-    public async deleteFile(file: File): Promise<number> {
-        return File.destroy({ where: { id: file.id } });
+    public async deleteFile(id: number): Promise<number> {
+        return File.destroy({ where: { id: id } });
     }
 
     public async createSubtitles(infoHash: string, subtitles: Subtitle[]): Promise<void | Model<any, any>[]> {
@@ -209,8 +190,8 @@ class DatabaseRepository {
         }
     }
 
-    public async getSubtitles(torrent: Torrent): Promise<Subtitle[]> {
-        return Subtitle.findAll({ where: { infoHash: torrent.infoHash } });
+    public async getSubtitles(infoHash: string): Promise<Subtitle[]> {
+        return Subtitle.findAll({ where: { infoHash: infoHash } });
     }
 
     public async getUnassignedSubtitles(): Promise<Subtitle[]> {
@@ -224,14 +205,14 @@ class DatabaseRepository {
         }
     }
 
-    public async getContents(torrent: Torrent): Promise<Content[]> {
-        return Content.findAll({ where: { infoHash: torrent.infoHash } });
+    public async getContents(infoHash: string): Promise<Content[]> {
+        return Content.findAll({ where: { infoHash: infoHash } });
     }
 
-    public async getSkipTorrent(torrent: Torrent): Promise<SkipTorrent> {
-        const result = await SkipTorrent.findByPk(torrent.infoHash);
+    public async getSkipTorrent(infoHash: string): Promise<SkipTorrent> {
+        const result = await SkipTorrent.findByPk(infoHash);
         if (!result) {
-            throw new Error(`torrent not found: ${torrent.infoHash}`);
+            throw new Error(`torrent not found: ${infoHash}`);
         }
         return result.dataValues as SkipTorrent;
     }

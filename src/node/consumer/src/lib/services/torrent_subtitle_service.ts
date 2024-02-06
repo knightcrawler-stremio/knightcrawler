@@ -1,26 +1,28 @@
 import { parse } from 'parse-torrent-title';
+import {TorrentFileCollection} from "../interfaces/torrent_file_collection";
+import {FileAttributes} from "../../repository/interfaces/file_attributes";
 
 class TorrentSubtitleService {
-    public assignSubtitles(contents: any, videos: any[], subtitles: any[]) {
-        if (videos && videos.length && subtitles && subtitles.length) {
-            if (videos.length === 1) {
-                videos[0].subtitles = subtitles;
-                return { contents, videos, subtitles: [] };
+    public assignSubtitles(fileCollection: TorrentFileCollection) : TorrentFileCollection {
+        if (fileCollection.videos && fileCollection.videos.length && fileCollection.subtitles && fileCollection.subtitles.length) {
+            if (fileCollection.videos.length === 1) {
+                fileCollection.videos[0].subtitles = fileCollection.subtitles;
+                return { ...fileCollection, subtitles: [] };
             }
 
-            const parsedVideos = videos.map(video => this.parseVideo(video));
-            const assignedSubs = subtitles.map(subtitle => ({ subtitle, videos: this.mostProbableSubtitleVideos(subtitle, parsedVideos) }));
+            const parsedVideos = fileCollection.videos.map(video => this.parseVideo(video));
+            const assignedSubs = fileCollection.subtitles.map(subtitle => ({ subtitle, videos: this.mostProbableSubtitleVideos(subtitle, parsedVideos) }));
             const unassignedSubs = assignedSubs.filter(assignedSub => !assignedSub.videos).map(assignedSub => assignedSub.subtitle);
 
             assignedSubs
                 .filter(assignedSub => assignedSub.videos)
                 .forEach(assignedSub => assignedSub.videos.forEach(video => video.subtitles = (video.subtitles || []).concat(assignedSub.subtitle)));
-            return { contents, videos, subtitles: unassignedSubs };
+            return { ...fileCollection, subtitles: unassignedSubs };
         }
-        return { contents, videos, subtitles };
+        return fileCollection;
     }
 
-    private parseVideo(video: any) {
+    private parseVideo(video: FileAttributes) {
         const fileName = video.title.split('/').pop().replace(/\.(\w{2,4})$/, '');
         const folderName = video.title.replace(/\/?[^/]+$/, '');
         return {
