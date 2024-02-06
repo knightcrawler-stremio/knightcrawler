@@ -3,6 +3,6 @@ export const BooleanHelpers = {
         if (value === undefined) {
             return defaultValue;
         }
-        return value.toLowerCase() === 'true';
+        return value.toLowerCase().trim() === 'true';
     }
 }
