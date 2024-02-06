@@ -190,9 +190,9 @@ This can be done by running the following command:
 
 ```
 docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "
-INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, \"createdAt\", \"updatedAt\")
+INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, "createdAt", "updatedAt")
 SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
-FROM items where cat='tv' OR cat='movies';"
+FROM items WHERE NOT EXISTS (SELECT info_hash FROM ingested_torrents WHERE ingested_torrents.info_hash = items.hash) AND (cat LIKE 'tv%' OR cat LIKE 'movies%');"
 ```
 
 You should get a response similar to:
