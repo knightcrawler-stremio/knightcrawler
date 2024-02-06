@@ -8,7 +8,7 @@ import { parsingService } from './services/parsing_service';
 import { torrentFileService } from './services/torrent_file_service';
 import { torrentSubtitleService } from './services/torrent_subtitle_service';
 
-export async function createTorrentEntry(torrent, overwrite = false) {
+export async function createTorrentEntry(torrent, overwrite = false) : Promise<void> {
   const titleInfo = parse(torrent.title);
     
   if (!torrent.imdbId && torrent.type !== TorrentType.Anime) {
