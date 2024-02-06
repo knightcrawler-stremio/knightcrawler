@@ -175,6 +175,29 @@ with include drop, create tables, create indexes, reset sequences
 
 Then run `pgloader db.load` to create a new `items` table. This can take a few minutes, depending on the size of the database.
 
+### Import data into database (ALTERNATIVE: Using Docker)
+
+Move your sql database called `rarbg_db.sqlite` and `db.load` into your current working directoy
+
+`db.load` should contain the following:
+
+```
+load database
+     from sqlite:///data/rarbg_db.sqlite
+     into postgresql://postgres:postgres@<docker-ip>/knightcrawler
+
+with include drop, create tables, create indexes, reset sequences
+
+  set work_mem to '16MB', maintenance_work_mem to '512 MB';
+```
+
+Then run the following docker run command to import the database
+
+```
+docker run --rm -it --network=nginxpm_net -v "$(pwd)":/data dimitri/pgloader:latest pgloader /data/db.load
+```
+
+
 ### INSERT INTO ingested_torrents
 
 
