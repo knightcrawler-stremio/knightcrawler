@@ -194,7 +194,7 @@ with include drop, create tables, create indexes, reset sequences
 Then run the following docker run command to import the database
 
 ```
-docker run --rm -it --network=nginxpm_net -v "$(pwd)":/data dimitri/pgloader:latest pgloader /data/db.load
+docker run --rm -it --network=knightcrawler-network -v "$(pwd)":/data dimitri/pgloader:latest pgloader /data/db.load
 ```
 
 
