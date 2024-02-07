@@ -2,7 +2,7 @@ import {IMetaDataQuery} from "./metadata_query";
 import {IMetadataResponse} from "./metadata_response";
 
 export interface IMetadataService {
-    getKitsuId(info: IMetaDataQuery): Promise<string | Error>;
+    getKitsuId(info: IMetaDataQuery): Promise<number | Error>;
 
     getImdbId(info: IMetaDataQuery): Promise<string | undefined>;
 

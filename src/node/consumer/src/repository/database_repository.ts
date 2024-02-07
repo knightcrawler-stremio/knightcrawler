@@ -10,13 +10,15 @@ import {IngestedTorrent} from "./models/ingestedTorrent";
 import {Subtitle} from "./models/subtitle";
 import {Content} from "./models/content";
 import {SkipTorrent} from "./models/skipTorrent";
-import {IFileAttributes} from "./interfaces/file_attributes";
-import {ITorrentAttributes} from "./interfaces/torrent_attributes";
+import {IFileAttributes, IFileCreationAttributes} from "./interfaces/file_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "./interfaces/torrent_attributes";
 import {IngestedPage} from "./models/ingestedPage";
 import {ILoggingService} from "../lib/interfaces/logging_service";
 import {IocTypes} from "../lib/models/ioc_types";
 import {inject, injectable} from "inversify";
 import {IDatabaseRepository} from "./interfaces/database_repository";
+import {IContentCreationAttributes} from "./interfaces/content_attributes";
+import {ISubtitleCreationAttributes} from "./interfaces/subtitle_attributes";
 
 @injectable()
 export class DatabaseRepository implements IDatabaseRepository {
@@ -112,7 +114,7 @@ export class DatabaseRepository implements IDatabaseRepository {
         order: literal('random()')
     });
 
-    public createTorrent = async (torrent: Torrent): Promise<void> => {
+    public createTorrent = async (torrent: ITorrentCreationAttributes): Promise<void> => {
         try {
             await Torrent.upsert(torrent);
             await this.createContents(torrent.infoHash, torrent.contents);
@@ -136,22 +138,28 @@ export class DatabaseRepository implements IDatabaseRepository {
 
     public deleteTorrent = async (infoHash: string): Promise<number> => await Torrent.destroy({where: {infoHash: infoHash}});
 
-    public createFile = async (file: File): Promise<void> => {
-        if (file.id) {
-            if (file.dataValues) {
-                await file.save();
+    public createFile = async (file: IFileCreationAttributes): Promise<void> => {
+        try {
+            const operatingFile = File.build(file);
+            if (operatingFile.id) {
+                if (operatingFile.dataValues) {
+                    await operatingFile.save();
+                } else {
+                    await File.upsert(operatingFile);
+                }
+                await this.upsertSubtitles(operatingFile, operatingFile.subtitles);
             } else {
-                await File.upsert(file);
+                if (operatingFile.subtitles && operatingFile.subtitles.length) {
+                    operatingFile.subtitles = operatingFile.subtitles.map(subtitle => {
+                        subtitle.title = subtitle.path;
+                        return subtitle;
+                    });
+                }
+                await File.create(file, {include: [Subtitle], ignoreDuplicates: true});
             }
-            await this.upsertSubtitles(file, file.subtitles);
-        } else {
-            if (file.subtitles && file.subtitles.length) {
-                file.subtitles = file.subtitles.map(subtitle => {
-                    subtitle.title = subtitle.path;
-                    return subtitle;
-                });
-            }
-            await File.create(file, {include: [Subtitle], ignoreDuplicates: true});
+        } catch (error) {
+            this.logger.error(`Failed to create file: ${file.infoHash}`);
+            this.logger.debug(error);
         }
     };
 
@@ -161,7 +169,7 @@ export class DatabaseRepository implements IDatabaseRepository {
 
     public deleteFile = async (id: number): Promise<number> => File.destroy({where: {id: id}});
 
-    public createSubtitles = async (infoHash: string, subtitles: Subtitle[]): Promise<void | Model<any, any>[]> => {
+    public createSubtitles = async (infoHash: string, subtitles: ISubtitleCreationAttributes[]): Promise<void | Model<any, any>[]> => {
         if (subtitles && subtitles.length) {
             return Subtitle.bulkCreate(subtitles.map(subtitle => ({infoHash, title: subtitle.path, ...subtitle})));
         }
@@ -191,7 +199,7 @@ export class DatabaseRepository implements IDatabaseRepository {
 
     public getUnassignedSubtitles = async (): Promise<Subtitle[]> => Subtitle.findAll({where: {fileId: null}});
 
-    public createContents = async (infoHash: string, contents: Content[]): Promise<void> => {
+    public createContents = async (infoHash: string, contents: IContentCreationAttributes[]): Promise<void> => {
         if (contents && contents.length) {
             await Content.bulkCreate(contents.map(content => ({infoHash, ...content})), {ignoreDuplicates: true});
             await Torrent.update({opened: true}, {where: {infoHash: infoHash}, silent: true});
@@ -208,7 +216,7 @@ export class DatabaseRepository implements IDatabaseRepository {
         return result.dataValues as SkipTorrent;
     };
 
-    public createSkipTorrent = async (torrent: Torrent): Promise<[SkipTorrent, boolean]> => SkipTorrent.upsert({infoHash: torrent.infoHash});
+    public createSkipTorrent = async (torrent: ITorrentCreationAttributes): Promise<[SkipTorrent, boolean]> => SkipTorrent.upsert({infoHash: torrent.infoHash});
 
     private createDatabase = (): Sequelize => {
         const newDatabase = new Sequelize(

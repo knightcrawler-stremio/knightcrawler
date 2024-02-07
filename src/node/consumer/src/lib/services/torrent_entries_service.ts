@@ -4,7 +4,7 @@ import {TorrentType} from '../enums/torrent_types';
 import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
 import {Torrent} from "../../repository/models/torrent";
 import {PromiseHelpers} from '../helpers/promises_helpers';
-import {ITorrentAttributes} from "../../repository/interfaces/torrent_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "../../repository/interfaces/torrent_attributes";
 import {File} from "../../repository/models/file";
 import {Subtitle} from "../../repository/models/subtitle";
 import {ITorrentEntriesService} from "../interfaces/torrent_entries_service";
@@ -15,6 +15,8 @@ import {ILoggingService} from "../interfaces/logging_service";
 import {ITorrentFileService} from "../interfaces/torrent_file_service";
 import {ITorrentSubtitleService} from "../interfaces/torrent_subtitle_service";
 import {IDatabaseRepository} from "../../repository/interfaces/database_repository";
+import {IIngestedTorrentCreationAttributes} from "../../repository/interfaces/ingested_torrent_attributes";
+import {IFileCreationAttributes} from "../../repository/interfaces/file_attributes";
 
 @injectable()
 export class TorrentEntriesService implements ITorrentEntriesService {
@@ -62,8 +64,8 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                 year: titleInfo.year,
                 season: titleInfo.season,
             };
-            torrent.kitsuId = await this.metadataService.getKitsuId(kitsuQuery)
-                .catch(() => undefined);
+
+            await this.assignKitsuId(kitsuQuery, torrent);
         }
 
         if (!torrent.imdbId && !torrent.kitsuId && !this.fileService.isPackTorrent(torrent)) {
@@ -84,18 +86,36 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             return;
         }
 
-        const newTorrent: Torrent = Torrent.build({
+        const newTorrent: ITorrentCreationAttributes = ({
             ...torrent,
             contents: fileCollection.contents,
             subtitles: fileCollection.subtitles
         });
-
+        
         return this.repository.createTorrent(newTorrent)
             .then(() => PromiseHelpers.sequence(fileCollection.videos.map(video => () => {
-                const newVideo = File.build(video);
+                const newVideo: IFileCreationAttributes = {...video, infoHash: video.infoHash, title: video.title};
+                if (!newVideo.kitsuId) {
+                    newVideo.kitsuId = 0;
+                }
                 return this.repository.createFile(newVideo)
             })))
             .then(() => this.logger.info(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
+    };
+
+    private assignKitsuId = async (kitsuQuery: { year: number | string; season: number; title: string }, torrent: IParsedTorrent) => {
+        await this.metadataService.getKitsuId(kitsuQuery)
+            .then((result: number | Error) => {
+                if (typeof result === 'number') {
+                    torrent.kitsuId = result;
+                } else {
+                    torrent.kitsuId = 0;
+                }
+            })
+            .catch((error: Error) => {
+                this.logger.debug(`Failed getting kitsuId for ${torrent.title}`, error.message);
+                torrent.kitsuId = 0;
+            });
     };
 
     public createSkipTorrentEntry = async (torrent: Torrent) => this.repository.createSkipTorrent(torrent);
@@ -144,7 +164,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
         }
         const notOpenedVideo = storedVideos.length === 1 && !Number.isInteger(storedVideos[0].fileIndex);
         const imdbId: string | undefined = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.imdbId));
-        const kitsuId: number | undefined = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.kitsuId));
+        const kitsuId: number = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.kitsuId || 0));
 
         const fileCollection: ITorrentFileCollection = await this.fileService.parseTorrentFiles(torrent)
             .then(torrentContents => notOpenedVideo ? torrentContents : {...torrentContents, videos: storedVideos})
@@ -187,7 +207,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                 return Promise.resolve();
             })
             .then(() => PromiseHelpers.sequence(fileCollection.videos.map(video => () => {
-                const newVideo = File.build(video);
+                const newVideo: IFileCreationAttributes = {...video, infoHash: video.infoHash, title: video.title};
                 return this.repository.createFile(newVideo)
             })))
             .then(() => this.logger.info(`Created contents for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`))
@@ -209,8 +229,8 @@ export class TorrentEntriesService implements ITorrentEntriesService {
     private assignMetaIds = (fileCollection: ITorrentFileCollection, imdbId: string, kitsuId: number): ITorrentFileCollection => {
         if (fileCollection.videos && fileCollection.videos.length) {
             fileCollection.videos.forEach(video => {
-                video.imdbId = imdbId;
-                video.kitsuId = kitsuId;
+                video.imdbId = imdbId || '';
+                video.kitsuId = kitsuId || 0;
             });
         }
 

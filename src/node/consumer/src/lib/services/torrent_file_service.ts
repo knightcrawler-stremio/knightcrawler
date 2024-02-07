@@ -191,7 +191,7 @@ export class TorrentFileService implements ITorrentFileService {
             episode: file.episodes && file.episodes[index],
             kitsuEpisode: file.episodes && file.episodes[index],
             episodes: file.episodes,
-            kitsuId: parseInt(file.kitsuId.toString() || torrent.kitsuId.toString()),
+            kitsuId: parseInt(file.kitsuId.toString() || torrent.kitsuId.toString()) || 0,
         })))
     };
 
@@ -222,7 +222,7 @@ export class TorrentFileService implements ITorrentFileService {
                 title: file.path || file.title,
                 size: file.size,
                 imdbId: imdbId,
-                kitsuId: parseInt(kitsuId),
+                kitsuId: parseInt(kitsuId) || 0,
                 episodes: undefined,
                 imdbSeason: undefined,
                 imdbEpisode: undefined,
@@ -239,7 +239,7 @@ export class TorrentFileService implements ITorrentFileService {
             title: file.path || file.title,
             size: file.size,
             imdbId: metadata.imdbId.toString() || imdbId,
-            kitsuId: parseInt(metadata.kitsuId.toString() || kitsuId),
+            kitsuId: parseInt(metadata.kitsuId.toString() || kitsuId) || 0,
             imdbSeason: episodeVideo && metadata.imdbId ? episodeVideo.season : undefined,
             imdbEpisode: episodeVideo && metadata.imdbId | metadata.kitsuId ? episodeVideo.episode || episodeVideo.episode : undefined,
             kitsuEpisode: episodeVideo && metadata.imdbId | metadata.kitsuId ? episodeVideo.episode || episodeVideo.episode : undefined,
@@ -474,7 +474,7 @@ export class TorrentFileService implements ITorrentFileService {
                     if (seriesMapping[file.season]) {
                         const seasonMapping = seriesMapping[file.season];
                         file.imdbId = metadata.imdbId.toString();
-                        file.kitsuId = seasonMapping[file.episodes[0]] && seasonMapping[file.episodes[0]].kitsuId;
+                        file.kitsuId = seasonMapping[file.episodes[0]] && seasonMapping[file.episodes[0]].kitsuId || 0;
                         file.episodes = file.episodes.map(ep => seasonMapping[ep] && seasonMapping[ep].kitsuEpisode);
                     } else if (seriesMapping[file.season - 1]) {
                         // sometimes a second season might be a continuation of the previous season
@@ -492,7 +492,7 @@ export class TorrentFileService implements ITorrentFileService {
                             file.imdbId = metadata.imdbId.toString();
                             file.season = file.season - 1;
                             file.episodes = file.episodes.map(ep => isAbsoluteOrder ? ep : ep + skippedCount);
-                            file.kitsuId = seasonMapping[file.episodes[0]].kitsuId;
+                            file.kitsuId = seasonMapping[file.episodes[0]].kitsuId || 0;
                             file.episodes = file.episodes.map(ep => seasonMapping[ep] && seasonMapping[ep].kitsuEpisode);
                         }
                     } else if (Object.values(seriesMapping).length === 1 && seriesMapping[1]) {
@@ -500,7 +500,7 @@ export class TorrentFileService implements ITorrentFileService {
                         const seasonMapping = seriesMapping[1];
                         file.imdbId = metadata.imdbId.toString();
                         file.season = 1;
-                        file.kitsuId = seasonMapping[file.episodes[0]].kitsuId;
+                        file.kitsuId = seasonMapping[file.episodes[0]].kitsuId || 0;
                         file.episodes = file.episodes.map(ep => seasonMapping[ep] && seasonMapping[ep].kitsuEpisode);
                     }
                 });

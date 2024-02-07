@@ -132,12 +132,13 @@ export class TorrentDownloadService implements ITorrentDownloadService {
                 title: file.name,
                 size: file.length,
                 fileIndex: file.fileIndex || 0,
+                path: file.path,
                 infoHash: torrent.infoHash,
                 imdbId: torrent.imdbId.toString(),
                 imdbSeason: torrent.season || 0,
                 imdbEpisode: torrent.episode || 0,
                 kitsuId: parseInt(torrent.kitsuId?.toString()) || 0,
-                kitsuEpisode: torrent.episode || 0
+                kitsuEpisode: torrent.episode || 0,
             };
 
             return {...videoFile, ...parse(file.name)};

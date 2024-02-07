@@ -1,13 +1,15 @@
 import {Provider} from "../models/provider";
 import {WhereOptions} from "sequelize";
-import {ITorrentAttributes} from "./torrent_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "./torrent_attributes";
 import {Torrent} from "../models/torrent";
-import {IFileAttributes} from "./file_attributes";
+import {IFileAttributes, IFileCreationAttributes} from "./file_attributes";
 import {File} from "../models/file";
 import {Subtitle} from "../models/subtitle";
 import {Model} from "sequelize-typescript";
 import {Content} from "../models/content";
 import {SkipTorrent} from "../models/skipTorrent";
+import {ISubtitleCreationAttributes} from "./subtitle_attributes";
+import {IContentCreationAttributes} from "./content_attributes";
 
 export interface IDatabaseRepository {
     connect(): Promise<void>;
@@ -30,13 +32,13 @@ export interface IDatabaseRepository {
 
     getNoContentsTorrents(): Promise<Torrent[]>;
 
-    createTorrent(torrent: Torrent): Promise<void>;
+    createTorrent(torrent: ITorrentCreationAttributes): Promise<void>;
 
     setTorrentSeeders(torrent: ITorrentAttributes, seeders: number): Promise<[number]>;
 
     deleteTorrent(infoHash: string): Promise<number>;
 
-    createFile(file: File): Promise<void>;
+    createFile(file: IFileCreationAttributes): Promise<void>;
 
     getFiles(infoHash: string): Promise<File[]>;
 
@@ -44,7 +46,7 @@ export interface IDatabaseRepository {
 
     deleteFile(id: number): Promise<number>;
 
-    createSubtitles(infoHash: string, subtitles: Subtitle[]): Promise<void | Model<any, any>[]>;
+    createSubtitles(infoHash: string, subtitles: ISubtitleCreationAttributes[]): Promise<void | Model<any, any>[]>;
 
     upsertSubtitles(file: File, subtitles: Subtitle[]): Promise<void>;
 
@@ -52,11 +54,11 @@ export interface IDatabaseRepository {
 
     getUnassignedSubtitles(): Promise<Subtitle[]>;
 
-    createContents(infoHash: string, contents: Content[]): Promise<void>;
+    createContents(infoHash: string, contents: IContentCreationAttributes[]): Promise<void>;
 
     getContents(infoHash: string): Promise<Content[]>;
 
     getSkipTorrent(infoHash: string): Promise<SkipTorrent>;
 
-    createSkipTorrent(torrent: Torrent): Promise<[SkipTorrent, boolean]>;
+    createSkipTorrent(torrent: ITorrentCreationAttributes): Promise<[SkipTorrent, boolean]>;
 }

@@ -6,7 +6,7 @@ export interface IParsedTorrent extends IParseTorrentTitleResult {
     size?: number;
     isPack?: boolean;
     imdbId?: string | number;
-    kitsuId?: string | number;
+    kitsuId?: number;
     trackers?: string;
     provider?: string | null;
     infoHash: string | null;
