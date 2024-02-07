@@ -1,17 +1,17 @@
-import {encode} from 'magnet-uri';
-import {configurationService} from './configuration_service';
-import {ExtensionHelpers} from '../helpers/extension_helpers';
-import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {IParsedTorrent} from "../interfaces/parsed_torrent";
-import {IFileAttributes} from "../../repository/interfaces/file_attributes";
-import {ISubtitleAttributes} from "../../repository/interfaces/subtitle_attributes";
-import {IContentAttributes} from "../../repository/interfaces/content_attributes";
-import {parse} from "parse-torrent-title";
-import {ITorrentDownloadService} from "../interfaces/torrent_download_service";
 import {inject, injectable} from "inversify";
-import {ILoggingService} from "../interfaces/logging_service";
-import {IocTypes} from "../models/ioc_types";
+import {encode} from 'magnet-uri';
+import {parse} from "parse-torrent-title";
 import WebTorrent from "webtorrent";
+import {ExtensionHelpers} from '../helpers/extension_helpers';
+import {ILoggingService} from "../interfaces/logging_service";
+import {IParsedTorrent} from "../interfaces/parsed_torrent";
+import {ITorrentDownloadService} from "../interfaces/torrent_download_service";
+import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
+import {IocTypes} from "../models/ioc_types";
+import {IContentAttributes} from "../repository/interfaces/content_attributes";
+import {IFileAttributes} from "../repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "../repository/interfaces/subtitle_attributes";
+import {configurationService} from './configuration_service';
 
 interface ITorrentFile {
     name: string;
@@ -20,13 +20,13 @@ interface ITorrentFile {
     fileIndex: number;
 }
 
-const clientOptions = {
+const clientOptions : WebTorrent.Options = {
     maxConns: configurationService.torrentConfig.MAX_CONNECTIONS_OVERALL,
+    utp: false,    
 }
 
-const torrentOptions = {
+const torrentOptions: WebTorrent.TorrentOptions = {
     skipVerify: true,
-    addUID: true,
     destroyStoreOnDestroy: true,
     private: true,
     maxWebConns: configurationService.torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
@@ -61,23 +61,20 @@ export class TorrentDownloadService implements ITorrentDownloadService {
         if (!torrent.infoHash) {
             return Promise.reject(new Error("No infoHash..."));
         }
-        const magnet = encode({infoHash: torrent.infoHash, announce: torrent.trackers.split(',')});
-
-        this.logger.debug(`Constructing torrent stream for ${torrent.title} with magnet ${magnet}`);
+        const magnet = encode({infoHash: torrent.infoHash, announce: torrent.trackers!.split(',')});
 
         return new Promise((resolve, reject) => {
+            this.logger.debug(`Adding torrent with infoHash ${torrent.infoHash} to webtorrent client...`);
+
+            const currentTorrent = this.torrentClient.add(magnet, torrentOptions);
+
             const timeoutId = setTimeout(() => {
-                this.torrentClient.remove(magnet, {destroyStore: true});
+                this.removeTorrent(currentTorrent, torrent);
                 reject(new Error('No available connections for torrent!'));
             }, timeout);
-
-            this.logger.debug(`Adding torrent with infoHash ${torrent.infoHash}`);
             
-            this.torrentClient.add(magnet, torrentOptions, (torrent) => {
-
-                this.logger.debug(`torrent with infoHash ${torrent.infoHash} added to client.`);
-                
-                const files: ITorrentFile[] = torrent.files.map((file, fileId) => ({
+            currentTorrent.on('ready', () => {
+                const files: ITorrentFile[] = currentTorrent.files.map((file, fileId) => ({
                     fileIndex: fileId,
                     length: file.length,
                     name: file.name,
@@ -87,11 +84,20 @@ export class TorrentDownloadService implements ITorrentDownloadService {
                 this.logger.debug(`Found ${files.length} files in torrent ${torrent.infoHash}`);
 
                 resolve(files);
-
-                this.torrentClient.remove(magnet, {destroyStore: true});
                 clearTimeout(timeoutId);
+                this.removeTorrent(currentTorrent, torrent);
             });
         });
+    };
+
+    private removeTorrent = (currentTorrent: WebTorrent.Torrent, torrent: IParsedTorrent): void => {
+        try {
+            this.torrentClient.remove(currentTorrent, {destroyStore: true}, () => {
+                this.logger.debug(`Removed torrent ${torrent.infoHash} from webtorrent client...`);
+            });
+        } catch (error) {
+            this.logClientErrors(error);
+        }
     };
 
     private filterVideos = (torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): IFileAttributes[] => {
@@ -104,13 +110,25 @@ export class TorrentDownloadService implements ITorrentDownloadService {
         const minAnimeExtraRatio = 5;
         const minRedundantRatio = videos.length <= 3 ? 30 : Number.MAX_VALUE;
 
-        const isSample = (video: ITorrentFile) => video.path.toString()?.match(/sample|bonus|promo/i) && maxSize / video.length > minSampleRatio;
-        const isRedundant = (video: ITorrentFile) => maxSize / video.length > minRedundantRatio;
-        const isExtra = (video: ITorrentFile) => video.path.toString()?.match(/extras?\//i);
-        const isAnimeExtra = (video: ITorrentFile) => video.path.toString()?.match(/(?:\b|_)(?:NC)?(?:ED|OP|PV)(?:v?\d\d?)?(?:\b|_)/i)
-            && maxSize / parseInt(video.length.toString()) > minAnimeExtraRatio;
-        const isWatermark = (video: ITorrentFile) => video.path.toString()?.match(/^[A-Z-]+(?:\.[A-Z]+)?\.\w{3,4}$/)
-            && maxSize / parseInt(video.length.toString()) > minAnimeExtraRatio
+        const isSample = (video: ITorrentFile): boolean => video.path?.toString()?.match(/sample|bonus|promo/i) && maxSize / video.length > minSampleRatio || false;
+        const isRedundant = (video: ITorrentFile):boolean => maxSize / video.length > minRedundantRatio;
+        const isExtra = (video: ITorrentFile): boolean => /extras?\//i.test(video.path?.toString() || "");
+        const isAnimeExtra = (video: ITorrentFile): boolean => {
+            if (!video.path || !video.length) {
+                return false;
+            }
+            
+            return video.path.toString()?.match(/(?:\b|_)(?:NC)?(?:ED|OP|PV)(?:v?\d\d?)?(?:\b|_)/i)
+                && maxSize / parseInt(video.length.toString()) > minAnimeExtraRatio || false;
+        };
+        const isWatermark = (video: ITorrentFile): boolean => {
+            if (!video.path || !video.length) {
+                return false;
+            }
+                        
+            return video.path.toString()?.match(/^[A-Z-]+(?:\.[A-Z]+)?\.\w{3,4}$/)
+                && maxSize / parseInt(video.length.toString()) > minAnimeExtraRatio || false;
+        }
 
         return videos
             .filter(video => !isSample(video))
@@ -133,11 +151,11 @@ export class TorrentDownloadService implements ITorrentDownloadService {
                 size: file.length,
                 fileIndex: file.fileIndex || 0,
                 path: file.path,
-                infoHash: torrent.infoHash,
-                imdbId: torrent.imdbId.toString(),
+                infoHash: torrent.infoHash?.toString(),
+                imdbId: torrent.imdbId?.toString() || '',
                 imdbSeason: torrent.season || 0,
                 imdbEpisode: torrent.episode || 0,
-                kitsuId: parseInt(torrent.kitsuId?.toString()) || 0,
+                kitsuId: parseInt(torrent.kitsuId?.toString() || '0') || 0,
                 kitsuEpisode: torrent.episode || 0,
             };
 
@@ -162,8 +180,8 @@ export class TorrentDownloadService implements ITorrentDownloadService {
         size: file.length,
     });
 
-    private logClientErrors(errors: Error | string) {
-        this.logger.error(`Error in torrent client: ${errors}`);
+    private logClientErrors(errors: Error | string | unknown): void {
+        this.logger.error(`Error in webtorrent client: ${errors}`);
     }
 }
 

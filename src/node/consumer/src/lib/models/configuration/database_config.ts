@@ -8,7 +8,7 @@ export const databaseConfig = {
     POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD || 'postgres',
     AUTO_CREATE_AND_APPLY_MIGRATIONS: BooleanHelpers.parseBool(process.env.AUTO_CREATE_AND_APPLY_MIGRATIONS, false),
 
-    get POSTGRES_URI() {
+    get POSTGRES_URI(): string {
         return `postgres://${this.POSTGRES_USER}:${this.POSTGRES_PASSWORD}@${this.POSTGRES_HOST}:${this.POSTGRES_PORT}/${this.POSTGRES_DB}`;
     }
 };

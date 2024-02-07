@@ -1,12 +1,12 @@
-import {TorrentType} from "../enums/torrent_types";
-import {IIngestedTorrentAttributes} from "../../repository/interfaces/ingested_torrent_attributes";
-import {IParsedTorrent} from "../interfaces/parsed_torrent";
-import {ITorrentProcessingService} from "../interfaces/torrent_processing_service";
 import {inject, injectable} from "inversify";
-import {IocTypes} from "../models/ioc_types";
-import {ITorrentEntriesService} from "../interfaces/torrent_entries_service";
+import {TorrentType} from "../enums/torrent_types";
 import {ILoggingService} from "../interfaces/logging_service";
+import {IParsedTorrent} from "../interfaces/parsed_torrent";
+import {ITorrentEntriesService} from "../interfaces/torrent_entries_service";
+import {ITorrentProcessingService} from "../interfaces/torrent_processing_service";
 import {ITrackerService} from "../interfaces/tracker_service";
+import {IocTypes} from "../models/ioc_types";
+import {IIngestedTorrentAttributes} from "../repository/interfaces/ingested_torrent_attributes";
 
 @injectable()
 export class TorrentProcessingService implements ITorrentProcessingService {

@@ -1,8 +1,9 @@
+import {injectable} from "inversify";
 import {parse} from 'parse-torrent-title';
 import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {IFileAttributes} from "../../repository/interfaces/file_attributes";
 import {ITorrentSubtitleService} from "../interfaces/torrent_subtitle_service";
-import {injectable} from "inversify";
+import {IFileAttributes} from "../repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "../repository/interfaces/subtitle_attributes";
 
 @injectable()
 export class TorrentSubtitleService implements ITorrentSubtitleService {
@@ -28,57 +29,57 @@ export class TorrentSubtitleService implements ITorrentSubtitleService {
         return fileCollection;
     };
 
-    private parseVideo = (video: IFileAttributes) => {
-        const fileName = video.title.split('/').pop().replace(/\.(\w{2,4})$/, '');
-        const folderName = video.title.replace(/\/?[^/]+$/, '');
+    private parseVideo = (video: IFileAttributes): IFileAttributes => {
+        const fileName = video.title?.split('/')?.pop()?.replace(/\.(\w{2,4})$/, '') || '';
+        const folderName = video.title?.replace(/\/?[^/]+$/, '') || '';
         return {
             videoFile: video,
             fileName: fileName,
             folderName: folderName,
-            ...this.parseFilename(video.title)
+            ...this.parseFilename(video.title.toString() || '')
         };
     }
 
-    private mostProbableSubtitleVideos = (subtitle: any, parsedVideos: any[]) => {
-        const subTitle = (subtitle.title || subtitle.path).split('/').pop().replace(/\.(\w{2,4})$/, '');
+    private mostProbableSubtitleVideos = (subtitle: ISubtitleAttributes, parsedVideos: IFileAttributes[]) : IFileAttributes[] => {
+        const subTitle = (subtitle.title || subtitle.path)?.split('/')?.pop()?.replace(/\.(\w{2,4})$/, '') || '';
         const parsedSub = this.parsePath(subtitle.title || subtitle.path);
-        const byFileName = parsedVideos.filter(video => subTitle.includes(video.fileName));
+        const byFileName = parsedVideos.filter(video => subTitle.includes(video.title!));
         if (byFileName.length === 1) {
-            return byFileName.map(v => v.videoFile);
+            return byFileName.map(v => v);
         }
         const byTitleSeasonEpisode = parsedVideos.filter(video => video.title === parsedSub.title
-            && this.arrayEquals(video.seasons, parsedSub.seasons)
-            && this.arrayEquals(video.episodes, parsedSub.episodes));
+            && this.arrayEquals(video.seasons || [], parsedSub.seasons || [])
+            && this.arrayEquals(video.episodes || [], parsedSub.episodes || []));
         if (this.singleVideoFile(byTitleSeasonEpisode)) {
-            return byTitleSeasonEpisode.map(v => v.videoFile);
+            return byTitleSeasonEpisode.map(v => v);
         }
-        const bySeasonEpisode = parsedVideos.filter(video => this.arrayEquals(video.seasons, parsedSub.seasons)
-            && this.arrayEquals(video.episodes, parsedSub.episodes));
+        const bySeasonEpisode = parsedVideos.filter(video => this.arrayEquals(video.seasons || [], parsedSub.seasons || [])
+            && this.arrayEquals(video.episodes || [], parsedSub.episodes || []));
         if (this.singleVideoFile(bySeasonEpisode)) {
-            return bySeasonEpisode.map(v => v.videoFile);
+            return bySeasonEpisode.map(v => v);
         }
         const byTitle = parsedVideos.filter(video => video.title && video.title === parsedSub.title);
         if (this.singleVideoFile(byTitle)) {
-            return byTitle.map(v => v.videoFile);
+            return byTitle.map(v => v);
         }
-        const byEpisode = parsedVideos.filter(video => this.arrayEquals(video.episodes, parsedSub.episodes));
+        const byEpisode = parsedVideos.filter(video => this.arrayEquals(video.episodes || [], parsedSub.episodes || []));
         if (this.singleVideoFile(byEpisode)) {
-            return byEpisode.map(v => v.videoFile);
+            return byEpisode.map(v => v);
         }
-        return undefined;
+        return [];
     }
 
-    private singleVideoFile = (videos: any[]) => {
-        return new Set(videos.map(v => v.videoFile.fileIndex)).size === 1;
+    private singleVideoFile = (videos: IFileAttributes[]): boolean => {
+        return new Set(videos.map(v => v.fileIndex)).size === 1;
     }
 
-    private parsePath = (path: string) => {
+    private parsePath = (path: string): IFileAttributes => {
         const pathParts = path.split('/').map(part => this.parseFilename(part));
         const parsedWithEpisode = pathParts.find(parsed => parsed.season && parsed.episodes);
         return parsedWithEpisode || pathParts[pathParts.length - 1];
     }
 
-    private parseFilename = (filename: string) => {
+    private parseFilename = (filename: string) : IFileAttributes => {
         const parsedInfo = parse(filename)
         const titleEpisode = parsedInfo.title.match(/(\d+)$/);
         if (!parsedInfo.episodes && titleEpisode) {
@@ -87,7 +88,7 @@ export class TorrentSubtitleService implements ITorrentSubtitleService {
         return parsedInfo;
     }
 
-    private arrayEquals = (array1: any[], array2: any[]) => {
+    private arrayEquals = <T>(array1: T[], array2: T[]): boolean => {
         if (!array1 || !array2) return array1 === array2;
         return array1.length === array2.length && array1.every((value, index) => value === array2[index])
     }

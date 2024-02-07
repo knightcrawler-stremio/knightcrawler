@@ -1,11 +1,11 @@
 import {Optional} from "sequelize";
 import {IContentAttributes} from "./content_attributes";
-import {ISubtitleAttributes} from "./subtitle_attributes";
 import {IFileAttributes} from "./file_attributes";
+import {ISubtitleAttributes} from "./subtitle_attributes";
 
 export interface ITorrentAttributes {
     infoHash: string;
-    provider?: string;
+    provider?: string | null;
     torrentId?: string;
     title?: string;
     size?: number;

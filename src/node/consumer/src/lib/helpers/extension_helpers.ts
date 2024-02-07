@@ -47,19 +47,19 @@ const DISK_EXTENSIONS = [
 ];
 
 export const ExtensionHelpers = {
-    isVideo(filename: string) {
+    isVideo(filename: string): boolean {
         return this.isExtension(filename, VIDEO_EXTENSIONS);
     },
 
-    isSubtitle(filename: string) {
+    isSubtitle(filename: string): boolean {
         return this.isExtension(filename, SUBTITLE_EXTENSIONS);
     },
 
-    isDisk(filename: string) {
+    isDisk(filename: string): boolean {
         return this.isExtension(filename, DISK_EXTENSIONS);
     },
 
-    isExtension(filename: string, extensions: string[]) {
+    isExtension(filename: string, extensions: string[]): boolean {
         const extensionMatch = filename.match(/\.(\w{2,4})$/);
         return extensionMatch !== null && extensions.includes(extensionMatch[1].toLowerCase());
     }

@@ -9,7 +9,7 @@ export const cacheConfig = {
     NO_CACHE: BooleanHelpers.parseBool(process.env.NO_CACHE, false),
     COLLECTION_NAME: process.env.MONGODB_COLLECTION || 'knightcrawler_consumer_collection',
 
-    get MONGO_URI() {
+    get MONGO_URI(): string {
         return `mongodb://${this.MONGO_INITDB_ROOT_USERNAME}:${this.MONGO_INITDB_ROOT_PASSWORD}@${this.MONGODB_HOST}:${this.MONGODB_PORT}/${this.MONGODB_DB}?authSource=admin`;
     }
 };

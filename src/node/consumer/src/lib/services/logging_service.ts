@@ -1,7 +1,8 @@
+import {injectable} from "inversify";
 import {Logger, pino} from "pino";
 import {ILoggingService} from "../interfaces/logging_service";
-import {injectable} from "inversify";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 @injectable()
 export class LoggingService implements ILoggingService {
     private readonly logger: Logger;
@@ -28,3 +29,4 @@ export class LoggingService implements ILoggingService {
         this.logger.warn(message, args);
     };
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

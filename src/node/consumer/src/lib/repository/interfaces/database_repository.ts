@@ -1,15 +1,15 @@
-import {Provider} from "../models/provider";
 import {WhereOptions} from "sequelize";
-import {ITorrentAttributes, ITorrentCreationAttributes} from "./torrent_attributes";
-import {Torrent} from "../models/torrent";
-import {IFileAttributes, IFileCreationAttributes} from "./file_attributes";
-import {File} from "../models/file";
-import {Subtitle} from "../models/subtitle";
 import {Model} from "sequelize-typescript";
 import {Content} from "../models/content";
+import {File} from "../models/file";
+import {Provider} from "../models/provider";
 import {SkipTorrent} from "../models/skipTorrent";
-import {ISubtitleCreationAttributes} from "./subtitle_attributes";
+import {Subtitle} from "../models/subtitle";
+import {Torrent} from "../models/torrent";
 import {IContentCreationAttributes} from "./content_attributes";
+import {IFileAttributes, IFileCreationAttributes} from "./file_attributes";
+import {ISubtitleAttributes, ISubtitleCreationAttributes} from "./subtitle_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "./torrent_attributes";
 
 export interface IDatabaseRepository {
     connect(): Promise<void>;
@@ -26,9 +26,9 @@ export interface IDatabaseRepository {
 
     getTorrentsWithoutSize(): Promise<Torrent[]>;
 
-    getUpdateSeedersTorrents(limit): Promise<Torrent[]>;
+    getUpdateSeedersTorrents(limit: number): Promise<Torrent[]>;
 
-    getUpdateSeedersNewTorrents(limit): Promise<Torrent[]>;
+    getUpdateSeedersNewTorrents(limit: number): Promise<Torrent[]>;
 
     getNoContentsTorrents(): Promise<Torrent[]>;
 
@@ -46,9 +46,9 @@ export interface IDatabaseRepository {
 
     deleteFile(id: number): Promise<number>;
 
-    createSubtitles(infoHash: string, subtitles: ISubtitleCreationAttributes[]): Promise<void | Model<any, any>[]>;
+    createSubtitles(infoHash: string, subtitles: ISubtitleCreationAttributes[]): Promise<void | Model<ISubtitleAttributes, ISubtitleCreationAttributes>[]>;
 
-    upsertSubtitles(file: File, subtitles: Subtitle[]): Promise<void>;
+    upsertSubtitles(file: File, subtitles: ISubtitleCreationAttributes[] | undefined): Promise<void>;
 
     getSubtitles(infoHash: string): Promise<Subtitle[]>;
 
@@ -60,5 +60,5 @@ export interface IDatabaseRepository {
 
     getSkipTorrent(infoHash: string): Promise<SkipTorrent>;
 
-    createSkipTorrent(torrent: ITorrentCreationAttributes): Promise<[SkipTorrent, boolean]>;
+    createSkipTorrent(torrent: ITorrentCreationAttributes): Promise<[SkipTorrent, boolean | null]>;
 }

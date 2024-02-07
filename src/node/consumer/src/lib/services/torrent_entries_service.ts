@@ -1,22 +1,24 @@
-import {parse} from 'parse-torrent-title';
-import {IParsedTorrent} from "../interfaces/parsed_torrent";
-import {TorrentType} from '../enums/torrent_types';
-import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {Torrent} from "../../repository/models/torrent";
-import {PromiseHelpers} from '../helpers/promises_helpers';
-import {ITorrentAttributes, ITorrentCreationAttributes} from "../../repository/interfaces/torrent_attributes";
-import {File} from "../../repository/models/file";
-import {Subtitle} from "../../repository/models/subtitle";
-import {ITorrentEntriesService} from "../interfaces/torrent_entries_service";
 import {inject, injectable} from "inversify";
-import {IocTypes} from "../models/ioc_types";
-import {IMetadataService} from "../interfaces/metadata_service";
+import {parse} from 'parse-torrent-title';
+import {TorrentType} from '../enums/torrent_types';
+import {PromiseHelpers} from '../helpers/promises_helpers';
 import {ILoggingService} from "../interfaces/logging_service";
+import {IMetaDataQuery} from "../interfaces/metadata_query";
+import {IMetadataService} from "../interfaces/metadata_service";
+import {IParsedTorrent} from "../interfaces/parsed_torrent";
+import {ITorrentEntriesService} from "../interfaces/torrent_entries_service";
+import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
 import {ITorrentFileService} from "../interfaces/torrent_file_service";
 import {ITorrentSubtitleService} from "../interfaces/torrent_subtitle_service";
-import {IDatabaseRepository} from "../../repository/interfaces/database_repository";
-import {IIngestedTorrentCreationAttributes} from "../../repository/interfaces/ingested_torrent_attributes";
-import {IFileCreationAttributes} from "../../repository/interfaces/file_attributes";
+import {IocTypes} from "../models/ioc_types";
+import {IDatabaseRepository} from "../repository/interfaces/database_repository";
+import {IFileCreationAttributes} from "../repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "../repository/interfaces/subtitle_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "../repository/interfaces/torrent_attributes";
+import {File} from "../repository/models/file";
+import {SkipTorrent} from "../repository/models/skipTorrent";
+import {Subtitle} from "../repository/models/subtitle";
+import {Torrent} from "../repository/models/torrent";
 
 @injectable()
 export class TorrentEntriesService implements ITorrentEntriesService {
@@ -39,6 +41,11 @@ export class TorrentEntriesService implements ITorrentEntriesService {
     }
 
     public createTorrentEntry = async (torrent: IParsedTorrent, overwrite = false): Promise<void> => {
+        if (!torrent.title) {
+            this.logger.warn(`No title found for ${torrent.provider} [${torrent.infoHash}]`);
+            return;
+        }
+        
         const titleInfo = parse(torrent.title);
 
         if (!torrent.imdbId && torrent.type !== TorrentType.Anime) {
@@ -93,7 +100,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
         });
         
         return this.repository.createTorrent(newTorrent)
-            .then(() => PromiseHelpers.sequence(fileCollection.videos.map(video => () => {
+            .then(() => PromiseHelpers.sequence(fileCollection.videos!.map(video => () => {
                 const newVideo: IFileCreationAttributes = {...video, infoHash: video.infoHash, title: video.title};
                 if (!newVideo.kitsuId) {
                     newVideo.kitsuId = 0;
@@ -103,7 +110,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             .then(() => this.logger.info(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
     };
 
-    private assignKitsuId = async (kitsuQuery: { year: number | string; season: number; title: string }, torrent: IParsedTorrent) => {
+    private assignKitsuId = async (kitsuQuery: IMetaDataQuery, torrent: IParsedTorrent): Promise<void> => {
         await this.metadataService.getKitsuId(kitsuQuery)
             .then((result: number | Error) => {
                 if (typeof result === 'number') {
@@ -118,10 +125,10 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             });
     };
 
-    public createSkipTorrentEntry = async (torrent: Torrent) => this.repository.createSkipTorrent(torrent);
+    public createSkipTorrentEntry: (torrent: Torrent) => Promise<[SkipTorrent, boolean | null]> = async (torrent: Torrent)=> this.repository.createSkipTorrent(torrent.dataValues);
 
-    public getStoredTorrentEntry = async (torrent: Torrent) => this.repository.getSkipTorrent(torrent.infoHash)
-        .catch(() => this.repository.getTorrent(torrent))
+    public getStoredTorrentEntry = async (torrent: Torrent): Promise<Torrent | SkipTorrent | null | undefined> => this.repository.getSkipTorrent(torrent.infoHash)
+        .catch(() => this.repository.getTorrent(torrent.dataValues))
         .catch(() => undefined);
 
     public checkAndUpdateTorrent = async (torrent: IParsedTorrent): Promise<boolean> => {
@@ -141,7 +148,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
         }
         if (existingTorrent.provider === 'KickassTorrents' && torrent.provider) {
             existingTorrent.provider = torrent.provider;
-            existingTorrent.torrentId = torrent.torrentId;
+            existingTorrent.torrentId = torrent.torrentId!;
         }
 
         if (!existingTorrent.languages && torrent.languages && existingTorrent.provider !== 'RARBG') {
@@ -149,11 +156,14 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             await existingTorrent.save();
             this.logger.debug(`Updated [${existingTorrent.infoHash}] ${existingTorrent.title} language to ${torrent.languages}`);
         }
+        
         return this.createTorrentContents(existingTorrent)
-            .then(() => this.updateTorrentSeeders(existingTorrent));
+            .then(() => this.updateTorrentSeeders(existingTorrent.dataValues))
+            .then(() => Promise.resolve(true))
+            .catch(() => Promise.reject(false));
     };
 
-    public createTorrentContents = async (torrent: Torrent) => {
+    public createTorrentContents = async (torrent: Torrent): Promise<void> => {
         if (torrent.opened) {
             return;
         }
@@ -167,7 +177,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
         const kitsuId: number = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.kitsuId || 0));
 
         const fileCollection: ITorrentFileCollection = await this.fileService.parseTorrentFiles(torrent)
-            .then(torrentContents => notOpenedVideo ? torrentContents : {...torrentContents, videos: storedVideos})
+            .then(torrentContents => notOpenedVideo ? torrentContents : {...torrentContents, videos: storedVideos.map(video => video.dataValues)})
             .then(torrentContents => this.subtitleService.assignSubtitles(torrentContents))
             .then(torrentContents => this.assignMetaIds(torrentContents, imdbId, kitsuId))
             .catch(error => {
@@ -181,22 +191,24 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             return;
         }
 
-        if (notOpenedVideo && fileCollection.videos.length === 1) {
+        if (notOpenedVideo && fileCollection.videos?.length === 1) {
             // if both have a single video and stored one was not opened, update stored one to true metadata and use that
-            storedVideos[0].fileIndex = fileCollection.videos[0].fileIndex;
+            storedVideos[0].fileIndex = fileCollection?.videos[0]?.fileIndex || 0;
             storedVideos[0].title = fileCollection.videos[0].title;
-            storedVideos[0].size = fileCollection.videos[0].size;
-            storedVideos[0].subtitles = fileCollection.videos[0].subtitles.map(subtitle => Subtitle.build(subtitle));
-            fileCollection.videos[0] = storedVideos[0];
+            storedVideos[0].size = fileCollection.videos[0].size || 0;
+            const subtitles: ISubtitleAttributes[] = fileCollection.videos[0]?.subtitles || [];
+            storedVideos[0].subtitles = subtitles.map(subtitle => Subtitle.build(subtitle));
+            fileCollection.videos[0] = {...storedVideos[0], subtitles: subtitles};
         }
         // no videos available or more than one new videos were in the torrent
-        const shouldDeleteOld = notOpenedVideo && fileCollection.videos.every(video => !video.id);
+        const shouldDeleteOld = notOpenedVideo && fileCollection.videos?.every(video => !video.id) || false;
 
-        const newTorrent: Torrent = Torrent.build({
+        const newTorrent: ITorrentCreationAttributes = {
             ...torrent,
+            files: fileCollection.videos,
             contents: fileCollection.contents,
             subtitles: fileCollection.subtitles
-        });
+        };
 
         return this.repository.createTorrent(newTorrent)
             .then(() => {
@@ -206,7 +218,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                 }
                 return Promise.resolve();
             })
-            .then(() => PromiseHelpers.sequence(fileCollection.videos.map(video => () => {
+            .then(() => PromiseHelpers.sequence(fileCollection.videos!.map(video => (): Promise<void> => {
                 const newVideo: IFileCreationAttributes = {...video, infoHash: video.infoHash, title: video.title};
                 return this.repository.createFile(newVideo)
             })))
@@ -214,19 +226,25 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             .catch(error => this.logger.error(`Failed saving contents for [${torrent.infoHash}] ${torrent.title}`, error));
     };
 
-    public updateTorrentSeeders = async (torrent: ITorrentAttributes) => {
+    public updateTorrentSeeders = async (torrent: ITorrentAttributes): Promise<[number]> => {
         if (!(torrent.infoHash || (torrent.provider && torrent.torrentId)) || !Number.isInteger(torrent.seeders)) {
-            return torrent;
+            return [0];
         }
-
+        
+        if (torrent.seeders === undefined) {
+            this.logger.warn(`Seeders not found for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`);
+            return [0];
+        }
+        
+        
         return this.repository.setTorrentSeeders(torrent, torrent.seeders)
             .catch(error => {
                 this.logger.warn('Failed updating seeders:', error);
-                return undefined;
+                return [0];
             });
     };
 
-    private assignMetaIds = (fileCollection: ITorrentFileCollection, imdbId: string, kitsuId: number): ITorrentFileCollection => {
+    private assignMetaIds = (fileCollection: ITorrentFileCollection, imdbId: string | undefined, kitsuId: number): ITorrentFileCollection => {
         if (fileCollection.videos && fileCollection.videos.length) {
             fileCollection.videos.forEach(video => {
                 video.imdbId = imdbId || '';
@@ -237,26 +255,31 @@ export class TorrentEntriesService implements ITorrentEntriesService {
         return fileCollection;
     };
 
-    private overwriteExistingFiles = async (torrent: IParsedTorrent, torrentContents: ITorrentFileCollection) => {
+    private overwriteExistingFiles = async (torrent: IParsedTorrent, torrentContents: ITorrentFileCollection): Promise<ITorrentFileCollection> => {
         const videos = torrentContents && torrentContents.videos;
         if (videos && videos.length) {
             const existingFiles = await this.repository.getFiles(torrent.infoHash)
-                .then((existing) => existing
-                    .reduce((map, next) => {
-                        const fileIndex = next.fileIndex !== undefined ? next.fileIndex : null;
+                .then((existing) => existing.reduce<{ [key: number]: File[] }>((map, next) => {
+                    const fileIndex = next.fileIndex !== undefined ? next.fileIndex : null;
+                    if (fileIndex !== null) {
                         map[fileIndex] = (map[fileIndex] || []).concat(next);
-                        return map;
-                    }, {}))
+                    }
+                    return map;
+                }, {}))
                 .catch(() => undefined);
             if (existingFiles && Object.keys(existingFiles).length) {
                 const overwrittenVideos = videos
                     .map(file => {
-                        const mapping = videos.length === 1 && Object.keys(existingFiles).length === 1
-                            ? Object.values(existingFiles)[0]
-                            : existingFiles[file.fileIndex !== undefined ? file.fileIndex : null];
+                        const index = file.fileIndex !== undefined ? file.fileIndex : null;
+                        let mapping;
+                        if (index !== null) {
+                            mapping = videos.length === 1 && Object.keys(existingFiles).length === 1
+                                ? Object.values(existingFiles)[0]
+                                : existingFiles[index];
+                        }
                         if (mapping) {
                             const originalFile = mapping.shift();
-                            return {id: originalFile.id, ...file};
+                            return {id: originalFile!.id, ...file};
                         }
                         return file;
                     });

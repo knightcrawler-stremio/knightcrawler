@@ -1,7 +1,7 @@
 import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from 'sequelize-typescript';
 import {IFileAttributes, IFileCreationAttributes} from "../interfaces/file_attributes";
-import {Torrent} from "./torrent";
 import {Subtitle} from "./subtitle";
+import {Torrent} from "./torrent";
 
 const indexes = [
     {
@@ -55,5 +55,5 @@ export class File extends Model<IFileAttributes, IFileCreationAttributes> {
     declare subtitles?: Subtitle[];
 
     @BelongsTo(() => Torrent, {constraints: false, foreignKey: 'infoHash'})
-    torrent: Torrent;
+    torrent?: Torrent;
 }

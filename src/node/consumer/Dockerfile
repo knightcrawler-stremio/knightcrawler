@@ -1,8 +1,11 @@
 FROM node:lts-buster-slim as builder
 
 RUN apt-get update && \
-    apt-get install -y git && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get upgrade -y && \
+    apt-get install -y python3 make g++ && \
+    rm -rf /var/lib/apt/lists/* 
+
+RUN npm install -g npm@^8 && npm config set python /usr/bin/python3
 
 WORKDIR /app
 

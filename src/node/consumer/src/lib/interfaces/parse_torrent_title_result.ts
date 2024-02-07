@@ -1,3 +1,5 @@
+import {IFileAttributes} from "../repository/interfaces/file_attributes";
+
 export interface IParseTorrentTitleResult {
     title?: string;
     date?: string;
@@ -28,4 +30,7 @@ export interface IParseTorrentTitleResult {
     episode?: number;
     languages?: string;
     dubbed?: boolean;
+    videoFile?: IFileAttributes;
+    folderName?: string;
+    fileName?: string;
 }

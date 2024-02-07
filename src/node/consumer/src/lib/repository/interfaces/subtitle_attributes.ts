@@ -3,7 +3,7 @@ import {Optional} from "sequelize";
 export interface ISubtitleAttributes {
     infoHash: string;
     fileIndex: number;
-    fileId?: number;
+    fileId?: number | null;
     title: string;
     path: string;
 }

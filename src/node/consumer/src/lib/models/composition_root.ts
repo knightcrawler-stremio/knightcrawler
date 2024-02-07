@@ -1,8 +1,8 @@
 import {inject, injectable} from "inversify";
-import {IDatabaseRepository} from "../../repository/interfaces/database_repository";
-import {ITrackerService} from "../interfaces/tracker_service";
-import {IProcessTorrentsJob} from "../../interfaces/process_torrents_job";
 import {ICompositionalRoot} from "../interfaces/composition_root";
+import {IProcessTorrentsJob} from "../interfaces/process_torrents_job";
+import {ITrackerService} from "../interfaces/tracker_service";
+import {IDatabaseRepository} from "../repository/interfaces/database_repository";
 import {IocTypes} from "./ioc_types";
 
 @injectable()
@@ -19,7 +19,7 @@ export class CompositionalRoot implements ICompositionalRoot {
         this.processTorrentsJob = processTorrentsJob;
     }
 
-    start = async () => {
+    start = async (): Promise<void> => {
         await this.trackerService.getTrackers();
         await this.databaseRepository.connect();
         await this.processTorrentsJob.listenToQueue();

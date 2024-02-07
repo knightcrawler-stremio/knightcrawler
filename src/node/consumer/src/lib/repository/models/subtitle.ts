@@ -32,7 +32,7 @@ export class Subtitle extends Model<ISubtitleAttributes, ISubtitleCreationAttrib
     declare title: string;
 
     @BelongsTo(() => File, {constraints: false, foreignKey: 'fileId'})
-    file: File;
+    file?: File;
 
-    path: string;
+    path?: string;
 }

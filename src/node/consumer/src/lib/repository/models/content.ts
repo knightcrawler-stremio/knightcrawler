@@ -18,5 +18,5 @@ export class Content extends Model<IContentAttributes, IContentCreationAttribute
     declare size: number;
 
     @BelongsTo(() => Torrent, {constraints: false, foreignKey: 'infoHash'})
-    torrent: Torrent;
+    torrent?: Torrent;
 }

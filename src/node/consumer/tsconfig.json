@@ -1,23 +1,29 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "outDir": "dist",
-    "pretty": true,
+    "target": "es2020",
+    "module": "es2020",
+    "allowJs": true,
     "removeComments": true,
-    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
     "sourceMap": true,
-    "target": "ES6",
+    "outDir": "dist",
+    "strict": true,
     "lib": [
-      "es6"
+      "es2020"
     ],
-    "types": [
-      "node",
-      "reflect-metadata"
-    ],
+    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "allowSyntheticDefaultImports": true
-  }
+    "moduleResolution": "Node",
+    "skipLibCheck": true,
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": ["node_modules"],
 }

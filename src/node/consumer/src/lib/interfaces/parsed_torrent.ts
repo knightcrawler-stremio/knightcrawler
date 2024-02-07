@@ -1,5 +1,5 @@
-import {IParseTorrentTitleResult} from "./parse_torrent_title_result";
 import {TorrentType} from "../enums/torrent_types";
+import {IParseTorrentTitleResult} from "./parse_torrent_title_result";
 import {ITorrentFileCollection} from "./torrent_file_collection";
 
 export interface IParsedTorrent extends IParseTorrentTitleResult {
@@ -9,7 +9,7 @@ export interface IParsedTorrent extends IParseTorrentTitleResult {
     kitsuId?: number;
     trackers?: string;
     provider?: string | null;
-    infoHash: string | null;
+    infoHash: string;
     type: string | TorrentType;
     uploadDate?: Date;
     seeders?: number;

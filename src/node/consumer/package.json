@@ -3,10 +3,14 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "node esbuild.js",
-    "dev": "tsx watch --ignore node_modules src/main.ts | pino-pretty",
-    "start": "node dist/main.cjs",
-    "lint": "npx eslint ./src --ext .ts,.js"
+    "build": "swc src -d dist",
+    "watch-compile": "swc src -w --out-dir dist",
+    "watch-dev": "nodemon --watch \"dist/**/*\" -e js ./dist/main.js",
+    "dev": "concurrently \"npm run watch-compile\" \"npm run watch-dev\"",
+    "start": "node dist/main.js",
+    "clean": "rm -rf dist",
+    "lint": "eslint --ext .ts  src",
+    "lint:fix": "eslint --ext .ts src --fix"
   },
   "license": "MIT",
   "dependencies": {
@@ -27,15 +31,19 @@
     "reflect-metadata": "^0.2.1",
     "sequelize": "^6.36.0",
     "sequelize-typescript": "^2.1.6",
+    "utp-native": "^2.5.3",
     "webtorrent": "^2.1.35"
   },
   "devDependencies": {
+    "@swc/cli": "^0.3.9",
+    "@swc/core": "^1.4.0",
     "@types/amqplib": "^0.10.4",
     "@types/magnet-uri": "^5.1.5",
     "@types/node": "^20.11.16",
     "@types/validator": "^13.11.8",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "@types/webtorrent": "^0.109.7",
     "esbuild": "^0.20.0",
     "eslint": "^8.56.0",
     "eslint-plugin-import": "^2.29.1",
