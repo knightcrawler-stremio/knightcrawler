@@ -1,11 +1,11 @@
 import {Optional} from "sequelize";
 
-export interface ContentAttributes {
+export interface IContentAttributes {
     infoHash: string;
     fileIndex: number;
     path: string;
     size: number;
 }
 
-export interface ContentCreationAttributes extends Optional<ContentAttributes, 'fileIndex' | 'size'> {
+export interface IContentCreationAttributes extends Optional<IContentAttributes, 'fileIndex' | 'size'> {
 }

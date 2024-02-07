@@ -1,6 +1,6 @@
 import {Optional} from "sequelize";
 
-export interface SubtitleAttributes {
+export interface ISubtitleAttributes {
     infoHash: string;
     fileIndex: number;
     fileId?: number;
@@ -8,5 +8,5 @@ export interface SubtitleAttributes {
     path: string;
 }
 
-export interface SubtitleCreationAttributes extends Optional<SubtitleAttributes, 'fileId'> {
+export interface ISubtitleCreationAttributes extends Optional<ISubtitleAttributes, 'fileId'> {
 }

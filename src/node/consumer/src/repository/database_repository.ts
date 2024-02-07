@@ -10,8 +10,8 @@ import {IngestedTorrent} from "./models/ingestedTorrent";
 import {Subtitle} from "./models/subtitle";
 import {Content} from "./models/content";
 import {SkipTorrent} from "./models/skipTorrent";
-import {FileAttributes} from "./interfaces/file_attributes";
-import {TorrentAttributes} from "./interfaces/torrent_attributes";
+import {IFileAttributes} from "./interfaces/file_attributes";
+import {ITorrentAttributes} from "./interfaces/torrent_attributes";
 import {IngestedPage} from "./models/ingestedPage";
 import {logger} from "../lib/services/logging_service";
 
@@ -50,7 +50,7 @@ class DatabaseRepository {
         }
     }
 
-    public async getTorrent(torrent: TorrentAttributes): Promise<Torrent | null> {
+    public async getTorrent(torrent: ITorrentAttributes): Promise<Torrent | null> {
         const where = torrent.infoHash
             ? { infoHash: torrent.infoHash }
             : { provider: torrent.provider, torrentId: torrent.torrentId };
@@ -61,11 +61,11 @@ class DatabaseRepository {
         return this.getTorrentsBasedOnQuery({ title: { [Op.regexp]: `${titleQuery}` }, type });
     }
 
-    public async getTorrentsBasedOnQuery(where: WhereOptions<TorrentAttributes>): Promise<Torrent[]> {
+    public async getTorrentsBasedOnQuery(where: WhereOptions<ITorrentAttributes>): Promise<Torrent[]> {
         return await Torrent.findAll({ where });
     }
 
-    public async getFilesBasedOnQuery(where: WhereOptions<FileAttributes>): Promise<File[]> {
+    public async getFilesBasedOnQuery(where: WhereOptions<IFileAttributes>): Promise<File[]> {
         return await File.findAll({ where });
     }
 
@@ -118,7 +118,7 @@ class DatabaseRepository {
         await this.createSubtitles(torrent.infoHash, torrent.subtitles);
     }
 
-    public async setTorrentSeeders(torrent: TorrentAttributes, seeders: number): Promise<[number]> {
+    public async setTorrentSeeders(torrent: ITorrentAttributes, seeders: number): Promise<[number]> {
         const where = torrent.infoHash
             ? { infoHash: torrent.infoHash }
             : { provider: torrent.provider, torrentId: torrent.torrentId };

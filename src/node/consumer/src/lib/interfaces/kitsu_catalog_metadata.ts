@@ -1,10 +1,10 @@
-import {KitsuLink, KitsuTrailer} from "./kitsu_metadata";
+import {IKitsuLink, IKitsuTrailer} from "./kitsu_metadata";
 
-export interface KitsuCatalogJsonResponse {
-    metas: KitsuCatalogMetaData[];
+export interface IKitsuCatalogJsonResponse {
+    metas: IKitsuCatalogMetaData[];
 }
 
-export interface KitsuCatalogMetaData {
+export interface IKitsuCatalogMetaData {
     id: string;
     type: string;
     animeType: string;
@@ -18,6 +18,6 @@ export interface KitsuCatalogMetaData {
     logo?: string;
     poster: string;
     background: string;
-    trailers: KitsuTrailer[];
-    links: KitsuLink[];
+    trailers: IKitsuTrailer[];
+    links: IKitsuLink[];
 }

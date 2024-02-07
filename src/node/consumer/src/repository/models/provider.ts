@@ -1,8 +1,8 @@
 import { Table, Column, Model, HasMany, DataType } from 'sequelize-typescript';
-import {ProviderAttributes, ProviderCreationAttributes} from "../interfaces/provider_attributes";
+import {IProviderAttributes, IProviderCreationAttributes} from "../interfaces/provider_attributes";
 
 @Table({modelName: 'provider', timestamps: false})
-export class Provider extends Model<ProviderAttributes, ProviderCreationAttributes> {
+export class Provider extends Model<IProviderAttributes, IProviderCreationAttributes> {
     
     @Column({ type: DataType.STRING(32), primaryKey: true })
     declare name: string;

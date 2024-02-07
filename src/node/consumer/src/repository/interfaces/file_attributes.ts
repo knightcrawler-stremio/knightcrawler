@@ -1,8 +1,8 @@
 import {Optional} from "sequelize";
-import {SubtitleAttributes} from "./subtitle_attributes";
-import {ParseTorrentTitleResult} from "../../lib/interfaces/parse_torrent_title_result";
+import {ISubtitleAttributes} from "./subtitle_attributes";
+import {IParseTorrentTitleResult} from "../../lib/interfaces/parse_torrent_title_result";
 
-export interface FileAttributes extends ParseTorrentTitleResult {
+export interface IFileAttributes extends IParseTorrentTitleResult {
     id?: number;
     infoHash?: string;
     fileIndex?: number;
@@ -13,10 +13,10 @@ export interface FileAttributes extends ParseTorrentTitleResult {
     imdbEpisode?: number;
     kitsuId?: number;
     kitsuEpisode?: number;
-    subtitles?: SubtitleAttributes[];
+    subtitles?: ISubtitleAttributes[];
     path?: string;
     isMovie?: boolean;
 }
 
-export interface FileCreationAttributes extends Optional<FileAttributes, 'fileIndex' | 'size' | 'imdbId' | 'imdbSeason' | 'imdbEpisode' | 'kitsuId' | 'kitsuEpisode'> {
+export interface IFileCreationAttributes extends Optional<IFileAttributes, 'fileIndex' | 'size' | 'imdbId' | 'imdbSeason' | 'imdbEpisode' | 'kitsuId' | 'kitsuEpisode'> {
 }

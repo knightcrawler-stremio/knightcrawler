@@ -1,4 +1,4 @@
-export interface ParseTorrentTitleResult {
+export interface IParseTorrentTitleResult {
     title?: string;
     date?: string;
     year?: number | string;

@@ -1,10 +1,10 @@
 import {Optional} from "sequelize";
 
-export interface ProviderAttributes {
+export interface IProviderAttributes {
     name: string;
     lastScraped: Date;
     lastScrapedId: string;
 }
 
-export interface ProviderCreationAttributes extends Optional<ProviderAttributes, 'lastScraped' | 'lastScrapedId'> {
+export interface IProviderCreationAttributes extends Optional<IProviderAttributes, 'lastScraped' | 'lastScrapedId'> {
 }

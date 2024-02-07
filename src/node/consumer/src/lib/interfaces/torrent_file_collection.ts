@@ -1,9 +1,9 @@
-import {ContentAttributes} from "../../repository/interfaces/content_attributes";
-import {FileAttributes} from "../../repository/interfaces/file_attributes";
-import {SubtitleAttributes} from "../../repository/interfaces/subtitle_attributes";
+import {IContentAttributes} from "../../repository/interfaces/content_attributes";
+import {IFileAttributes} from "../../repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "../../repository/interfaces/subtitle_attributes";
 
-export interface TorrentFileCollection {
-    contents?: ContentAttributes[];
-    videos?: FileAttributes[];
-    subtitles?: SubtitleAttributes[];
+export interface ITorrentFileCollection {
+    contents?: IContentAttributes[];
+    videos?: IFileAttributes[];
+    subtitles?: ISubtitleAttributes[];
 }

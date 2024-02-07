@@ -1,3 +1,3 @@
-export interface CacheOptions {
+export interface ICacheOptions {
     ttl: number;
 }

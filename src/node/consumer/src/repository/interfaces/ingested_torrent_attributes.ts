@@ -1,6 +1,6 @@
 import {Optional} from "sequelize";
 
-export interface IngestedTorrentAttributes {
+export interface IIngestedTorrentAttributes {
     name: string;
     source: string;
     category: string;
@@ -13,5 +13,5 @@ export interface IngestedTorrentAttributes {
     createdAt?: Date;
 }
 
-export interface IngestedTorrentCreationAttributes extends Optional<IngestedTorrentAttributes, 'processed'> {
+export interface IIngestedTorrentCreationAttributes extends Optional<IIngestedTorrentAttributes, 'processed'> {
 }

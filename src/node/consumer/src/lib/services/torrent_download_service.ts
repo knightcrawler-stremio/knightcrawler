@@ -1,22 +1,23 @@
 import {encode} from 'magnet-uri';
 import torrentStream from 'torrent-stream';
 import {configurationService} from './configuration_service';
-import {extensionService} from './extension_service';
-import {TorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {ParsedTorrent} from "../interfaces/parsed_torrent";
-import {FileAttributes} from "../../repository/interfaces/file_attributes";
-import {SubtitleAttributes} from "../../repository/interfaces/subtitle_attributes";
-import {ContentAttributes} from "../../repository/interfaces/content_attributes";
+import {ExtensionHelpers} from '../helpers/extension_helpers';
+import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
+import {IParsedTorrent} from "../interfaces/parsed_torrent";
+import {IFileAttributes} from "../../repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "../../repository/interfaces/subtitle_attributes";
+import {IContentAttributes} from "../../repository/interfaces/content_attributes";
 import {parse} from "parse-torrent-title";
+import {ITorrentDownloadService} from "../interfaces/torrent_download_service";
 
-interface TorrentFile {
+interface ITorrentFile {
     name: string;
     path: string;
     length: number;
     fileIndex: number;
 }
 
-class TorrentDownloadService {
+class TorrentDownloadService implements ITorrentDownloadService {
     private engineOptions: TorrentStream.TorrentEngineOptions = {
         connections: configurationService.torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
         uploads: 0,
@@ -25,8 +26,8 @@ class TorrentDownloadService {
         tracker: true,
     };
 
-    public async getTorrentFiles(torrent: ParsedTorrent, timeout: number = 30000): Promise<TorrentFileCollection> {
-        const torrentFiles: TorrentFile[] = await this.filesFromTorrentStream(torrent, timeout);
+    public async getTorrentFiles(torrent: IParsedTorrent, timeout: number = 30000): Promise<ITorrentFileCollection> {
+        const torrentFiles: ITorrentFile[] = await this.filesFromTorrentStream(torrent, timeout);
 
         const videos = this.filterVideos(torrent, torrentFiles);
         const subtitles = this.filterSubtitles(torrent, torrentFiles);
@@ -39,7 +40,7 @@ class TorrentDownloadService {
         };
     }
 
-    private async filesFromTorrentStream(torrent: ParsedTorrent, timeout: number): Promise<TorrentFile[]> {
+    private async filesFromTorrentStream(torrent: IParsedTorrent, timeout: number): Promise<ITorrentFile[]> {
         if (!torrent.infoHash) {
             return Promise.reject(new Error("No infoHash..."));
         }
@@ -57,7 +58,7 @@ class TorrentDownloadService {
             engine = torrentStream(magnet, this.engineOptions);
 
             engine.on("ready", () => {
-                const files: TorrentFile[] = engine.files.map((file, fileId) => ({
+                const files: ITorrentFile[] = engine.files.map((file, fileId) => ({
                     ...file,
                     fileIndex: fileId,
                     size: file.length,
@@ -73,22 +74,22 @@ class TorrentDownloadService {
         });
     }
 
-    private filterVideos(torrent: ParsedTorrent, torrentFiles: TorrentFile[]): FileAttributes[] {
+    private filterVideos(torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): IFileAttributes[] {
         if (torrentFiles.length === 1 && !Number.isInteger(torrentFiles[0].fileIndex)) {
             return [this.mapTorrentFileToFileAttributes(torrent, torrentFiles[0])];
         }
-        const videos = torrentFiles.filter(file => extensionService.isVideo(file.path || ''));
-        const maxSize = Math.max(...videos.map((video: TorrentFile) => video.length));
+        const videos = torrentFiles.filter(file => ExtensionHelpers.isVideo(file.path || ''));
+        const maxSize = Math.max(...videos.map((video: ITorrentFile) => video.length));
         const minSampleRatio = videos.length <= 3 ? 3 : 10;
         const minAnimeExtraRatio = 5;
         const minRedundantRatio = videos.length <= 3 ? 30 : Number.MAX_VALUE;
 
-        const isSample = (video: TorrentFile) => video.path?.match(/sample|bonus|promo/i) && maxSize / parseInt(video.path.toString()) > minSampleRatio;
-        const isRedundant = (video: TorrentFile) => maxSize / parseInt(video.path.toString()) > minRedundantRatio;
-        const isExtra = (video: TorrentFile) => video.path?.match(/extras?\//i);
-        const isAnimeExtra = (video: TorrentFile) => video.path?.match(/(?:\b|_)(?:NC)?(?:ED|OP|PV)(?:v?\d\d?)?(?:\b|_)/i)
+        const isSample = (video: ITorrentFile) => video.path?.match(/sample|bonus|promo/i) && maxSize / parseInt(video.path.toString()) > minSampleRatio;
+        const isRedundant = (video: ITorrentFile) => maxSize / parseInt(video.path.toString()) > minRedundantRatio;
+        const isExtra = (video: ITorrentFile) => video.path?.match(/extras?\//i);
+        const isAnimeExtra = (video: ITorrentFile) => video.path?.match(/(?:\b|_)(?:NC)?(?:ED|OP|PV)(?:v?\d\d?)?(?:\b|_)/i)
             && maxSize / parseInt(video.length.toString()) > minAnimeExtraRatio;
-        const isWatermark = (video: TorrentFile) => video.path?.match(/^[A-Z-]+(?:\.[A-Z]+)?\.\w{3,4}$/)
+        const isWatermark = (video: ITorrentFile) => video.path?.match(/^[A-Z-]+(?:\.[A-Z]+)?\.\w{3,4}$/)
             && maxSize / parseInt(video.length.toString()) > minAnimeExtraRatio
 
         return videos
@@ -100,17 +101,17 @@ class TorrentDownloadService {
             .map(video => this.mapTorrentFileToFileAttributes(torrent, video));
     }
 
-    private filterSubtitles(torrent: ParsedTorrent, torrentFiles: TorrentFile[]): SubtitleAttributes[] {
-        return torrentFiles.filter(file => extensionService.isSubtitle(file.name || ''))
+    private filterSubtitles(torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): ISubtitleAttributes[] {
+        return torrentFiles.filter(file => ExtensionHelpers.isSubtitle(file.name || ''))
             .map(file => this.mapTorrentFileToSubtitleAttributes(torrent, file));
     }
 
-    private createContent(torrent: ParsedTorrent, torrentFiles: TorrentFile[]): ContentAttributes[] {
+    private createContent(torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): IContentAttributes[] {
         return torrentFiles.map(file => this.mapTorrentFileToContentAttributes(torrent, file));
     }
 
-    private mapTorrentFileToFileAttributes(torrent: ParsedTorrent, file: TorrentFile): FileAttributes {
-        const videoFile: FileAttributes = {
+    private mapTorrentFileToFileAttributes(torrent: IParsedTorrent, file: ITorrentFile): IFileAttributes {
+        const videoFile: IFileAttributes = {
             title: file.name,
             size: file.length,
             fileIndex: file.fileIndex || 0,
@@ -125,7 +126,7 @@ class TorrentDownloadService {
         return {...videoFile, ...parse(file.name)};
     }
 
-    private mapTorrentFileToSubtitleAttributes(torrent: ParsedTorrent, file: TorrentFile): SubtitleAttributes {
+    private mapTorrentFileToSubtitleAttributes(torrent: IParsedTorrent, file: ITorrentFile): ISubtitleAttributes {
         return {
             title: file.name,
             infoHash: torrent.infoHash,
@@ -135,7 +136,7 @@ class TorrentDownloadService {
         };
     }
 
-    private mapTorrentFileToContentAttributes(torrent: ParsedTorrent, file: TorrentFile): ContentAttributes {
+    private mapTorrentFileToContentAttributes(torrent: IParsedTorrent, file: ITorrentFile): IContentAttributes {
         return {
             infoHash: torrent.infoHash,
             fileIndex: file.fileIndex,

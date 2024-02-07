@@ -1,4 +1,4 @@
-export interface IngestedRabbitTorrent {
+export interface IIngestedRabbitTorrent {
     name: string;
     source: string;
     category: string;
@@ -10,6 +10,6 @@ export interface IngestedRabbitTorrent {
     processed: boolean;
 }
 
-export interface IngestedRabbitMessage {
-    message: IngestedRabbitTorrent;
+export interface IIngestedRabbitMessage {
+    message: IIngestedRabbitTorrent;
 }

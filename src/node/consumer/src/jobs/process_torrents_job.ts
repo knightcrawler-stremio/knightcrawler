@@ -1,6 +1,6 @@
 ﻿import client, {Channel, Connection, ConsumeMessage, Options} from 'amqplib'
-import {IngestedRabbitMessage, IngestedRabbitTorrent} from "../lib/interfaces/ingested_rabbit_message";
-import {IngestedTorrentAttributes} from "../repository/interfaces/ingested_torrent_attributes";
+import {IIngestedRabbitMessage, IIngestedRabbitTorrent} from "../lib/interfaces/ingested_rabbit_message";
+import {IIngestedTorrentAttributes} from "../repository/interfaces/ingested_torrent_attributes";
 import {configurationService} from '../lib/services/configuration_service';
 import {torrentProcessingService} from '../lib/services/torrent_processing_service';
 import {logger} from '../lib/services/logging_service';
@@ -23,13 +23,13 @@ class ProcessTorrentsJob {
         }
     }
     private processMessage = (msg: ConsumeMessage) => {
-        const ingestedTorrent: IngestedTorrentAttributes = this.getMessageAsJson(msg);
+        const ingestedTorrent: IIngestedTorrentAttributes = this.getMessageAsJson(msg);
         return torrentProcessingService.processTorrentRecord(ingestedTorrent);
     };
-    private getMessageAsJson = (msg: ConsumeMessage): IngestedTorrentAttributes => {
+    private getMessageAsJson = (msg: ConsumeMessage): IIngestedTorrentAttributes => {
         const content = msg?.content.toString('utf8') ?? "{}";
-        const receivedObject: IngestedRabbitMessage = JSON.parse(content);
-        const receivedTorrent: IngestedRabbitTorrent = receivedObject.message;
+        const receivedObject: IIngestedRabbitMessage = JSON.parse(content);
+        const receivedTorrent: IIngestedRabbitTorrent = receivedObject.message;
         return {...receivedTorrent, info_hash: receivedTorrent.infoHash};
     };
     private async assertAndConsumeQueue(channel: Channel) {

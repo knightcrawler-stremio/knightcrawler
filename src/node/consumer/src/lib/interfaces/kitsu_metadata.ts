@@ -1,10 +1,10 @@
-import {CommonVideoMetadata} from "./common_video_metadata";
+import {ICommonVideoMetadata} from "./common_video_metadata";
 
-export interface KitsuJsonResponse {
+export interface IKitsuJsonResponse {
     cacheMaxAge?: number;
-    meta?: KitsuMeta;
+    meta?: IKitsuMeta;
 }
-export interface KitsuMeta {
+export interface IKitsuMeta {
     aliases?: string[];
     animeType?: string;
     background?: string;
@@ -15,7 +15,7 @@ export interface KitsuMeta {
     imdbRating?: string;
     imdb_id?: string;
     kitsu_id?: string;
-    links?: KitsuLink[];
+    links?: IKitsuLink[];
     logo?: string;
     name?: string;
     poster?: string;
@@ -23,23 +23,23 @@ export interface KitsuMeta {
     runtime?: string;
     slug?: string;
     status?: string;
-    trailers?: KitsuTrailer[];
+    trailers?: IKitsuTrailer[];
     type?: string;
     userCount?: number;
-    videos?: KitsuVideo[];
+    videos?: IKitsuVideo[];
     year?: string;
 }
-export interface KitsuVideo extends CommonVideoMetadata {
+export interface IKitsuVideo extends ICommonVideoMetadata {
     imdbEpisode?: number;
     imdbSeason?: number;
     imdb_id?: string;
     thumbnail?: string;
 }
-export interface KitsuTrailer {
+export interface IKitsuTrailer {
     source?: string;
     type?: string;
 }
-export interface KitsuLink {
+export interface IKitsuLink {
     name?: string;
     category?: string;
     url?: string;

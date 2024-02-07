@@ -1,20 +1,21 @@
 import {parse} from 'parse-torrent-title';
-import {ParsedTorrent} from "../interfaces/parsed_torrent";
+import {IParsedTorrent} from "../interfaces/parsed_torrent";
 import {repository} from '../../repository/database_repository';
 import {TorrentType} from '../enums/torrent_types';
-import {TorrentFileCollection} from "../interfaces/torrent_file_collection";
+import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
 import {Torrent} from "../../repository/models/torrent";
 import {PromiseHelpers} from '../helpers/promises_helpers';
 import {logger} from './logging_service';
 import {metadataService} from './metadata_service';
 import {torrentFileService} from './torrent_file_service';
 import {torrentSubtitleService} from './torrent_subtitle_service';
-import {TorrentAttributes} from "../../repository/interfaces/torrent_attributes";
+import {ITorrentAttributes} from "../../repository/interfaces/torrent_attributes";
 import {File} from "../../repository/models/file";
 import {Subtitle} from "../../repository/models/subtitle";
+import {ITorrentEntriesService} from "../interfaces/torrent_entries_service";
 
-class TorrentEntriesService {
-    public async createTorrentEntry(torrent: ParsedTorrent, overwrite = false): Promise<void> {
+class TorrentEntriesService implements ITorrentEntriesService {
+    public async createTorrentEntry(torrent: IParsedTorrent, overwrite = false): Promise<void> {
         const titleInfo = parse(torrent.title);
 
         if (!torrent.imdbId && torrent.type !== TorrentType.Anime) {
@@ -49,9 +50,9 @@ class TorrentEntriesService {
             return;
         }
 
-        const fileCollection: TorrentFileCollection = await torrentFileService.parseTorrentFiles(torrent)
-            .then((torrentContents: TorrentFileCollection) => overwrite ? this.overwriteExistingFiles(torrent, torrentContents) : torrentContents)
-            .then((torrentContents: TorrentFileCollection) => torrentSubtitleService.assignSubtitles(torrentContents))
+        const fileCollection: ITorrentFileCollection = await torrentFileService.parseTorrentFiles(torrent)
+            .then((torrentContents: ITorrentFileCollection) => overwrite ? this.overwriteExistingFiles(torrent, torrentContents) : torrentContents)
+            .then((torrentContents: ITorrentFileCollection) => torrentSubtitleService.assignSubtitles(torrentContents))
             .catch(error => {
                 logger.warn(`Failed getting files for ${torrent.title}`, error.message);
                 return {};
@@ -86,8 +87,8 @@ class TorrentEntriesService {
             .catch(() => undefined);
     }
 
-    public async checkAndUpdateTorrent(torrent: ParsedTorrent): Promise<boolean> {
-        const query: TorrentAttributes = {
+    public async checkAndUpdateTorrent(torrent: IParsedTorrent): Promise<boolean> {
+        const query: ITorrentAttributes = {
             infoHash: torrent.infoHash,
             provider: torrent.provider,
         }
@@ -128,7 +129,7 @@ class TorrentEntriesService {
         const imdbId: string | undefined = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.imdbId));
         const kitsuId: number | undefined = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.kitsuId));
 
-        const fileCollection: TorrentFileCollection = await torrentFileService.parseTorrentFiles(torrent)
+        const fileCollection: ITorrentFileCollection = await torrentFileService.parseTorrentFiles(torrent)
             .then(torrentContents => notOpenedVideo ? torrentContents : {...torrentContents, videos: storedVideos})
             .then(torrentContents => torrentSubtitleService.assignSubtitles(torrentContents))
             .then(torrentContents => this.assignMetaIds(torrentContents, imdbId, kitsuId))
@@ -176,7 +177,7 @@ class TorrentEntriesService {
             .catch(error => logger.error(`Failed saving contents for [${torrent.infoHash}] ${torrent.title}`, error));
     }
 
-    public async updateTorrentSeeders(torrent: TorrentAttributes) {
+    public async updateTorrentSeeders(torrent: ITorrentAttributes) {
         if (!(torrent.infoHash || (torrent.provider && torrent.torrentId)) || !Number.isInteger(torrent.seeders)) {
             return torrent;
         }
@@ -188,7 +189,7 @@ class TorrentEntriesService {
             });
     }
 
-    private assignMetaIds(fileCollection: TorrentFileCollection, imdbId: string, kitsuId: number): TorrentFileCollection {
+    private assignMetaIds(fileCollection: ITorrentFileCollection, imdbId: string, kitsuId: number): ITorrentFileCollection {
         if (fileCollection.videos && fileCollection.videos.length) {
             fileCollection.videos.forEach(video => {
                 video.imdbId = imdbId;
@@ -199,7 +200,7 @@ class TorrentEntriesService {
         return fileCollection;
     }
 
-    private async overwriteExistingFiles(torrent: ParsedTorrent, torrentContents: TorrentFileCollection) {
+    private async overwriteExistingFiles(torrent: IParsedTorrent, torrentContents: ITorrentFileCollection) {
         const videos = torrentContents && torrentContents.videos;
         if (videos && videos.length) {
             const existingFiles = await repository.getFiles(torrent.infoHash)

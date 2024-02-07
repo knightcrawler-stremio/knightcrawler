@@ -1,26 +1,30 @@
 import {Logger, pino} from "pino";
+import {ILoggingService} from "../interfaces/logging_service";
 
-class LoggingService {
-    public readonly logger: Logger = pino({
-        level: process.env.LOG_LEVEL || 'info'
-    });
-    
+class LoggingService implements ILoggingService {
+    private readonly logger: Logger;
+
+    constructor() {
+        this.logger = pino({
+            level: process.env.LOG_LEVEL || 'info'
+        });
+    }
+
     public info(message: string, ...args: any[]): void {
-        this.logger.info(message);
+        this.logger.info(message, args);
     }
-    
+
     public error(message: string, ...args: any[]): void {
-        this.logger.error(message);
+        this.logger.error(message, args);
     }
-    
+
     public debug(message: string, ...args: any[]): void {
-        this.logger.debug(message);
+        this.logger.debug(message, args);
     }
-    
+
     public warn(message: string, ...args: any[]): void {
-        this.logger.warn(message);
+        this.logger.warn(message, args);
     }
 }
 
 export const logger = new LoggingService();
-

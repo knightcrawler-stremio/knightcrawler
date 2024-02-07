@@ -1,21 +1,22 @@
 import axios, {AxiosResponse} from 'axios';
-import {search, ResultTypes} from 'google-sr';
+import {ResultTypes, search} from 'google-sr';
 import nameToImdb from 'name-to-imdb';
-import { cacheService } from './cache_service';
-import { TorrentType } from '../enums/torrent_types';
-import {MetadataResponse} from "../interfaces/metadata_response";
-import {CinemetaJsonResponse} from "../interfaces/cinemeta_metadata";
-import {CommonVideoMetadata} from "../interfaces/common_video_metadata";
-import {KitsuJsonResponse} from "../interfaces/kitsu_metadata";
-import {MetaDataQuery} from "../interfaces/metadata_query";
-import {KitsuCatalogJsonResponse} from "../interfaces/kitsu_catalog_metadata";
+import {cacheService} from './cache_service';
+import {TorrentType} from '../enums/torrent_types';
+import {IMetadataResponse} from "../interfaces/metadata_response";
+import {ICinemetaJsonResponse} from "../interfaces/cinemeta_metadata";
+import {ICommonVideoMetadata} from "../interfaces/common_video_metadata";
+import {IKitsuJsonResponse} from "../interfaces/kitsu_metadata";
+import {IMetaDataQuery} from "../interfaces/metadata_query";
+import {IKitsuCatalogJsonResponse} from "../interfaces/kitsu_catalog_metadata";
+import {IMetadataService} from "../interfaces/metadata_service";
 
 const CINEMETA_URL = 'https://v3-cinemeta.strem.io';
 const KITSU_URL = 'https://anime-kitsu.strem.fun';
 const TIMEOUT = 20000;
 
-class MetadataService {
-    public async getKitsuId(info: MetaDataQuery): Promise<string | Error> {
+class MetadataService implements IMetadataService {
+    public async getKitsuId(info: IMetaDataQuery): Promise<string | Error> {
         const title = this.escapeTitle(info.title.replace(/\s\|\s.*/, ''));
         const year = info.year ? ` ${info.year}` : '';
         const season = info.season > 1 ? ` S${info.season}` : '';
@@ -23,9 +24,9 @@ class MetadataService {
         const query = encodeURIComponent(key);
 
         return cacheService.cacheWrapKitsuId(key,
-            () => axios.get(`${KITSU_URL}/catalog/series/kitsu-anime-list/search=${query}.json`, { timeout: 60000 })
+            () => axios.get(`${KITSU_URL}/catalog/series/kitsu-anime-list/search=${query}.json`, {timeout: 60000})
                 .then((response) => {
-                    const body = response.data as KitsuCatalogJsonResponse;
+                    const body = response.data as IKitsuCatalogJsonResponse;
                     if (body && body.metas && body.metas.length) {
                         return body.metas[0].id.replace('kitsu:', '');
                     } else {
@@ -34,7 +35,7 @@ class MetadataService {
                 }));
     }
 
-    public async getImdbId(info: MetaDataQuery): Promise<string | undefined> {
+    public async getImdbId(info: IMetaDataQuery): Promise<string | undefined> {
         const name = this.escapeTitle(info.title);
         const year = info.year || (info.date && info.date.slice(0, 4));
         const key = `${name}_${year || 'NA'}_${info.type}`;
@@ -53,7 +54,7 @@ class MetadataService {
         }
     }
 
-    public getMetadata(query: MetaDataQuery): Promise<MetadataResponse | Error> {
+    public getMetadata(query: IMetaDataQuery): Promise<IMetadataResponse | Error> {
         if (!query.id) {
             return Promise.reject("no valid id provided");
         }
@@ -93,14 +94,14 @@ class MetadataService {
             .trim();
     }
 
-    private async requestMetadata(url: string): Promise<MetadataResponse> {
+    private async requestMetadata(url: string): Promise<IMetadataResponse> {
         let response: AxiosResponse<any, any> = await axios.get(url, {timeout: TIMEOUT});
-        let result: MetadataResponse;
+        let result: IMetadataResponse;
         const body = response.data;
         if ('kitsu_id' in body.meta) {
-            result = this.handleKitsuResponse(body as KitsuJsonResponse);
+            result = this.handleKitsuResponse(body as IKitsuJsonResponse);
         } else if ('imdb_id' in body.meta) {
-            result = this.handleCinemetaResponse(body as CinemetaJsonResponse);
+            result = this.handleCinemetaResponse(body as ICinemetaJsonResponse);
         } else {
             throw new Error('No valid metadata');
         }
@@ -108,7 +109,7 @@ class MetadataService {
         return result;
     }
 
-    private handleCinemetaResponse(body: CinemetaJsonResponse): MetadataResponse {
+    private handleCinemetaResponse(body: ICinemetaJsonResponse): IMetadataResponse {
         return {
             imdbId: parseInt(body.meta.imdb_id),
             type: body.meta.type,
@@ -137,7 +138,7 @@ class MetadataService {
         };
     }
 
-    private handleKitsuResponse(body: KitsuJsonResponse): MetadataResponse {
+    private handleKitsuResponse(body: IKitsuJsonResponse): IMetadataResponse {
         return {
             kitsuId: parseInt(body.meta.kitsu_id),
             type: body.meta.type,
@@ -167,7 +168,7 @@ class MetadataService {
         };
     }
 
-    private getEpisodeCount(videos: CommonVideoMetadata[]) {
+    private getEpisodeCount(videos: ICommonVideoMetadata[]) {
         return Object.values(
             videos
                 .filter(entry => entry.season !== 0 && entry.episode !== 0)
@@ -179,7 +180,7 @@ class MetadataService {
         );
     }
 
-    private getIMDbIdFromNameToImdb(name: string, info: MetaDataQuery): Promise<string | Error> {
+    private getIMDbIdFromNameToImdb(name: string, info: IMetaDataQuery): Promise<string | Error> {
         const year = info.year;
         const type = info.type;
         return new Promise((resolve, reject) => {

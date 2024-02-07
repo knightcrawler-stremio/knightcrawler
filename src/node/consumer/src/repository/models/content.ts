@@ -1,9 +1,9 @@
 import {Table, Column, Model, HasMany, DataType, BelongsTo, ForeignKey} from 'sequelize-typescript';
-import {ContentAttributes, ContentCreationAttributes} from "../interfaces/content_attributes";
+import {IContentAttributes, IContentCreationAttributes} from "../interfaces/content_attributes";
 import {Torrent} from "./torrent";
 
 @Table({modelName: 'content', timestamps: false})
-export class Content extends Model<ContentAttributes, ContentCreationAttributes> {
+export class Content extends Model<IContentAttributes, IContentCreationAttributes> {
     @Column({ type: DataType.STRING(64), primaryKey: true, allowNull: false, onDelete: 'CASCADE' })
     @ForeignKey(() => Torrent)
     declare infoHash: string;

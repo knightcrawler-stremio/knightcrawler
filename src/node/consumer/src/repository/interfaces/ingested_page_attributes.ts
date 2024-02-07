@@ -1,6 +1,6 @@
-export interface IngestedPageAttributes {
+export interface IIngestedPageAttributes {
     url: string;
 }
 
-export interface IngestedPageCreationAttributes extends IngestedPageAttributes {
+export interface IIngestedPageCreationAttributes extends IIngestedPageAttributes {
 }

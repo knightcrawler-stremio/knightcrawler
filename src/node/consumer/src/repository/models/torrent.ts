@@ -1,12 +1,12 @@
 import { Table, Column, Model, HasMany, DataType } from 'sequelize-typescript';
-import {TorrentAttributes, TorrentCreationAttributes} from "../interfaces/torrent_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "../interfaces/torrent_attributes";
 import {Content} from "./content";
 import {File} from "./file";
 import {Subtitle} from "./subtitle";
 
 @Table({modelName: 'torrent', timestamps: true})
 
-export class Torrent extends Model<TorrentAttributes, TorrentCreationAttributes> {
+export class Torrent extends Model<ITorrentAttributes, ITorrentCreationAttributes> {
     @Column({type: DataType.STRING(64), primaryKey: true})
     declare infoHash: string;
     

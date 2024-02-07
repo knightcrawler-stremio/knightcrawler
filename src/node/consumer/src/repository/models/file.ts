@@ -1,8 +1,8 @@
 import {Table, Column, Model, HasMany, DataType, BelongsTo, ForeignKey} from 'sequelize-typescript';
-import {FileAttributes, FileCreationAttributes} from "../interfaces/file_attributes";
+import {IFileAttributes, IFileCreationAttributes} from "../interfaces/file_attributes";
 import {Torrent} from "./torrent";
 import {Subtitle} from "./subtitle";
-import {SubtitleAttributes} from "../interfaces/subtitle_attributes";
+import {ISubtitleAttributes} from "../interfaces/subtitle_attributes";
 
 const indexes = [
     {
@@ -23,7 +23,7 @@ const indexes = [
 ];
 
 @Table({modelName: 'file', timestamps: true, indexes: indexes })
-export class File extends Model<FileAttributes, FileCreationAttributes> {
+export class File extends Model<IFileAttributes, IFileCreationAttributes> {
     @Column({ type: DataType.STRING(64), allowNull: false, onDelete: 'CASCADE' })
     @ForeignKey(() => Torrent)
     declare infoHash: string;

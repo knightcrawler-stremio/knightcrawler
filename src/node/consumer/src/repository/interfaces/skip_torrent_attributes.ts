@@ -1,8 +1,8 @@
 import {Optional} from "sequelize";
 
-export interface SkipTorrentAttributes {
+export interface ISkipTorrentAttributes {
     infoHash: string;
 }
 
-export interface SkipTorrentCreationAttributes extends Optional<SkipTorrentAttributes, never> {
+export interface ISkipTorrentCreationAttributes extends Optional<ISkipTorrentAttributes, never> {
 }

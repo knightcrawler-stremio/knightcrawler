@@ -1,5 +1,5 @@
 import { Table, Column, Model, HasMany, DataType } from 'sequelize-typescript';
-import {IngestedTorrentAttributes, IngestedTorrentCreationAttributes} from "../interfaces/ingested_torrent_attributes";
+import {IIngestedTorrentAttributes, IIngestedTorrentCreationAttributes} from "../interfaces/ingested_torrent_attributes";
 
 const indexes = [
     {
@@ -10,7 +10,7 @@ const indexes = [
 ];
 
 @Table({modelName: 'ingested_torrent', timestamps: true, indexes: indexes})
-export class IngestedTorrent extends Model<IngestedTorrentAttributes, IngestedTorrentCreationAttributes> {
+export class IngestedTorrent extends Model<IIngestedTorrentAttributes, IIngestedTorrentCreationAttributes> {
     @Column({ type: DataType.STRING(512) })
     declare name: string;
     

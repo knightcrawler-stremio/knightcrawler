@@ -4,30 +4,31 @@ import {parse} from 'parse-torrent-title';
 import {PromiseHelpers} from '../helpers/promises_helpers';
 import {TorrentType} from '../enums/torrent_types';
 import {configurationService} from './configuration_service';
-import {extensionService} from './extension_service';
+import {ExtensionHelpers} from '../helpers/extension_helpers';
 import {metadataService} from './metadata_service';
 import {torrentDownloadService} from "./torrent_download_service";
 import {logger} from "./logging_service";
-import {MetadataResponse} from "../interfaces/metadata_response";
-import {MetaDataQuery} from "../interfaces/metadata_query";
-import {CommonVideoMetadata} from "../interfaces/common_video_metadata";
-import {TorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {ParsedTorrent} from "../interfaces/parsed_torrent";
-import {FileAttributes} from "../../repository/interfaces/file_attributes";
-import {ContentAttributes} from "../../repository/interfaces/content_attributes";
+import {IMetadataResponse} from "../interfaces/metadata_response";
+import {IMetaDataQuery} from "../interfaces/metadata_query";
+import {ICommonVideoMetadata} from "../interfaces/common_video_metadata";
+import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
+import {IParsedTorrent} from "../interfaces/parsed_torrent";
+import {IFileAttributes} from "../../repository/interfaces/file_attributes";
+import {IContentAttributes} from "../../repository/interfaces/content_attributes";
+import {ITorrentFileService} from "../interfaces/torrent_file_service";
 
 const MIN_SIZE: number = 5 * 1024 * 1024; // 5 MB
 const MULTIPLE_FILES_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
 
-class TorrentFileService {
+class TorrentFileService implements ITorrentFileService {
     private readonly imdb_limiter: Bottleneck = new Bottleneck({
         maxConcurrent: configurationService.metadataConfig.IMDB_CONCURRENT,
         minTime: configurationService.metadataConfig.IMDB_INTERVAL_MS
     });
 
-    public async parseTorrentFiles(torrent: ParsedTorrent): Promise<TorrentFileCollection> {
+    public async parseTorrentFiles(torrent: IParsedTorrent): Promise<ITorrentFileCollection> {
         const parsedTorrentName = parse(torrent.title);
-        const query: MetaDataQuery = {
+        const query: IMetaDataQuery = {
             id: torrent.kitsuId || torrent.imdbId,
             type: torrent.type || TorrentType.Movie,
         };
@@ -48,7 +49,7 @@ class TorrentFileService {
         return this.parseSeriesFiles(torrent, metadata)
     }
 
-    public isPackTorrent(torrent: ParsedTorrent): boolean {
+    public isPackTorrent(torrent: IParsedTorrent): boolean {
         if (torrent.isPack) {
             return true;
         }
@@ -65,7 +66,7 @@ class TorrentFileService {
         return hasMultipleEpisodes && !hasSingleEpisode;
     }
 
-    private parseSeriesVideos(torrent: ParsedTorrent, videos: FileAttributes[]): FileAttributes[] {
+    private parseSeriesVideos(torrent: IParsedTorrent, videos: IFileAttributes[]): IFileAttributes[] {
         const parsedTorrentName = parse(torrent.title);
         const hasMovies = parsedTorrentName.complete || !!torrent.title.match(/movies?(?:\W|$)/i);
         const parsedVideos = videos.map(video => this.parseSeriesVideo(video));
@@ -73,8 +74,8 @@ class TorrentFileService {
         return parsedVideos.map(video => ({ ...video, isMovie: this.isMovieVideo(torrent, video, parsedVideos, hasMovies) }));
     }
 
-    private async parseMovieFiles(torrent: ParsedTorrent, metadata: MetadataResponse): Promise<TorrentFileCollection> {
-        const fileCollection: TorrentFileCollection = await this.getMoviesTorrentContent(torrent);
+    private async parseMovieFiles(torrent: IParsedTorrent, metadata: IMetadataResponse): Promise<ITorrentFileCollection> {
+        const fileCollection: ITorrentFileCollection = await this.getMoviesTorrentContent(torrent);
         const filteredVideos = fileCollection.videos
             .filter(video => video.size > MIN_SIZE)
             .filter(video => !this.isFeaturette(video));
@@ -103,9 +104,9 @@ class TorrentFileService {
         return {...fileCollection, videos: parsedVideos};
     }
 
-    private async parseSeriesFiles(torrent: ParsedTorrent, metadata: MetadataResponse): Promise<TorrentFileCollection> {
-        const fileCollection: TorrentFileCollection = await this.getSeriesTorrentContent(torrent);
-        const parsedVideos: FileAttributes[] = await Promise.resolve(fileCollection.videos)
+    private async parseSeriesFiles(torrent: IParsedTorrent, metadata: IMetadataResponse): Promise<ITorrentFileCollection> {
+        const fileCollection: ITorrentFileCollection = await this.getSeriesTorrentContent(torrent);
+        const parsedVideos: IFileAttributes[] = await Promise.resolve(fileCollection.videos)
             .then(videos => videos.filter(video => videos.length === 1 || video.size > MIN_SIZE))
             .then(videos => this.parseSeriesVideos(torrent, videos))
             .then(videos => this.decomposeEpisodes(torrent, videos, metadata))
@@ -119,7 +120,7 @@ class TorrentFileService {
         return {...torrent.fileCollection, videos: parsedVideos};
     }
 
-    private async getMoviesTorrentContent(torrent: ParsedTorrent): Promise<TorrentFileCollection> {
+    private async getMoviesTorrentContent(torrent: IParsedTorrent): Promise<ITorrentFileCollection> {
         const files = await torrentDownloadService.getTorrentFiles(torrent)
             .catch(error => {
                 if (!this.isPackTorrent(torrent)) {
@@ -135,11 +136,11 @@ class TorrentFileService {
         return files;
     }
     
-    private getDefaultFileEntries(torrent: ParsedTorrent): FileAttributes[] {
+    private getDefaultFileEntries(torrent: IParsedTorrent): IFileAttributes[] {
         return [{title: torrent.title, path: torrent.title, size: torrent.size, fileIndex: null}];
     }
 
-    private async getSeriesTorrentContent(torrent: ParsedTorrent): Promise<TorrentFileCollection> {
+    private async getSeriesTorrentContent(torrent: IParsedTorrent): Promise<ITorrentFileCollection> {
         return torrentDownloadService.getTorrentFiles(torrent)
             .catch(error => {
                 if (!this.isPackTorrent(torrent)) {
@@ -149,7 +150,7 @@ class TorrentFileService {
             });
     }
 
-    private async mapSeriesEpisode(torrent: ParsedTorrent, file: FileAttributes, files: FileAttributes[]) : Promise<FileAttributes[]> {
+    private async mapSeriesEpisode(torrent: IParsedTorrent, file: IFileAttributes, files: IFileAttributes[]) : Promise<IFileAttributes[]> {
         if (!file.episodes && !file.episodes) {
             if (files.length === 1 || files.some(f => f.episodes || f.episodes) || parse(torrent.title).seasons) {
                 return Promise.resolve([{
@@ -179,7 +180,7 @@ class TorrentFileService {
         })))
     }
 
-    private async mapSeriesMovie(torrent: ParsedTorrent, file: FileAttributes): Promise<FileAttributes[]> {
+    private async mapSeriesMovie(torrent: IParsedTorrent, file: IFileAttributes): Promise<IFileAttributes[]> {
         const kitsuId= torrent.type === TorrentType.Anime ? await this.findMovieKitsuId(file)
             .then(result => {
                 if (result instanceof Error) {
@@ -191,7 +192,7 @@ class TorrentFileService {
                 
         const imdbId = !kitsuId ? await this.findMovieImdbId(file) : undefined;
 
-        const query: MetaDataQuery = {
+        const query: IMetaDataQuery = {
             id: kitsuId || imdbId,
             type: TorrentType.Movie
         };
@@ -230,7 +231,7 @@ class TorrentFileService {
         }];
     }
 
-    private async decomposeEpisodes(torrent: ParsedTorrent, files: FileAttributes[], metadata: MetadataResponse = { episodeCount: [] }) {
+    private async decomposeEpisodes(torrent: IParsedTorrent, files: IFileAttributes[], metadata: IMetadataResponse = { episodeCount: [] }) {
         if (files.every(file => !file.episodes && !file.date)) {
             return files;
         }
@@ -275,7 +276,7 @@ class TorrentFileService {
         return files;
     }
 
-    private preprocessEpisodes(files: FileAttributes[]) {
+    private preprocessEpisodes(files: IFileAttributes[]) {
         // reverse special episode naming when they named with 0 episode, ie. S02E00
         files
             .filter(file => Number.isInteger(file.season) && file.episode === 0)
@@ -286,7 +287,7 @@ class TorrentFileService {
             })
     }
 
-    private isConcatSeasonAndEpisodeFiles(files: FileAttributes[], sortedEpisodes: number[], metadata: MetadataResponse) {
+    private isConcatSeasonAndEpisodeFiles(files: IFileAttributes[], sortedEpisodes: number[], metadata: IMetadataResponse) {
         if (metadata.kitsuId !== undefined) {
             // anime does not use this naming scheme in 99% of cases;
             return false;
@@ -313,11 +314,11 @@ class TorrentFileService {
             || concatAboveTotalEpisodeCount.length >= thresholdAbove;
     }
 
-    private isDateEpisodeFiles(files: FileAttributes[], metadata: MetadataResponse) {
+    private isDateEpisodeFiles(files: IFileAttributes[], metadata: IMetadataResponse) {
         return files.every(file => (!file.season || !metadata.episodeCount[file.season - 1]) && file.date);
     }
 
-    private isAbsoluteEpisodeFiles(torrent: ParsedTorrent, files: FileAttributes[], metadata: MetadataResponse) {
+    private isAbsoluteEpisodeFiles(torrent: IParsedTorrent, files: IFileAttributes[], metadata: IMetadataResponse) {
         const threshold = Math.ceil(files.length / 5);
         const isAnime = torrent.type === TorrentType.Anime && torrent.kitsuId;
         const nonMovieEpisodes = files
@@ -330,7 +331,7 @@ class TorrentFileService {
             || absoluteEpisodes.length >= threshold;
     }
 
-    private isNewEpisodeNotInMetadata(torrent: ParsedTorrent, video: FileAttributes, metadata: MetadataResponse) {
+    private isNewEpisodeNotInMetadata(torrent: IParsedTorrent, video: IFileAttributes, metadata: IMetadataResponse) {
         // new episode might not yet been indexed by cinemeta.
         // detect this if episode number is larger than the last episode or season is larger than the last one
         // only for non anime metas
@@ -341,7 +342,7 @@ class TorrentFileService {
             && video.episodes.every(ep => ep > (metadata.episodeCount[video.season - 1] || 0));
     }
 
-    private decomposeConcatSeasonAndEpisodeFiles(files: FileAttributes[], metadata: MetadataResponse) {
+    private decomposeConcatSeasonAndEpisodeFiles(files: IFileAttributes[], metadata: IMetadataResponse) {
         files
             .filter(file => file.episodes && file.season !== 0 && file.episodes.every(ep => ep > 100))
             .filter(file => metadata.episodeCount[(file.season || this.div100(file.episodes[0])) - 1] < 100)
@@ -353,7 +354,7 @@ class TorrentFileService {
 
     }
 
-    private decomposeAbsoluteEpisodeFiles(torrent: ParsedTorrent, videos: FileAttributes[], metadata: MetadataResponse) {
+    private decomposeAbsoluteEpisodeFiles(torrent: IParsedTorrent, videos: IFileAttributes[], metadata: IMetadataResponse) {
         if (metadata.episodeCount.length === 0) {
             videos
                 .filter(file => !Number.isInteger(file.season) && file.episodes && !file.isMovie)
@@ -377,7 +378,7 @@ class TorrentFileService {
             });
     }
 
-    private decomposeDateEpisodeFiles(files: FileAttributes[], metadata: MetadataResponse) {
+    private decomposeDateEpisodeFiles(files: IFileAttributes[], metadata: IMetadataResponse) {
         if (!metadata || !metadata.videos || !metadata.videos.length) {
             return;
         }
@@ -411,7 +412,7 @@ class TorrentFileService {
         }
     }
 
-    private assignKitsuOrImdbEpisodes(torrent: ParsedTorrent, files: FileAttributes[], metadata: MetadataResponse) {
+    private assignKitsuOrImdbEpisodes(torrent: IParsedTorrent, files: IFileAttributes[], metadata: IMetadataResponse) {
         if (!metadata || !metadata.videos || !metadata.videos.length) {
             if (torrent.type === TorrentType.Anime) {
                 // assign episodes as kitsu episodes for anime when no metadata available for imdb mapping
@@ -429,7 +430,7 @@ class TorrentFileService {
             return files;
         }
 
-        const seriesMapping: CommonVideoMetadata = metadata.videos
+        const seriesMapping: ICommonVideoMetadata = metadata.videos
             .reduce((map, video) => {
                 const episodeMap = map[video.season] || {};
                 episodeMap[video.episode] = video;
@@ -464,13 +465,13 @@ class TorrentFileService {
                         file.episodes = file.episodes.map(ep => seasonMapping[ep] && seasonMapping[ep].kitsuEpisode);
                     } else if (seriesMapping[file.season - 1]) {
                         // sometimes a second season might be a continuation of the previous season
-                        const seasonMapping = seriesMapping[file.season - 1] as CommonVideoMetadata;
+                        const seasonMapping = seriesMapping[file.season - 1] as ICommonVideoMetadata;
                         const episodes = Object.values(seasonMapping);
                         const firstKitsuId = episodes.length && episodes[0];
                         const differentTitlesCount = new Set(episodes.map(ep => ep.id)).size
                         const skippedCount = episodes.filter(ep => ep.id === firstKitsuId).length;
                         const seasonEpisodes = files
-                            .filter((otherFile: FileAttributes) => otherFile.season === file.season)
+                            .filter((otherFile: IFileAttributes) => otherFile.season === file.season)
                             .reduce((a, b) => a.concat(b.episodes), []);
                         const isAbsoluteOrder = seasonEpisodes.every(ep => ep > skippedCount && ep <= episodes.length)
                         const isNormalOrder = seasonEpisodes.every(ep => ep + skippedCount <= episodes.length)
@@ -494,7 +495,7 @@ class TorrentFileService {
         return files;
     }
 
-    private needsCinemetaMetadataForAnime(files: FileAttributes[], metadata: MetadataResponse) {
+    private needsCinemetaMetadataForAnime(files: IFileAttributes[], metadata: IMetadataResponse) {
         if (!metadata || !metadata.imdbId || !metadata.videos || !metadata.videos.length) {
             return false;
         }
@@ -510,8 +511,8 @@ class TorrentFileService {
             .some(file => file.season < minSeason || file.season > maxSeason || file.episodes.every(ep => ep > total));
     }
 
-    private async updateToCinemetaMetadata(metadata: MetadataResponse) {
-        const query: MetaDataQuery = {
+    private async updateToCinemetaMetadata(metadata: IMetadataResponse) {
+        const query: IMetaDataQuery = {
             id: metadata.imdbId,
             type: metadata.type
         };
@@ -536,7 +537,7 @@ class TorrentFileService {
             })
     }
 
-    private findMovieImdbId(title: FileAttributes | string) {
+    private findMovieImdbId(title: IFileAttributes | string) {
         const parsedTitle = typeof title === 'string' ? parse(title) : title;
         logger.debug(`Finding movie imdbId for ${title}`);
         return this.imdb_limiter.schedule(async () => {
@@ -553,7 +554,7 @@ class TorrentFileService {
         });
     }
 
-    private async findMovieKitsuId(title: FileAttributes | string) {
+    private async findMovieKitsuId(title: IFileAttributes | string) {
         const parsedTitle = typeof title === 'string' ? parse(title) : title;
         const kitsuQuery = {
             title: parsedTitle.title,
@@ -568,22 +569,22 @@ class TorrentFileService {
         }
     }
 
-    private isDiskTorrent(contents: ContentAttributes[]) {
-        return contents.some(content => extensionService.isDisk(content.path));
+    private isDiskTorrent(contents: IContentAttributes[]) {
+        return contents.some(content => ExtensionHelpers.isDisk(content.path));
     }
 
-    private isSingleMovie(videos: FileAttributes[]) {
+    private isSingleMovie(videos: IFileAttributes[]) {
         return videos.length === 1 ||
             (videos.length === 2 &&
                 videos.find(v => /\b(?:part|disc|cd)[ ._-]?0?1\b|^0?1\.\w{2,4}$/i.test(v.path)) &&
                 videos.find(v => /\b(?:part|disc|cd)[ ._-]?0?2\b|^0?2\.\w{2,4}$/i.test(v.path)));
     }
 
-    private isFeaturette(video: FileAttributes) {
+    private isFeaturette(video: IFileAttributes) {
         return /featurettes?\/|extras-grym/i.test(video.path);
     }
 
-    private parseSeriesVideo(video: FileAttributes): FileAttributes {
+    private parseSeriesVideo(video: IFileAttributes): IFileAttributes {
         const videoInfo = parse(video.title);
         // the episode may be in a folder containing season number
         if (!Number.isInteger(videoInfo.season) && video.path.includes('/')) {
@@ -629,7 +630,7 @@ class TorrentFileService {
         return { ...video, ...videoInfo };
     }
 
-    private isMovieVideo(torrent: ParsedTorrent, video: FileAttributes, otherVideos: FileAttributes[], hasMovies: boolean): boolean {
+    private isMovieVideo(torrent: IParsedTorrent, video: IFileAttributes, otherVideos: IFileAttributes[], hasMovies: boolean): boolean {
         if (Number.isInteger(torrent.season) && Array.isArray(torrent.episodes)) {
             // not movie if video has season
             return false;
@@ -653,7 +654,7 @@ class TorrentFileService {
             && otherVideos.filter(other => other.title === video.title && other.year === video.year).length < 3;
     }
 
-    private clearInfoFields(video: FileAttributes) {
+    private clearInfoFields(video: IFileAttributes) {
         video.imdbId = undefined;
         video.imdbSeason = undefined;
         video.imdbEpisode = undefined;

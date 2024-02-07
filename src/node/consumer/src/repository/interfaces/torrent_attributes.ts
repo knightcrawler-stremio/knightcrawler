@@ -1,9 +1,9 @@
 import {Optional} from "sequelize";
-import {ContentAttributes} from "./content_attributes";
-import {SubtitleAttributes} from "./subtitle_attributes";
-import {FileAttributes} from "./file_attributes";
+import {IContentAttributes} from "./content_attributes";
+import {ISubtitleAttributes} from "./subtitle_attributes";
+import {IFileAttributes} from "./file_attributes";
 
-export interface TorrentAttributes {
+export interface ITorrentAttributes {
     infoHash: string;
     provider?: string;
     torrentId?: string;
@@ -17,10 +17,10 @@ export interface TorrentAttributes {
     resolution?: string;
     reviewed?: boolean;
     opened?: boolean;
-    contents?: ContentAttributes[];
-    files?: FileAttributes[];
-    subtitles?: SubtitleAttributes[];
+    contents?: IContentAttributes[];
+    files?: IFileAttributes[];
+    subtitles?: ISubtitleAttributes[];
 }
 
-export interface TorrentCreationAttributes extends Optional<TorrentAttributes, 'torrentId' | 'size' | 'seeders' | 'trackers' | 'languages' | 'resolution' | 'reviewed' | 'opened'> {
+export interface ITorrentCreationAttributes extends Optional<ITorrentAttributes, 'torrentId' | 'size' | 'seeders' | 'trackers' | 'languages' | 'resolution' | 'reviewed' | 'opened'> {
 }

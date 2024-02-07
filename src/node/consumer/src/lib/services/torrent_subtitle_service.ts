@@ -1,28 +1,32 @@
-import { parse } from 'parse-torrent-title';
-import {TorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {FileAttributes} from "../../repository/interfaces/file_attributes";
+import {parse} from 'parse-torrent-title';
+import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
+import {IFileAttributes} from "../../repository/interfaces/file_attributes";
+import {ITorrentSubtitleService} from "../interfaces/torrent_subtitle_service";
 
-class TorrentSubtitleService {
-    public assignSubtitles(fileCollection: TorrentFileCollection) : TorrentFileCollection {
+class TorrentSubtitleService implements ITorrentSubtitleService {
+    public assignSubtitles(fileCollection: ITorrentFileCollection): ITorrentFileCollection {
         if (fileCollection.videos && fileCollection.videos.length && fileCollection.subtitles && fileCollection.subtitles.length) {
             if (fileCollection.videos.length === 1) {
                 fileCollection.videos[0].subtitles = fileCollection.subtitles;
-                return { ...fileCollection, subtitles: [] };
+                return {...fileCollection, subtitles: []};
             }
 
             const parsedVideos = fileCollection.videos.map(video => this.parseVideo(video));
-            const assignedSubs = fileCollection.subtitles.map(subtitle => ({ subtitle, videos: this.mostProbableSubtitleVideos(subtitle, parsedVideos) }));
+            const assignedSubs = fileCollection.subtitles.map(subtitle => ({
+                subtitle,
+                videos: this.mostProbableSubtitleVideos(subtitle, parsedVideos)
+            }));
             const unassignedSubs = assignedSubs.filter(assignedSub => !assignedSub.videos).map(assignedSub => assignedSub.subtitle);
 
             assignedSubs
                 .filter(assignedSub => assignedSub.videos)
                 .forEach(assignedSub => assignedSub.videos.forEach(video => video.subtitles = (video.subtitles || []).concat(assignedSub.subtitle)));
-            return { ...fileCollection, subtitles: unassignedSubs };
+            return {...fileCollection, subtitles: unassignedSubs};
         }
         return fileCollection;
     }
 
-    private parseVideo(video: FileAttributes) {
+    private parseVideo(video: IFileAttributes) {
         const fileName = video.title.split('/').pop().replace(/\.(\w{2,4})$/, '');
         const folderName = video.title.replace(/\/?[^/]+$/, '');
         return {

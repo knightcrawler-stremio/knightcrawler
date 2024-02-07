@@ -1,8 +1,8 @@
-import {ParseTorrentTitleResult} from "./parse_torrent_title_result";
+import {IParseTorrentTitleResult} from "./parse_torrent_title_result";
 import {TorrentType} from "../enums/torrent_types";
-import {TorrentFileCollection} from "./torrent_file_collection";
+import {ITorrentFileCollection} from "./torrent_file_collection";
 
-export interface ParsedTorrent extends ParseTorrentTitleResult {
+export interface IParsedTorrent extends IParseTorrentTitleResult {
     size?: number;
     isPack?: boolean;
     imdbId?: string | number;
@@ -14,5 +14,5 @@ export interface ParsedTorrent extends ParseTorrentTitleResult {
     uploadDate?: Date;
     seeders?: number;
     torrentId?: string;
-    fileCollection?: TorrentFileCollection;
+    fileCollection?: ITorrentFileCollection;
 }

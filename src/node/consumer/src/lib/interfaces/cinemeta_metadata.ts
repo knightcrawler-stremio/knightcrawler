@@ -1,12 +1,12 @@
-import {CommonVideoMetadata} from "./common_video_metadata";
+import {ICommonVideoMetadata} from "./common_video_metadata";
 
-export interface CinemetaJsonResponse {
-    meta?: CinemetaMetaData;
-    trailerStreams?: CinemetaTrailerStream[];
-    links?: CinemetaLink[];
-    behaviorHints?: CinemetaBehaviorHints;
+export interface ICinemetaJsonResponse {
+    meta?: ICinemetaMetaData;
+    trailerStreams?: ICinemetaTrailerStream[];
+    links?: ICinemetaLink[];
+    behaviorHints?: ICinemetaBehaviorHints;
 }
-export interface CinemetaMetaData {
+export interface ICinemetaMetaData {
     awards?: string;
     cast?: string[];
     country?: string;
@@ -28,16 +28,16 @@ export interface CinemetaMetaData {
     year?: string;
     background?: string;
     logo?: string;
-    popularities?: CinemetaPopularities;
+    popularities?: ICinemetaPopularities;
     moviedb_id?: number;
     slug?: string;
-    trailers?: CinemetaTrailer[];
+    trailers?: ICinemetaTrailer[];
     id?: string;
     genres?: string[];
     releaseInfo?: string;
-    videos?: CinemetaVideo[];
+    videos?: ICinemetaVideo[];
 }
-export interface CinemetaPopularities {
+export interface ICinemetaPopularities {
     PXS_TEST?: number;
     PXS?: number;
     SCM?: number;
@@ -49,11 +49,11 @@ export interface CinemetaPopularities {
     stremio?: number;
     stremio_lib?: number;
 }
-export interface CinemetaTrailer {
+export interface ICinemetaTrailer {
     source?: string;
     type?: string;
 }
-export interface CinemetaVideo extends CommonVideoMetadata {
+export interface ICinemetaVideo extends ICommonVideoMetadata {
     name?: string;
     number?: number;
     firstAired?: string;
@@ -63,16 +63,16 @@ export interface CinemetaVideo extends CommonVideoMetadata {
     thumbnail?: string;
     description?: string;
 }
-export interface CinemetaTrailerStream {
+export interface ICinemetaTrailerStream {
     title?: string;
     ytId?: string;
 }
-export interface CinemetaLink {
+export interface ICinemetaLink {
     name?: string;
     category?: string;
     url?: string;
 }
-export interface CinemetaBehaviorHints {
+export interface ICinemetaBehaviorHints {
     defaultVideoId?: null;
     hasScheduledVideos?: boolean;
 }

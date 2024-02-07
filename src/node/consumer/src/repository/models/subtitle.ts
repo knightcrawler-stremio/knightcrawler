@@ -1,5 +1,5 @@
 import {Table, Column, Model, HasMany, DataType, BelongsTo, ForeignKey} from 'sequelize-typescript';
-import {SubtitleAttributes, SubtitleCreationAttributes} from "../interfaces/subtitle_attributes";
+import {ISubtitleAttributes, ISubtitleCreationAttributes} from "../interfaces/subtitle_attributes";
 import {File} from "./file";
 import {Torrent} from "./torrent";
 
@@ -17,7 +17,7 @@ const indexes = [
 ];
 
 @Table({modelName: 'subtitle', timestamps: false, indexes: indexes})
-export class Subtitle extends Model<SubtitleAttributes, SubtitleCreationAttributes> {
+export class Subtitle extends Model<ISubtitleAttributes, ISubtitleCreationAttributes> {
     
     @Column({ type: DataType.STRING(64), allowNull: false, onDelete: 'CASCADE' })
     declare infoHash: string;

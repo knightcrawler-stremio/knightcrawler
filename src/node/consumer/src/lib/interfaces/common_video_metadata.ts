@@ -1,4 +1,4 @@
-export interface CommonVideoMetadata {
+export interface ICommonVideoMetadata {
     season?: number;
     episode?: number;
     released?: string;

@@ -2,14 +2,15 @@ import {TorrentType} from "../enums/torrent_types";
 import {logger} from "./logging_service";
 import {trackerService} from "./tracker_service";
 import {torrentEntriesService} from "./torrent_entries_service";
-import {IngestedTorrentAttributes} from "../../repository/interfaces/ingested_torrent_attributes";
-import {ParsedTorrent} from "../interfaces/parsed_torrent";
+import {IIngestedTorrentAttributes} from "../../repository/interfaces/ingested_torrent_attributes";
+import {IParsedTorrent} from "../interfaces/parsed_torrent";
+import {ITorrentProcessingService} from "../interfaces/torrent_processing_service";
 
-class TorrentProcessingService {
-    public async processTorrentRecord(torrent: IngestedTorrentAttributes): Promise<void> {
-        const { category } = torrent;
+class TorrentProcessingService implements ITorrentProcessingService {
+    public async processTorrentRecord(torrent: IIngestedTorrentAttributes): Promise<void> {
+        const {category} = torrent;
         const type = category === 'tv' ? TorrentType.Series : TorrentType.Movie;
-        const torrentInfo: ParsedTorrent = await this.parseTorrent(torrent, type);
+        const torrentInfo: IParsedTorrent = await this.parseTorrent(torrent, type);
 
         logger.info(`Processing torrent ${torrentInfo.title} with infoHash ${torrentInfo.infoHash}`);
 
@@ -25,7 +26,7 @@ class TorrentProcessingService {
         return trackers.join(',');
     }
 
-    private async parseTorrent(torrent: IngestedTorrentAttributes, category: string): Promise<ParsedTorrent> {
+    private async parseTorrent(torrent: IIngestedTorrentAttributes, category: string): Promise<IParsedTorrent> {
         const infoHash = torrent.info_hash?.trim().toLowerCase()
         return {
             title: torrent.name,
@@ -41,7 +42,7 @@ class TorrentProcessingService {
         }
     }
 
-    private parseImdbId(torrent: IngestedTorrentAttributes): string | undefined {
+    private parseImdbId(torrent: IIngestedTorrentAttributes): string | undefined {
         if (torrent.imdb === undefined || torrent.imdb === null) {
             return undefined;
         }

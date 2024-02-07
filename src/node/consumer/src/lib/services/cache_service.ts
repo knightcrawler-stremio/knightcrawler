@@ -1,9 +1,10 @@
 import {Cache, createCache, memoryStore} from 'cache-manager';
-import { mongoDbStore } from '@tirke/node-cache-manager-mongodb'
-import { configurationService } from './configuration_service';
-import { logger } from './logging_service';
-import { CacheType } from "../enums/cache_types";
-import {CacheOptions} from "../interfaces/cache_options";
+import {mongoDbStore} from '@tirke/node-cache-manager-mongodb'
+import {configurationService} from './configuration_service';
+import {logger} from './logging_service';
+import {CacheType} from "../enums/cache_types";
+import {ICacheOptions} from "../interfaces/cache_options";
+import {ICacheService} from "../interfaces/cache_service";
 
 const GLOBAL_KEY_PREFIX = 'knightcrawler-consumer';
 const IMDB_ID_PREFIX = `${GLOBAL_KEY_PREFIX}|imdb_id`;
@@ -17,7 +18,7 @@ const TRACKERS_TTL: number = 2 * 24 * 60 * 60; // 2 days
 
 export type CacheMethod = () => any;
 
-class CacheService {
+class CacheService implements ICacheService {
     constructor() {
         if (!configurationService.cacheConfig.NO_CACHE) {
             logger.info('Cache is disabled');
@@ -27,18 +28,18 @@ class CacheService {
         this.memoryCache = this.initiateMemoryCache();
         this.remoteCache = this.initiateRemoteCache();
     }
-    
+
     public cacheWrapImdbId = (key: string, method: CacheMethod): Promise<any> =>
-        this.cacheWrap(CacheType.MongoDb, `${IMDB_ID_PREFIX}:${key}`, method, { ttl: GLOBAL_TTL });
+        this.cacheWrap(CacheType.MongoDb, `${IMDB_ID_PREFIX}:${key}`, method, {ttl: GLOBAL_TTL});
 
     public cacheWrapKitsuId = (key: string, method: CacheMethod): Promise<any> =>
-        this.cacheWrap(CacheType.MongoDb, `${KITSU_ID_PREFIX}:${key}`, method, { ttl: GLOBAL_TTL });
+        this.cacheWrap(CacheType.MongoDb, `${KITSU_ID_PREFIX}:${key}`, method, {ttl: GLOBAL_TTL});
 
     public cacheWrapMetadata = (id: string, method: CacheMethod): Promise<any> =>
-        this.cacheWrap(CacheType.Memory, `${METADATA_PREFIX}:${id}`, method, { ttl: MEMORY_TTL });
+        this.cacheWrap(CacheType.Memory, `${METADATA_PREFIX}:${id}`, method, {ttl: MEMORY_TTL});
 
     public cacheTrackers = (method: CacheMethod): Promise<any> =>
-        this.cacheWrap(CacheType.Memory, `${TRACKERS_KEY_PREFIX}`, method, { ttl: TRACKERS_TTL });
+        this.cacheWrap(CacheType.Memory, `${TRACKERS_KEY_PREFIX}`, method, {ttl: TRACKERS_TTL});
 
     private initiateMemoryCache = () =>
         createCache(memoryStore(), {
@@ -85,7 +86,7 @@ class CacheService {
     private readonly remoteCache: Cache;
 
     private cacheWrap = async (
-        cacheType: CacheType, key: string, method: CacheMethod, options: CacheOptions): Promise<any> => {
+        cacheType: CacheType, key: string, method: CacheMethod, options: ICacheOptions): Promise<any> => {
         const cache = this.getCacheType(cacheType);
 
         if (configurationService.cacheConfig.NO_CACHE || !cache) {
