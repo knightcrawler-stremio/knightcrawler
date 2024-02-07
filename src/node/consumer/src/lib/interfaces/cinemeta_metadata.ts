@@ -6,6 +6,7 @@ export interface ICinemetaJsonResponse {
     links?: ICinemetaLink[];
     behaviorHints?: ICinemetaBehaviorHints;
 }
+
 export interface ICinemetaMetaData {
     awards?: string;
     cast?: string[];
@@ -37,6 +38,7 @@ export interface ICinemetaMetaData {
     releaseInfo?: string;
     videos?: ICinemetaVideo[];
 }
+
 export interface ICinemetaPopularities {
     PXS_TEST?: number;
     PXS?: number;
@@ -49,10 +51,12 @@ export interface ICinemetaPopularities {
     stremio?: number;
     stremio_lib?: number;
 }
+
 export interface ICinemetaTrailer {
     source?: string;
     type?: string;
 }
+
 export interface ICinemetaVideo extends ICommonVideoMetadata {
     name?: string;
     number?: number;
@@ -63,15 +67,18 @@ export interface ICinemetaVideo extends ICommonVideoMetadata {
     thumbnail?: string;
     description?: string;
 }
+
 export interface ICinemetaTrailerStream {
     title?: string;
     ytId?: string;
 }
+
 export interface ICinemetaLink {
     name?: string;
     category?: string;
     url?: string;
 }
+
 export interface ICinemetaBehaviorHints {
     defaultVideoId?: null;
     hasScheduledVideos?: boolean;

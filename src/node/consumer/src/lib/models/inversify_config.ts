@@ -1,6 +1,6 @@
 import "reflect-metadata"; // required
 import {Container} from "inversify";
-import { IocTypes } from "./ioc_types";
+import {IocTypes} from "./ioc_types";
 import {ICacheService} from "../interfaces/cache_service";
 import {ILoggingService} from "../interfaces/logging_service";
 import {IMetadataService} from "../interfaces/metadata_service";
@@ -32,13 +32,13 @@ serviceContainer.bind<ICompositionalRoot>(IocTypes.ICompositionalRoot).to(Compos
 serviceContainer.bind<ICacheService>(IocTypes.ICacheService).to(CacheService).inSingletonScope();
 serviceContainer.bind<ILoggingService>(IocTypes.ILoggingService).to(LoggingService).inSingletonScope();
 serviceContainer.bind<ITrackerService>(IocTypes.ITrackerService).to(TrackerService).inSingletonScope();
+serviceContainer.bind<ITorrentDownloadService>(IocTypes.ITorrentDownloadService).to(TorrentDownloadService).inSingletonScope();
 serviceContainer.bind<ITorrentFileService>(IocTypes.ITorrentFileService).to(TorrentFileService);
 serviceContainer.bind<ITorrentProcessingService>(IocTypes.ITorrentProcessingService).to(TorrentProcessingService);
 serviceContainer.bind<ITorrentSubtitleService>(IocTypes.ITorrentSubtitleService).to(TorrentSubtitleService);
 serviceContainer.bind<ITorrentEntriesService>(IocTypes.ITorrentEntriesService).to(TorrentEntriesService);
-serviceContainer.bind<ITorrentDownloadService>(IocTypes.ITorrentDownloadService).to(TorrentDownloadService);
 serviceContainer.bind<IMetadataService>(IocTypes.IMetadataService).to(MetadataService);
 serviceContainer.bind<IDatabaseRepository>(IocTypes.IDatabaseRepository).to(DatabaseRepository);
 serviceContainer.bind<IProcessTorrentsJob>(IocTypes.IProcessTorrentsJob).to(ProcessTorrentsJob);
 
-export { serviceContainer };
+export {serviceContainer};

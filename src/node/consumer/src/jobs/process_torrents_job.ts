@@ -14,9 +14,9 @@ export class ProcessTorrentsJob implements IProcessTorrentsJob {
     private readonly consumeQueueOptions: Options.Consume = {noAck: false};
     private torrentProcessingService: ITorrentProcessingService;
     private logger: ILoggingService;
-    
+
     constructor(@inject(IocTypes.ITorrentProcessingService) torrentProcessingService: ITorrentProcessingService,
-                @inject(IocTypes.ILoggingService) logger: ILoggingService){
+                @inject(IocTypes.ILoggingService) logger: ILoggingService) {
         this.torrentProcessingService = torrentProcessingService;
         this.logger = logger;
     }
@@ -55,7 +55,7 @@ export class ProcessTorrentsJob implements IProcessTorrentsJob {
                 this.logger.error('Failed processing torrent', error);
             }
         }
-        
+
         try {
             await channel.assertQueue(configurationService.rabbitConfig.QUEUE_NAME, this.assertQueueOptions);
             await channel.prefetch(configurationService.jobConfig.JOB_CONCURRENCY);

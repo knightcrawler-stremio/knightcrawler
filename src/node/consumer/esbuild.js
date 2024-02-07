@@ -1,14 +1,14 @@
-import { build } from "esbuild";
-import { readFileSync, rmSync } from "fs";
+import {build} from "esbuild";
+import {readFileSync, rmSync} from "fs";
 
-const { devDependencies } = JSON.parse(readFileSync("./package.json", "utf8"));
+const {devDependencies} = JSON.parse(readFileSync("./package.json", "utf8"));
 
 const start = Date.now();
 
 try {
     const outdir = "dist";
 
-    rmSync(outdir, { recursive: true, force: true });
+    rmSync(outdir, {recursive: true, force: true});
 
     build({
         bundle: true,
@@ -27,8 +27,8 @@ try {
         plugins: [
             {
                 name: "populate-import-meta",
-                setup: ({ onLoad }) => {
-                    onLoad({ filter: new RegExp(`${import.meta.dirname}/src/.*.(js|ts)$`) }, args => {
+                setup: ({onLoad}) => {
+                    onLoad({filter: new RegExp(`${import.meta.dirname}/src/.*.(js|ts)$`)}, args => {
                         const contents = readFileSync(args.path, "utf8");
 
                         const transformedContents = contents
@@ -36,7 +36,7 @@ try {
                             .replace(/import\.meta\.filename/g, "__filename")
                             .replace(/import\.meta\.dirname/g, "__dirname");
 
-                        return { contents: transformedContents, loader: "default" };
+                        return {contents: transformedContents, loader: "default"};
                     });
                 },
             }

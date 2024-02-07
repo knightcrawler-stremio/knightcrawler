@@ -28,7 +28,7 @@ export class TorrentSubtitleService implements ITorrentSubtitleService {
         return fileCollection;
     };
 
-    private parseVideo = (video: IFileAttributes)=> {
+    private parseVideo = (video: IFileAttributes) => {
         const fileName = video.title.split('/').pop().replace(/\.(\w{2,4})$/, '');
         const folderName = video.title.replace(/\/?[^/]+$/, '');
         return {
@@ -68,7 +68,7 @@ export class TorrentSubtitleService implements ITorrentSubtitleService {
         return undefined;
     }
 
-    private singleVideoFile = (videos: any[])=> {
+    private singleVideoFile = (videos: any[]) => {
         return new Set(videos.map(v => v.videoFile.fileIndex)).size === 1;
     }
 

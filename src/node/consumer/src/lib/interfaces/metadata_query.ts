@@ -1,4 +1,4 @@
-export interface IMetaDataQuery { 
+export interface IMetaDataQuery {
     title?: string
     type?: string
     year?: number | string

@@ -13,9 +13,10 @@ export class TorrentProcessingService implements ITorrentProcessingService {
     private torrentEntriesService: ITorrentEntriesService;
     private logger: ILoggingService;
     private trackerService: ITrackerService;
+
     constructor(@inject(IocTypes.ITorrentEntriesService) torrentEntriesService: ITorrentEntriesService,
                 @inject(IocTypes.ILoggingService) logger: ILoggingService,
-                @inject(IocTypes.ITrackerService) trackerService: ITrackerService){
+                @inject(IocTypes.ITrackerService) trackerService: ITrackerService) {
         this.torrentEntriesService = torrentEntriesService;
         this.logger = logger;
         this.trackerService = trackerService;
@@ -62,6 +63,6 @@ export class TorrentProcessingService implements ITorrentProcessingService {
         }
 
         return torrent.imdb;
-    };    
+    };
 }
 

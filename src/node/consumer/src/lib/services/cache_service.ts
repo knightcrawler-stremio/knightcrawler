@@ -25,7 +25,7 @@ export class CacheService implements ICacheService {
     private logger: ILoggingService;
     private readonly memoryCache: MemoryCache;
     private readonly remoteCache: Cache<Store> | MemoryCache;
-    
+
     constructor(@inject(IocTypes.ILoggingService) logger: ILoggingService) {
         this.logger = logger;
         if (configurationService.cacheConfig.NO_CACHE) {
@@ -59,7 +59,7 @@ export class CacheService implements ICacheService {
             collectionName: configurationService.cacheConfig.COLLECTION_NAME,
             ttl: GLOBAL_TTL,
             url: configurationService.cacheConfig.MONGO_URI,
-            mongoConfig:{
+            mongoConfig: {
                 socketTimeoutMS: 120000,
                 appName: 'knightcrawler-consumer',
             }

@@ -21,7 +21,7 @@ import {IDatabaseRepository} from "./interfaces/database_repository";
 @injectable()
 export class DatabaseRepository implements IDatabaseRepository {
     private readonly database: Sequelize;
-    
+
     private models = [
         Torrent,
         Provider,
@@ -32,7 +32,7 @@ export class DatabaseRepository implements IDatabaseRepository {
         IngestedTorrent,
         IngestedPage];
     private logger: ILoggingService;
-    
+
     constructor(@inject(IocTypes.ILoggingService) logger: ILoggingService) {
         this.logger = logger;
         this.database = this.createDatabase();
@@ -41,7 +41,8 @@ export class DatabaseRepository implements IDatabaseRepository {
     public connect = async () => {
         try {
             await this.database.sync({alter: configurationService.databaseConfig.AUTO_CREATE_AND_APPLY_MIGRATIONS});
-        } catch {
+        } catch (error) {
+            this.logger.debug('Failed to sync database', error);
             this.logger.error('Failed syncing database');
             process.exit(1);
         }
@@ -112,9 +113,14 @@ export class DatabaseRepository implements IDatabaseRepository {
     });
 
     public createTorrent = async (torrent: Torrent): Promise<void> => {
-        await Torrent.upsert(torrent);
-        await this.createContents(torrent.infoHash, torrent.contents);
-        await this.createSubtitles(torrent.infoHash, torrent.subtitles);
+        try {
+            await Torrent.upsert(torrent);
+            await this.createContents(torrent.infoHash, torrent.contents);
+            await this.createSubtitles(torrent.infoHash, torrent.subtitles);
+        } catch (error) {
+            this.logger.error(`Failed to create torrent: ${torrent.infoHash}`);
+            this.logger.debug(error);
+        }
     };
 
     public setTorrentSeeders = async (torrent: ITorrentAttributes, seeders: number): Promise<[number]> => {
@@ -211,9 +217,9 @@ export class DatabaseRepository implements IDatabaseRepository {
                 logging: false
             }
         );
-        
+
         newDatabase.addModels(this.models);
-        
+
         return newDatabase;
     };
 }

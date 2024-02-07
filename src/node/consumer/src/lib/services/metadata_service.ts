@@ -20,6 +20,7 @@ const TIMEOUT = 20000;
 @injectable()
 export class MetadataService implements IMetadataService {
     private cacheService: ICacheService;
+
     constructor(@inject(IocTypes.ICacheService) cacheService: ICacheService) {
         this.cacheService = cacheService;
     }

@@ -1,8 +1,7 @@
-import {Table, Column, Model, HasMany, DataType, BelongsTo, ForeignKey} from 'sequelize-typescript';
+import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from 'sequelize-typescript';
 import {IFileAttributes, IFileCreationAttributes} from "../interfaces/file_attributes";
 import {Torrent} from "./torrent";
 import {Subtitle} from "./subtitle";
-import {ISubtitleAttributes} from "../interfaces/subtitle_attributes";
 
 const indexes = [
     {
@@ -18,43 +17,43 @@ const indexes = [
             'kitsuEpisode'
         ]
     },
-    { unique: false, fields: ['imdbId', 'imdbSeason', 'imdbEpisode'] },
-    { unique: false, fields: ['kitsuId', 'kitsuEpisode'] }
+    {unique: false, fields: ['imdbId', 'imdbSeason', 'imdbEpisode']},
+    {unique: false, fields: ['kitsuId', 'kitsuEpisode']}
 ];
 
-@Table({modelName: 'file', timestamps: true, indexes: indexes })
+@Table({modelName: 'file', timestamps: true, indexes: indexes})
 export class File extends Model<IFileAttributes, IFileCreationAttributes> {
-    @Column({ type: DataType.STRING(64), allowNull: false, onDelete: 'CASCADE' })
+    @Column({type: DataType.STRING(64), allowNull: false, onDelete: 'CASCADE'})
     @ForeignKey(() => Torrent)
     declare infoHash: string;
-    
-    @Column({ type: DataType.INTEGER})
+
+    @Column({type: DataType.INTEGER})
     declare fileIndex: number;
-    
-    @Column({ type: DataType.STRING(512), allowNull: false })
+
+    @Column({type: DataType.STRING(512), allowNull: false})
     declare title: string;
-    
-    @Column({ type: DataType.BIGINT })
+
+    @Column({type: DataType.BIGINT})
     declare size: number;
-    
-    @Column({ type: DataType.STRING(32) })
+
+    @Column({type: DataType.STRING(32)})
     declare imdbId: string;
-    
-    @Column({ type: DataType.INTEGER })
+
+    @Column({type: DataType.INTEGER})
     declare imdbSeason: number;
-    
-    @Column({ type: DataType.INTEGER })
+
+    @Column({type: DataType.INTEGER})
     declare imdbEpisode: number;
-    
-    @Column({ type: DataType.INTEGER })
+
+    @Column({type: DataType.INTEGER})
     declare kitsuId: number;
-    
-    @Column({ type: DataType.INTEGER })
+
+    @Column({type: DataType.INTEGER})
     declare kitsuEpisode: number;
 
-    @HasMany(() => Subtitle, { constraints: false, foreignKey: 'fileId'})
+    @HasMany(() => Subtitle, {constraints: false, foreignKey: 'fileId'})
     declare subtitles?: Subtitle[];
 
-    @BelongsTo(() => Torrent, { constraints: false, foreignKey: 'infoHash' })
+    @BelongsTo(() => Torrent, {constraints: false, foreignKey: 'infoHash'})
     torrent: Torrent;
 }

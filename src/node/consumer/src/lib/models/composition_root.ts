@@ -10,6 +10,7 @@ export class CompositionalRoot implements ICompositionalRoot {
     private trackerService: ITrackerService;
     private databaseRepository: IDatabaseRepository;
     private processTorrentsJob: IProcessTorrentsJob;
+
     constructor(@inject(IocTypes.ITrackerService) trackerService: ITrackerService,
                 @inject(IocTypes.IDatabaseRepository) databaseRepository: IDatabaseRepository,
                 @inject(IocTypes.IProcessTorrentsJob) processTorrentsJob: IProcessTorrentsJob) {

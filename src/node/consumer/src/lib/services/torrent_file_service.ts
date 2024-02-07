@@ -27,7 +27,11 @@ export class TorrentFileService implements ITorrentFileService {
     private metadataService: IMetadataService;
     private torrentDownloadService: ITorrentDownloadService;
     private logger: ILoggingService;
-    
+    private readonly imdb_limiter: Bottleneck = new Bottleneck({
+        maxConcurrent: configurationService.metadataConfig.IMDB_CONCURRENT,
+        minTime: configurationService.metadataConfig.IMDB_INTERVAL_MS
+    });
+
     constructor(@inject(IocTypes.IMetadataService) metadataService: IMetadataService,
                 @inject(IocTypes.ITorrentDownloadService) torrentDownloadService: ITorrentDownloadService,
                 @inject(IocTypes.ILoggingService) logger: ILoggingService) {
@@ -35,11 +39,6 @@ export class TorrentFileService implements ITorrentFileService {
         this.torrentDownloadService = torrentDownloadService;
         this.logger = logger;
     }
-    
-    private readonly imdb_limiter: Bottleneck = new Bottleneck({
-        maxConcurrent: configurationService.metadataConfig.IMDB_CONCURRENT,
-        minTime: configurationService.metadataConfig.IMDB_INTERVAL_MS
-    });
 
     public parseTorrentFiles = async (torrent: IParsedTorrent): Promise<ITorrentFileCollection> => {
         const parsedTorrentName = parse(torrent.title);
@@ -85,8 +84,8 @@ export class TorrentFileService implements ITorrentFileService {
         const parsedTorrentName = parse(torrent.title);
         const hasMovies = parsedTorrentName.complete || !!torrent.title.match(/movies?(?:\W|$)/i);
         const parsedVideos = videos.map(video => this.parseSeriesVideo(video));
-        
-        return parsedVideos.map(video => ({ ...video, isMovie: this.isMovieVideo(torrent, video, parsedVideos, hasMovies) }));
+
+        return parsedVideos.map(video => ({...video, isMovie: this.isMovieVideo(torrent, video, parsedVideos, hasMovies)}));
     };
 
     private parseMovieFiles = async (torrent: IParsedTorrent, metadata: IMetadataResponse): Promise<ITorrentFileCollection> => {
@@ -100,8 +99,8 @@ export class TorrentFileService implements ITorrentFileService {
                 fileIndex: video.fileIndex,
                 title: video.path || torrent.title,
                 size: video.size || torrent.size,
-                imdbId: torrent.imdbId.toString() || metadata && metadata.imdbId.toString(),
-                kitsuId: parseInt(torrent.kitsuId.toString() || metadata && metadata.kitsuId.toString())
+                imdbId: torrent.imdbId?.toString() || metadata && metadata.imdbId?.toString(),
+                kitsuId: parseInt(torrent.kitsuId?.toString() || metadata && metadata.kitsuId?.toString())
             }));
             return {...fileCollection, videos: parsedVideos};
         }
@@ -140,11 +139,11 @@ export class TorrentFileService implements ITorrentFileService {
             .catch(error => {
                 if (!this.isPackTorrent(torrent)) {
                     const entries = [{name: torrent.title, path: torrent.title, size: torrent.size, fileIndex: null}];
-                    return { videos: entries, contents:[], subtitles: [], files: entries}
+                    return {videos: entries, contents: [], subtitles: [], files: entries}
                 }
                 return Promise.reject(error);
             });
-        
+
         if (files.contents && files.contents.length && !files.videos.length && this.isDiskTorrent(files.contents)) {
             files.videos = [{name: torrent.title, path: torrent.title, size: torrent.size, fileIndex: null}];
         }
@@ -197,22 +196,22 @@ export class TorrentFileService implements ITorrentFileService {
     };
 
     private mapSeriesMovie = async (torrent: IParsedTorrent, file: IFileAttributes): Promise<IFileAttributes[]> => {
-        const kitsuId= torrent.type === TorrentType.Anime ? await this.findMovieKitsuId(file)
+        const kitsuId = torrent.type === TorrentType.Anime ? await this.findMovieKitsuId(file)
             .then(result => {
                 if (result instanceof Error) {
                     this.logger.warn(`Failed to retrieve kitsuId due to error: ${result.message}`);
                     return undefined;
                 }
                 return result;
-            }): undefined;
-                
+            }) : undefined;
+
         const imdbId = !kitsuId ? await this.findMovieImdbId(file) : undefined;
 
         const query: IMetaDataQuery = {
             id: kitsuId || imdbId,
             type: TorrentType.Movie
         };
-        
+
         const metadataOrError = await this.metadataService.getMetadata(query);
         if (metadataOrError instanceof Error) {
             this.logger.warn(`Failed to retrieve metadata due to error: ${metadataOrError.message}`);
@@ -247,7 +246,7 @@ export class TorrentFileService implements ITorrentFileService {
         }];
     };
 
-    private decomposeEpisodes = async (torrent: IParsedTorrent, files: IFileAttributes[], metadata: IMetadataResponse = { episodeCount: [] }) => {
+    private decomposeEpisodes = async (torrent: IParsedTorrent, files: IFileAttributes[], metadata: IMetadataResponse = {episodeCount: []}) => {
         if (files.every(file => !file.episodes && !file.date)) {
             return files;
         }
@@ -635,7 +634,7 @@ export class TorrentFileService implements ITorrentFileService {
             videoInfo.episode = videoInfo.episodes && videoInfo.episodes[0];
         }
 
-        return { ...video, ...videoInfo };
+        return {...video, ...videoInfo};
     };
 
     private isMovieVideo = (torrent: IParsedTorrent, video: IFileAttributes, otherVideos: IFileAttributes[], hasMovies: boolean): boolean => {

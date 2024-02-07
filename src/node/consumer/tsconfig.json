@@ -8,8 +8,13 @@
     "rootDir": "./src",
     "sourceMap": true,
     "target": "ES6",
-    "lib": ["es6"],
-    "types": ["node", "reflect-metadata"],
+    "lib": [
+      "es6"
+    ],
+    "types": [
+      "node",
+      "reflect-metadata"
+    ],
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

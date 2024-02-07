@@ -23,7 +23,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
     private fileService: ITorrentFileService;
     private subtitleService: ITorrentSubtitleService;
     private repository: IDatabaseRepository;
-    
+
     constructor(@inject(IocTypes.IMetadataService) metadataService: IMetadataService,
                 @inject(IocTypes.ILoggingService) logger: ILoggingService,
                 @inject(IocTypes.ITorrentFileService) fileService: ITorrentFileService,
@@ -73,7 +73,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
 
         const fileCollection: ITorrentFileCollection = await this.fileService.parseTorrentFiles(torrent)
             .then((torrentContents: ITorrentFileCollection) => overwrite ? this.overwriteExistingFiles(torrent, torrentContents) : torrentContents)
-            .then((torrentContents: ITorrentFileCollection) =>this.subtitleService.assignSubtitles(torrentContents))
+            .then((torrentContents: ITorrentFileCollection) => this.subtitleService.assignSubtitles(torrentContents))
             .catch(error => {
                 this.logger.warn(`Failed getting files for ${torrent.title}`, error.message);
                 return {};
