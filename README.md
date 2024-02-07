@@ -26,8 +26,9 @@ Join our [Discord](https://discord.gg/8fQdxay9z2)!
       - [Using Grafana and Prometheus](#using-grafana-and-prometheus)
   - [Importing external dumps](#importing-external-dumps)
     - [Import data into database](#import-data-into-database)
-    - [Import data into database (ALTERNATIVE: Using Docker)](#import-data-into-database-alternative-using-docker)
+      - [Alternative: Using Docker](#alternative-using-docker)
     - [INSERT INTO ingested\_torrents](#insert-into-ingested_torrents)
+      - [Fixing imported databases](#fixing-imported-databases)
   - [Selfhostio to KnightCrawler Migration](#selfhostio-to-knightcrawler-migration)
   - [To-do](#to-do)
 
@@ -176,7 +177,7 @@ with include drop, create tables, create indexes, reset sequences
 
 Then run `pgloader db.load` to create a new `items` table. This can take a few minutes, depending on the size of the database.
 
-### Import data into database (ALTERNATIVE: Using Docker)
+#### Alternative: Using Docker
 
 Move your sql database called `rarbg_db.sqlite` and `db.load` into your current working directoy
 
@@ -201,14 +202,14 @@ docker run --rm -it --network=knightcrawler-network -v "$(pwd)":/data dimitri/pg
 
 ### INSERT INTO ingested_torrents
 
-
 > [!NOTE]
 > This is specific to this example external database, other databases may/will have different column names and the sql command will require tweaking
 
 > [!IMPORTANT]
 > The `processed` field should be `false` so that the consumers will properly process it.
 
-Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using `psql`. Because this specific database also contains categories such as `tv_uhd` we can use a `LIKE` query and coerce it into the `tv` category.
+Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using `psql`. 
+Because this specific database also contains categories such as `tv_uhd` we can use a `LIKE` query and coerce it into the `tv` category.
 
 This can be done by running the following command:
 
@@ -235,6 +236,14 @@ After, you can delete the `items` table by running:
 
 ```docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "drop table items";```
 
+
+#### Fixing imported databases
+
+If you've already imported a database with incorrect categories, you can fix these categories by running the following commands:
+
+```docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"```
+
+```docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"```
 
 ## Selfhostio to KnightCrawler Migration
 
