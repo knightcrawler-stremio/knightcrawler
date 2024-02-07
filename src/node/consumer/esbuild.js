@@ -13,7 +13,7 @@ try {
     build({
         bundle: true,
         entryPoints: [
-            "./src/index.ts",
+            "./src/main.ts",
         ],
         external: [...(devDependencies && Object.keys(devDependencies))],
         keepNames: true,

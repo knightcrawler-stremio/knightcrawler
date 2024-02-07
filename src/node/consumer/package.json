@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node esbuild.js",
-    "dev": "tsx watch --ignore node_modules src/index.ts | pino-pretty",
+    "dev": "tsx watch --ignore node_modules src/main.ts | pino-pretty",
     "start": "node dist/index.cjs",
     "lint": "npx eslint ./src --ext .ts,.js"
   },
@@ -16,6 +16,7 @@
     "bottleneck": "^2.19.5",
     "cache-manager": "^5.4.0",
     "google-sr": "^3.2.1",
+    "inversify": "^6.0.2",
     "magnet-uri": "^6.2.0",
     "moment": "^2.30.1",
     "name-to-imdb": "^3.0.4",

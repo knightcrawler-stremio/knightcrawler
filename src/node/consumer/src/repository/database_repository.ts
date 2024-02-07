@@ -13,9 +13,13 @@ import {SkipTorrent} from "./models/skipTorrent";
 import {IFileAttributes} from "./interfaces/file_attributes";
 import {ITorrentAttributes} from "./interfaces/torrent_attributes";
 import {IngestedPage} from "./models/ingestedPage";
-import {logger} from "../lib/services/logging_service";
+import {ILoggingService} from "../lib/interfaces/logging_service";
+import {IocTypes} from "../lib/models/ioc_types";
+import {inject, injectable} from "inversify";
+import {IDatabaseRepository} from "./interfaces/database_repository";
 
-class DatabaseRepository {
+@injectable()
+export class DatabaseRepository implements IDatabaseRepository {
     private readonly database: Sequelize;
     
     private models = [
@@ -27,59 +31,56 @@ class DatabaseRepository {
         SkipTorrent,
         IngestedTorrent,
         IngestedPage];
+    private logger: ILoggingService;
     
-    constructor() {
+    constructor(@inject(IocTypes.ILoggingService) logger: ILoggingService) {
+        this.logger = logger;
         this.database = this.createDatabase();
     }
-    
-    public async connect() {
+
+    public connect = async () => {
         try {
             await this.database.sync({alter: configurationService.databaseConfig.AUTO_CREATE_AND_APPLY_MIGRATIONS});
         } catch {
-            logger.error('Failed syncing database');
+            this.logger.error('Failed syncing database');
             process.exit(1);
         }
-    }
+    };
 
-    public async getProvider(provider: Provider) {
+    public getProvider = async (provider: Provider) => {
         try {
-            const [result] = await Provider.findOrCreate({ where: { name: { [Op.eq]: provider.name } }, defaults: provider });
+            const [result] = await Provider.findOrCreate({where: {name: {[Op.eq]: provider.name}}, defaults: provider});
             return result;
         } catch {
             return provider as Provider;
         }
-    }
+    };
 
-    public async getTorrent(torrent: ITorrentAttributes): Promise<Torrent | null> {
+    public getTorrent = async (torrent: ITorrentAttributes): Promise<Torrent | null> => {
         const where = torrent.infoHash
-            ? { infoHash: torrent.infoHash }
-            : { provider: torrent.provider, torrentId: torrent.torrentId };
-        return await Torrent.findOne({ where });
-    }
+            ? {infoHash: torrent.infoHash}
+            : {provider: torrent.provider, torrentId: torrent.torrentId};
+        return await Torrent.findOne({where});
+    };
 
-    public async getTorrentsBasedOnTitle(titleQuery: string, type: string): Promise<Torrent[]> {
-        return this.getTorrentsBasedOnQuery({ title: { [Op.regexp]: `${titleQuery}` }, type });
-    }
+    public getTorrentsBasedOnTitle = async (titleQuery: string, type: string): Promise<Torrent[]> => this.getTorrentsBasedOnQuery({
+        title: {[Op.regexp]: `${titleQuery}`},
+        type
+    });
 
-    public async getTorrentsBasedOnQuery(where: WhereOptions<ITorrentAttributes>): Promise<Torrent[]> {
-        return await Torrent.findAll({ where });
-    }
+    public getTorrentsBasedOnQuery = async (where: WhereOptions<ITorrentAttributes>): Promise<Torrent[]> => await Torrent.findAll({where});
 
-    public async getFilesBasedOnQuery(where: WhereOptions<IFileAttributes>): Promise<File[]> {
-        return await File.findAll({ where });
-    }
+    public getFilesBasedOnQuery = async (where: WhereOptions<IFileAttributes>): Promise<File[]> => await File.findAll({where});
 
-    public async getTorrentsWithoutSize(): Promise<Torrent[]> {
-        return await Torrent.findAll({
-            where: literal(
-                'exists (select 1 from files where files."infoHash" = torrent."infoHash" and files.size = 300000000)'),
-            order: [
-                ['seeders', 'DESC']
-            ]
-        });
-    }
+    public getTorrentsWithoutSize = async (): Promise<Torrent[]> => await Torrent.findAll({
+        where: literal(
+            'exists (select 1 from files where files."infoHash" = torrent."infoHash" and files.size = 300000000)'),
+        order: [
+            ['seeders', 'DESC']
+        ]
+    });
 
-    public async getUpdateSeedersTorrents(limit = 50): Promise<Torrent[]> {
+    public getUpdateSeedersTorrents = async (limit = 50): Promise<Torrent[]> => {
         const until = moment().subtract(7, 'days').format('YYYY-MM-DD');
         return await Torrent.findAll({
             where: literal(`torrent."updatedAt" < '${until}'`),
@@ -89,9 +90,9 @@ class DatabaseRepository {
                 ['updatedAt', 'ASC']
             ]
         });
-    }
+    };
 
-    public async getUpdateSeedersNewTorrents(limit = 50): Promise<Torrent[]> {
+    public getUpdateSeedersNewTorrents = async (limit = 50): Promise<Torrent[]> => {
         const lastUpdate = moment().subtract(12, 'hours').format('YYYY-MM-DD');
         const createdAfter = moment().subtract(4, 'days').format('YYYY-MM-DD');
         return await Torrent.findAll({
@@ -102,38 +103,34 @@ class DatabaseRepository {
                 ['updatedAt', 'ASC']
             ]
         });
-    }
+    };
 
-    public async getNoContentsTorrents(): Promise<Torrent[]> {
-        return await Torrent.findAll({
-            where: { opened: false, seeders: { [Op.gte]: 1 } },
-            limit: 500,
-            order: literal('random()')
-        });
-    }
+    public getNoContentsTorrents = async (): Promise<Torrent[]> => await Torrent.findAll({
+        where: {opened: false, seeders: {[Op.gte]: 1}},
+        limit: 500,
+        order: literal('random()')
+    });
 
-    public async createTorrent(torrent: Torrent): Promise<void> {
+    public createTorrent = async (torrent: Torrent): Promise<void> => {
         await Torrent.upsert(torrent);
         await this.createContents(torrent.infoHash, torrent.contents);
         await this.createSubtitles(torrent.infoHash, torrent.subtitles);
-    }
+    };
 
-    public async setTorrentSeeders(torrent: ITorrentAttributes, seeders: number): Promise<[number]> {
+    public setTorrentSeeders = async (torrent: ITorrentAttributes, seeders: number): Promise<[number]> => {
         const where = torrent.infoHash
-            ? { infoHash: torrent.infoHash }
-            : { provider: torrent.provider, torrentId: torrent.torrentId };
-        
+            ? {infoHash: torrent.infoHash}
+            : {provider: torrent.provider, torrentId: torrent.torrentId};
+
         return await Torrent.update(
-            { seeders: seeders },
-            { where: where }
+            {seeders: seeders},
+            {where: where}
         );
-    }
+    };
 
-    public async deleteTorrent(infoHash: string): Promise<number> {
-        return await Torrent.destroy({ where: { infoHash: infoHash } });
-    }
+    public deleteTorrent = async (infoHash: string): Promise<number> => await Torrent.destroy({where: {infoHash: infoHash}});
 
-    public async createFile(file: File): Promise<void> {
+    public createFile = async (file: File): Promise<void> => {
         if (file.id) {
             if (file.dataValues) {
                 await file.save();
@@ -148,30 +145,24 @@ class DatabaseRepository {
                     return subtitle;
                 });
             }
-            await File.create(file, { include: [Subtitle], ignoreDuplicates: true });
+            await File.create(file, {include: [Subtitle], ignoreDuplicates: true});
         }
-    }
+    };
 
-    public async getFiles(infoHash: string): Promise<File[]> {
-        return File.findAll({ where: { infoHash: infoHash } });
-    }
+    public getFiles = async (infoHash: string): Promise<File[]> => File.findAll({where: {infoHash: infoHash}});
 
-    public async getFilesBasedOnTitle(titleQuery: string): Promise<File[]> {
-        return File.findAll({ where: { title: { [Op.regexp]: `${titleQuery}` } } });
-    }
+    public getFilesBasedOnTitle = async (titleQuery: string): Promise<File[]> => File.findAll({where: {title: {[Op.regexp]: `${titleQuery}`}}});
 
-    public async deleteFile(id: number): Promise<number> {
-        return File.destroy({ where: { id: id } });
-    }
+    public deleteFile = async (id: number): Promise<number> => File.destroy({where: {id: id}});
 
-    public async createSubtitles(infoHash: string, subtitles: Subtitle[]): Promise<void | Model<any, any>[]> {
+    public createSubtitles = async (infoHash: string, subtitles: Subtitle[]): Promise<void | Model<any, any>[]> => {
         if (subtitles && subtitles.length) {
-            return Subtitle.bulkCreate(subtitles.map(subtitle => ({ infoHash, title: subtitle.path, ...subtitle })));
+            return Subtitle.bulkCreate(subtitles.map(subtitle => ({infoHash, title: subtitle.path, ...subtitle})));
         }
         return Promise.resolve();
-    }
+    };
 
-    public async upsertSubtitles(file: File, subtitles: Subtitle[]): Promise<void> {
+    public upsertSubtitles = async (file: File, subtitles: Subtitle[]): Promise<void> => {
         if (file.id && subtitles && subtitles.length) {
             await PromiseHelpers.sequence(subtitles
                 .map(subtitle => {
@@ -188,40 +179,32 @@ class DatabaseRepository {
                     }
                 }));
         }
-    }
+    };
 
-    public async getSubtitles(infoHash: string): Promise<Subtitle[]> {
-        return Subtitle.findAll({ where: { infoHash: infoHash } });
-    }
+    public getSubtitles = async (infoHash: string): Promise<Subtitle[]> => Subtitle.findAll({where: {infoHash: infoHash}});
 
-    public async getUnassignedSubtitles(): Promise<Subtitle[]> {
-        return Subtitle.findAll({ where: { fileId: null } });
-    }
+    public getUnassignedSubtitles = async (): Promise<Subtitle[]> => Subtitle.findAll({where: {fileId: null}});
 
-    public async createContents(infoHash: string, contents: Content[]): Promise<void> {
+    public createContents = async (infoHash: string, contents: Content[]): Promise<void> => {
         if (contents && contents.length) {
-            await Content.bulkCreate(contents.map(content => ({ infoHash, ...content })), { ignoreDuplicates: true });
-            await Torrent.update({ opened: true }, { where: { infoHash: infoHash }, silent: true });
+            await Content.bulkCreate(contents.map(content => ({infoHash, ...content})), {ignoreDuplicates: true});
+            await Torrent.update({opened: true}, {where: {infoHash: infoHash}, silent: true});
         }
-    }
+    };
 
-    public async getContents(infoHash: string): Promise<Content[]> {
-        return Content.findAll({ where: { infoHash: infoHash } });
-    }
+    public getContents = async (infoHash: string): Promise<Content[]> => Content.findAll({where: {infoHash: infoHash}});
 
-    public async getSkipTorrent(infoHash: string): Promise<SkipTorrent> {
+    public getSkipTorrent = async (infoHash: string): Promise<SkipTorrent> => {
         const result = await SkipTorrent.findByPk(infoHash);
         if (!result) {
             throw new Error(`torrent not found: ${infoHash}`);
         }
         return result.dataValues as SkipTorrent;
-    }
+    };
 
-    public async createSkipTorrent(torrent: Torrent): Promise<[SkipTorrent, boolean]> {
-        return SkipTorrent.upsert({ infoHash: torrent.infoHash });
-    }
-    
-    private createDatabase(): Sequelize {
+    public createSkipTorrent = async (torrent: Torrent): Promise<[SkipTorrent, boolean]> => SkipTorrent.upsert({infoHash: torrent.infoHash});
+
+    private createDatabase = (): Sequelize => {
         const newDatabase = new Sequelize(
             configurationService.databaseConfig.POSTGRES_URI,
             {
@@ -232,7 +215,5 @@ class DatabaseRepository {
         newDatabase.addModels(this.models);
         
         return newDatabase;
-    }
+    };
 }
-
-export const repository = new DatabaseRepository();

@@ -1,10 +1,12 @@
 import {Cache, createCache, memoryStore} from 'cache-manager';
 import {mongoDbStore} from '@tirke/node-cache-manager-mongodb'
 import {configurationService} from './configuration_service';
-import {logger} from './logging_service';
 import {CacheType} from "../enums/cache_types";
 import {ICacheOptions} from "../interfaces/cache_options";
 import {ICacheService} from "../interfaces/cache_service";
+import {inject, injectable} from "inversify";
+import {IocTypes} from "../models/ioc_types";
+import {ILoggingService} from "../interfaces/logging_service";
 
 const GLOBAL_KEY_PREFIX = 'knightcrawler-consumer';
 const IMDB_ID_PREFIX = `${GLOBAL_KEY_PREFIX}|imdb_id`;
@@ -18,10 +20,13 @@ const TRACKERS_TTL: number = 2 * 24 * 60 * 60; // 2 days
 
 export type CacheMethod = () => any;
 
-class CacheService implements ICacheService {
-    constructor() {
+@injectable()
+export class CacheService implements ICacheService {
+    private logger: ILoggingService;
+    constructor(@inject(IocTypes.ILoggingService) logger: ILoggingService) {
+        this.logger = logger;
         if (!configurationService.cacheConfig.NO_CACHE) {
-            logger.info('Cache is disabled');
+            this.logger.info('Cache is disabled');
             return;
         }
 
@@ -64,7 +69,7 @@ class CacheService implements ICacheService {
 
     private initiateRemoteCache = (): Cache => {
         if (configurationService.cacheConfig.NO_CACHE) {
-            logger.debug('Cache is disabled');
+            this.logger.debug('Cache is disabled');
             return null;
         }
 
@@ -93,13 +98,11 @@ class CacheService implements ICacheService {
             return method();
         }
 
-        logger.debug(`Cache type: ${cacheType}`);
-        logger.debug(`Cache key: ${key}`);
-        logger.debug(`Cache options: ${JSON.stringify(options)}`);
+        this.logger.debug(`Cache type: ${cacheType}`);
+        this.logger.debug(`Cache key: ${key}`);
+        this.logger.debug(`Cache options: ${JSON.stringify(options)}`);
 
         return cache.wrap(key, method, options.ttl);
     }
 }
-
-export const cacheService: CacheService = new CacheService();
 

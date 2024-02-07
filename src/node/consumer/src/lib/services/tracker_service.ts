@@ -1,15 +1,25 @@
 import axios, {AxiosResponse} from 'axios';
-import {cacheService} from "./cache_service";
 import {configurationService} from './configuration_service';
-import {logger} from "./logging_service";
 import {ITrackerService} from "../interfaces/tracker_service";
+import {inject, injectable} from "inversify";
+import {IocTypes} from "../models/ioc_types";
+import {ICacheService} from "../interfaces/cache_service";
+import {ILoggingService} from "../interfaces/logging_service";
 
-class TrackerService implements ITrackerService {
-    public async getTrackers(): Promise<string[]> {
-        return cacheService.cacheTrackers(this.downloadTrackers);
-    };
+@injectable()
+export class TrackerService implements ITrackerService {
+    private cacheService: ICacheService;
+    private logger: ILoggingService;
+    
+    constructor(@inject(IocTypes.ICacheService) cacheService: ICacheService,
+                @inject(IocTypes.ILoggingService) logger: ILoggingService) {
+        this.cacheService = cacheService;
+        this.logger = logger;
+    }
 
-    private async downloadTrackers(): Promise<string[]> {
+    public getTrackers = async (): Promise<string[]> => this.cacheService.cacheTrackers(this.downloadTrackers);
+
+    private downloadTrackers = async(): Promise<string[]> => {
         const response: AxiosResponse<string> = await axios.get(configurationService.trackerConfig.TRACKERS_URL);
         const trackersListText: string = response.data;
         // Trackers are separated by a newline character
@@ -23,11 +33,9 @@ class TrackerService implements ITrackerService {
 
         }
 
-        logger.info(`Trackers updated at ${Date.now()}: ${urlTrackers.length} trackers`);
+        this.logger.info(`Trackers updated at ${Date.now()}: ${urlTrackers.length} trackers`);
 
         return urlTrackers;
     };
 }
-
-export const trackerService = new TrackerService();
 

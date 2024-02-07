@@ -9,6 +9,7 @@ import {ISubtitleAttributes} from "../../repository/interfaces/subtitle_attribut
 import {IContentAttributes} from "../../repository/interfaces/content_attributes";
 import {parse} from "parse-torrent-title";
 import {ITorrentDownloadService} from "../interfaces/torrent_download_service";
+import {injectable} from "inversify";
 
 interface ITorrentFile {
     name: string;
@@ -17,7 +18,8 @@ interface ITorrentFile {
     fileIndex: number;
 }
 
-class TorrentDownloadService implements ITorrentDownloadService {
+@injectable()
+export class TorrentDownloadService implements ITorrentDownloadService {
     private engineOptions: TorrentStream.TorrentEngineOptions = {
         connections: configurationService.torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
         uploads: 0,
@@ -26,7 +28,7 @@ class TorrentDownloadService implements ITorrentDownloadService {
         tracker: true,
     };
 
-    public async getTorrentFiles(torrent: IParsedTorrent, timeout: number = 30000): Promise<ITorrentFileCollection> {
+    public getTorrentFiles = async (torrent: IParsedTorrent, timeout: number = 30000): Promise<ITorrentFileCollection> => {
         const torrentFiles: ITorrentFile[] = await this.filesFromTorrentStream(torrent, timeout);
 
         const videos = this.filterVideos(torrent, torrentFiles);
@@ -38,9 +40,9 @@ class TorrentDownloadService implements ITorrentDownloadService {
             videos: videos,
             subtitles: subtitles,
         };
-    }
+    };
 
-    private async filesFromTorrentStream(torrent: IParsedTorrent, timeout: number): Promise<ITorrentFile[]> {
+    private filesFromTorrentStream = async (torrent: IParsedTorrent, timeout: number): Promise<ITorrentFile[]> => {
         if (!torrent.infoHash) {
             return Promise.reject(new Error("No infoHash..."));
         }
@@ -72,9 +74,9 @@ class TorrentDownloadService implements ITorrentDownloadService {
                 clearTimeout(timeoutId);
             });
         });
-    }
+    };
 
-    private filterVideos(torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): IFileAttributes[] {
+    private filterVideos = (torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): IFileAttributes[] => {
         if (torrentFiles.length === 1 && !Number.isInteger(torrentFiles[0].fileIndex)) {
             return [this.mapTorrentFileToFileAttributes(torrent, torrentFiles[0])];
         }
@@ -99,18 +101,14 @@ class TorrentDownloadService implements ITorrentDownloadService {
             .filter(video => !isRedundant(video))
             .filter(video => !isWatermark(video))
             .map(video => this.mapTorrentFileToFileAttributes(torrent, video));
-    }
+    };
 
-    private filterSubtitles(torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): ISubtitleAttributes[] {
-        return torrentFiles.filter(file => ExtensionHelpers.isSubtitle(file.name || ''))
-            .map(file => this.mapTorrentFileToSubtitleAttributes(torrent, file));
-    }
+    private filterSubtitles = (torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): ISubtitleAttributes[] => torrentFiles.filter(file => ExtensionHelpers.isSubtitle(file.name || ''))
+        .map(file => this.mapTorrentFileToSubtitleAttributes(torrent, file));
 
-    private createContent(torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): IContentAttributes[] {
-        return torrentFiles.map(file => this.mapTorrentFileToContentAttributes(torrent, file));
-    }
+    private createContent = (torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): IContentAttributes[] => torrentFiles.map(file => this.mapTorrentFileToContentAttributes(torrent, file));
 
-    private mapTorrentFileToFileAttributes(torrent: IParsedTorrent, file: ITorrentFile): IFileAttributes {
+    private mapTorrentFileToFileAttributes = (torrent: IParsedTorrent, file: ITorrentFile): IFileAttributes => {
         const videoFile: IFileAttributes = {
             title: file.name,
             size: file.length,
@@ -124,27 +122,21 @@ class TorrentDownloadService implements ITorrentDownloadService {
         };
         
         return {...videoFile, ...parse(file.name)};
-    }
+    };
 
-    private mapTorrentFileToSubtitleAttributes(torrent: IParsedTorrent, file: ITorrentFile): ISubtitleAttributes {
-        return {
-            title: file.name,
-            infoHash: torrent.infoHash,
-            fileIndex: file.fileIndex,
-            fileId: file.fileIndex,
-            path: file.path,
-        };
-    }
+    private mapTorrentFileToSubtitleAttributes = (torrent: IParsedTorrent, file: ITorrentFile): ISubtitleAttributes => ({
+        title: file.name,
+        infoHash: torrent.infoHash,
+        fileIndex: file.fileIndex,
+        fileId: file.fileIndex,
+        path: file.path,
+    });
 
-    private mapTorrentFileToContentAttributes(torrent: IParsedTorrent, file: ITorrentFile): IContentAttributes {
-        return {
-            infoHash: torrent.infoHash,
-            fileIndex: file.fileIndex,
-            path: file.path,
-            size: file.length,
-        };
-    }
+    private mapTorrentFileToContentAttributes = (torrent: IParsedTorrent, file: ITorrentFile): IContentAttributes => ({
+        infoHash: torrent.infoHash,
+        fileIndex: file.fileIndex,
+        path: file.path,
+        size: file.length,
+    });
 }
-
-export const torrentDownloadService = new TorrentDownloadService();
 

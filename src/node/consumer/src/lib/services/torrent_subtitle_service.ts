@@ -2,9 +2,11 @@ import {parse} from 'parse-torrent-title';
 import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
 import {IFileAttributes} from "../../repository/interfaces/file_attributes";
 import {ITorrentSubtitleService} from "../interfaces/torrent_subtitle_service";
+import {injectable} from "inversify";
 
-class TorrentSubtitleService implements ITorrentSubtitleService {
-    public assignSubtitles(fileCollection: ITorrentFileCollection): ITorrentFileCollection {
+@injectable()
+export class TorrentSubtitleService implements ITorrentSubtitleService {
+    public assignSubtitles = (fileCollection: ITorrentFileCollection): ITorrentFileCollection => {
         if (fileCollection.videos && fileCollection.videos.length && fileCollection.subtitles && fileCollection.subtitles.length) {
             if (fileCollection.videos.length === 1) {
                 fileCollection.videos[0].subtitles = fileCollection.subtitles;
@@ -24,9 +26,9 @@ class TorrentSubtitleService implements ITorrentSubtitleService {
             return {...fileCollection, subtitles: unassignedSubs};
         }
         return fileCollection;
-    }
+    };
 
-    private parseVideo(video: IFileAttributes) {
+    private parseVideo = (video: IFileAttributes)=> {
         const fileName = video.title.split('/').pop().replace(/\.(\w{2,4})$/, '');
         const folderName = video.title.replace(/\/?[^/]+$/, '');
         return {
@@ -37,7 +39,7 @@ class TorrentSubtitleService implements ITorrentSubtitleService {
         };
     }
 
-    private mostProbableSubtitleVideos(subtitle: any, parsedVideos: any[]) {
+    private mostProbableSubtitleVideos = (subtitle: any, parsedVideos: any[]) => {
         const subTitle = (subtitle.title || subtitle.path).split('/').pop().replace(/\.(\w{2,4})$/, '');
         const parsedSub = this.parsePath(subtitle.title || subtitle.path);
         const byFileName = parsedVideos.filter(video => subTitle.includes(video.fileName));
@@ -66,17 +68,17 @@ class TorrentSubtitleService implements ITorrentSubtitleService {
         return undefined;
     }
 
-    private singleVideoFile(videos: any[]) {
+    private singleVideoFile = (videos: any[])=> {
         return new Set(videos.map(v => v.videoFile.fileIndex)).size === 1;
     }
 
-    private parsePath(path: string) {
+    private parsePath = (path: string) => {
         const pathParts = path.split('/').map(part => this.parseFilename(part));
         const parsedWithEpisode = pathParts.find(parsed => parsed.season && parsed.episodes);
         return parsedWithEpisode || pathParts[pathParts.length - 1];
     }
 
-    private parseFilename(filename: string) {
+    private parseFilename = (filename: string) => {
         const parsedInfo = parse(filename)
         const titleEpisode = parsedInfo.title.match(/(\d+)$/);
         if (!parsedInfo.episodes && titleEpisode) {
@@ -85,10 +87,8 @@ class TorrentSubtitleService implements ITorrentSubtitleService {
         return parsedInfo;
     }
 
-    private arrayEquals(array1: any[], array2: any[]) {
+    private arrayEquals = (array1: any[], array2: any[]) => {
         if (!array1 || !array2) return array1 === array2;
         return array1.length === array2.length && array1.every((value, index) => value === array2[index])
     }
 }
-
-export const torrentSubtitleService = new TorrentSubtitleService();

@@ -1,7 +1,9 @@
 import {Logger, pino} from "pino";
 import {ILoggingService} from "../interfaces/logging_service";
+import {injectable} from "inversify";
 
-class LoggingService implements ILoggingService {
+@injectable()
+export class LoggingService implements ILoggingService {
     private readonly logger: Logger;
 
     constructor() {
@@ -10,21 +12,19 @@ class LoggingService implements ILoggingService {
         });
     }
 
-    public info(message: string, ...args: any[]): void {
+    public info = (message: string, ...args: any[]): void => {
         this.logger.info(message, args);
-    }
+    };
 
-    public error(message: string, ...args: any[]): void {
+    public error = (message: string, ...args: any[]): void => {
         this.logger.error(message, args);
-    }
+    };
 
-    public debug(message: string, ...args: any[]): void {
+    public debug = (message: string, ...args: any[]): void => {
         this.logger.debug(message, args);
-    }
+    };
 
-    public warn(message: string, ...args: any[]): void {
+    public warn = (message: string, ...args: any[]): void => {
         this.logger.warn(message, args);
-    }
+    };
 }
-
-export const logger = new LoggingService();

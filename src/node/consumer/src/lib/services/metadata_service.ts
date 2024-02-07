@@ -1,7 +1,6 @@
 import axios, {AxiosResponse} from 'axios';
 import {ResultTypes, search} from 'google-sr';
 import nameToImdb from 'name-to-imdb';
-import {cacheService} from './cache_service';
 import {TorrentType} from '../enums/torrent_types';
 import {IMetadataResponse} from "../interfaces/metadata_response";
 import {ICinemetaJsonResponse} from "../interfaces/cinemeta_metadata";
@@ -10,20 +9,29 @@ import {IKitsuJsonResponse} from "../interfaces/kitsu_metadata";
 import {IMetaDataQuery} from "../interfaces/metadata_query";
 import {IKitsuCatalogJsonResponse} from "../interfaces/kitsu_catalog_metadata";
 import {IMetadataService} from "../interfaces/metadata_service";
+import {inject, injectable} from "inversify";
+import {IocTypes} from "../models/ioc_types";
+import {ICacheService} from "../interfaces/cache_service";
 
 const CINEMETA_URL = 'https://v3-cinemeta.strem.io';
 const KITSU_URL = 'https://anime-kitsu.strem.fun';
 const TIMEOUT = 20000;
 
-class MetadataService implements IMetadataService {
-    public async getKitsuId(info: IMetaDataQuery): Promise<string | Error> {
+@injectable()
+export class MetadataService implements IMetadataService {
+    private cacheService: ICacheService;
+    constructor(@inject(IocTypes.ICacheService) cacheService: ICacheService) {
+        this.cacheService = cacheService;
+    }
+
+    public getKitsuId = async (info: IMetaDataQuery): Promise<string | Error> => {
         const title = this.escapeTitle(info.title.replace(/\s\|\s.*/, ''));
         const year = info.year ? ` ${info.year}` : '';
         const season = info.season > 1 ? ` S${info.season}` : '';
         const key = `${title}${year}${season}`;
         const query = encodeURIComponent(key);
 
-        return cacheService.cacheWrapKitsuId(key,
+        return this.cacheService.cacheWrapKitsuId(key,
             () => axios.get(`${KITSU_URL}/catalog/series/kitsu-anime-list/search=${query}.json`, {timeout: 60000})
                 .then((response) => {
                     const body = response.data as IKitsuCatalogJsonResponse;
@@ -33,9 +41,9 @@ class MetadataService implements IMetadataService {
                         throw new Error('No search results');
                     }
                 }));
-    }
+    };
 
-    public async getImdbId(info: IMetaDataQuery): Promise<string | undefined> {
+    public getImdbId = async (info: IMetaDataQuery): Promise<string | undefined> => {
         const name = this.escapeTitle(info.title);
         const year = info.year || (info.date && info.date.slice(0, 4));
         const key = `${name}_${year || 'NA'}_${info.type}`;
@@ -44,7 +52,7 @@ class MetadataService implements IMetadataService {
         const googleQuery = year ? query : fallbackQuery;
 
         try {
-            const imdbId = await cacheService.cacheWrapImdbId(key,
+            const imdbId = await this.cacheService.cacheWrapImdbId(key,
                 () => this.getIMDbIdFromNameToImdb(name, info)
             );
             return imdbId && 'tt' + imdbId.replace(/tt0*([1-9][0-9]*)$/, '$1').padStart(7, '0');
@@ -52,16 +60,16 @@ class MetadataService implements IMetadataService {
             const imdbIdFallback = await this.getIMDbIdFromGoogle(googleQuery);
             return imdbIdFallback && 'tt' + imdbIdFallback.toString().replace(/tt0*([1-9][0-9]*)$/, '$1').padStart(7, '0');
         }
-    }
+    };
 
-    public getMetadata(query: IMetaDataQuery): Promise<IMetadataResponse | Error> {
+    public getMetadata = (query: IMetaDataQuery): Promise<IMetadataResponse | Error> => {
         if (!query.id) {
             return Promise.reject("no valid id provided");
         }
 
         const key = Number.isInteger(query.id) || query.id.toString().match(/^\d+$/) ? `kitsu:${query.id}` : query.id;
         const metaType = query.type === TorrentType.Movie ? TorrentType.Movie : TorrentType.Series;
-        return cacheService.cacheWrapMetadata(key.toString(), () => this.requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
+        return this.cacheService.cacheWrapMetadata(key.toString(), () => this.requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
             .catch(() => this.requestMetadata(`${CINEMETA_URL}/meta/${metaType}/${key}.json`))
             .catch(() => {
                 // try different type in case there was a mismatch
@@ -71,30 +79,28 @@ class MetadataService implements IMetadataService {
             .catch((error) => {
                 throw new Error(`failed metadata query ${key} due: ${error.message}`);
             }));
-    }
+    };
 
-    public async isEpisodeImdbId(imdbId: string | undefined): Promise<boolean> {
+    public isEpisodeImdbId = async (imdbId: string | undefined): Promise<boolean> => {
         if (!imdbId) {
             return false;
         }
         return axios.get(`https://www.imdb.com/title/${imdbId}/`, {timeout: 10000})
             .then(response => !!(response.data && response.data.includes('video.episode')))
             .catch(() => false);
-    }
+    };
 
-    public escapeTitle(title: string): string {
-        return title.toLowerCase()
-            .normalize('NFKD') // normalize non-ASCII characters
-            .replace(/[\u0300-\u036F]/g, '')
-            .replace(/&/g, 'and')
-            .replace(/[;, ~./]+/g, ' ') // replace dots, commas or underscores with spaces
-            .replace(/[^\w \-()×+#@!'\u0400-\u04ff]+/g, '') // remove all non-alphanumeric chars
-            .replace(/^\d{1,2}[.#\s]+(?=(?:\d+[.\s]*)?[\u0400-\u04ff])/i, '') // remove russian movie numbering
-            .replace(/\s{2,}/, ' ') // replace multiple spaces
-            .trim();
-    }
+    public escapeTitle = (title: string): string => title.toLowerCase()
+        .normalize('NFKD') // normalize non-ASCII characters
+        .replace(/[\u0300-\u036F]/g, '')
+        .replace(/&/g, 'and')
+        .replace(/[;, ~./]+/g, ' ') // replace dots, commas or underscores with spaces
+        .replace(/[^\w \-()×+#@!'\u0400-\u04ff]+/g, '') // remove all non-alphanumeric chars
+        .replace(/^\d{1,2}[.#\s]+(?=(?:\d+[.\s]*)?[\u0400-\u04ff])/i, '') // remove russian movie numbering
+        .replace(/\s{2,}/, ' ') // replace multiple spaces
+        .trim();
 
-    private async requestMetadata(url: string): Promise<IMetadataResponse> {
+    private requestMetadata = async (url: string): Promise<IMetadataResponse> => {
         let response: AxiosResponse<any, any> = await axios.get(url, {timeout: TIMEOUT});
         let result: IMetadataResponse;
         const body = response.data;
@@ -107,80 +113,74 @@ class MetadataService implements IMetadataService {
         }
 
         return result;
-    }
+    };
 
-    private handleCinemetaResponse(body: ICinemetaJsonResponse): IMetadataResponse {
-        return {
-            imdbId: parseInt(body.meta.imdb_id),
-            type: body.meta.type,
-            title: body.meta.name,
-            year: parseInt(body.meta.year),
-            country: body.meta.country,
-            genres: body.meta.genres,
-            status: body.meta.status,
-            videos: body.meta.videos
-                ? body.meta.videos.map(video => ({
-                    name: video.name,
-                    season: video.season,
-                    episode: video.episode,
-                    imdbSeason: video.season,
-                    imdbEpisode: video.episode,
-                }))
-                : [],
-            episodeCount: body.meta.videos
-                ? this.getEpisodeCount(body.meta.videos)
-                : [],
-            totalCount: body.meta.videos
-                ? body.meta.videos.filter(
-                    entry => entry.season !== 0 && entry.episode !== 0
-                ).length
-                : 0,
-        };
-    }
+    private handleCinemetaResponse = (body: ICinemetaJsonResponse): IMetadataResponse => ({
+        imdbId: parseInt(body.meta.imdb_id),
+        type: body.meta.type,
+        title: body.meta.name,
+        year: parseInt(body.meta.year),
+        country: body.meta.country,
+        genres: body.meta.genres,
+        status: body.meta.status,
+        videos: body.meta.videos
+            ? body.meta.videos.map(video => ({
+                name: video.name,
+                season: video.season,
+                episode: video.episode,
+                imdbSeason: video.season,
+                imdbEpisode: video.episode,
+            }))
+            : [],
+        episodeCount: body.meta.videos
+            ? this.getEpisodeCount(body.meta.videos)
+            : [],
+        totalCount: body.meta.videos
+            ? body.meta.videos.filter(
+                entry => entry.season !== 0 && entry.episode !== 0
+            ).length
+            : 0,
+    });
 
-    private handleKitsuResponse(body: IKitsuJsonResponse): IMetadataResponse {
-        return {
-            kitsuId: parseInt(body.meta.kitsu_id),
-            type: body.meta.type,
-            title: body.meta.name,
-            year: parseInt(body.meta.year),
-            country: body.meta.country,
-            genres: body.meta.genres,
-            status: body.meta.status,
-            videos: body.meta.videos
-                ? body.meta.videos.map(video => ({
-                    name: video.title,
-                    season: video.season,
-                    episode: video.episode,
-                    kitsuId: video.id,
-                    kitsuEpisode: video.episode,
-                    released: video.released,
-                }))
-                : [],
-            episodeCount: body.meta.videos
-                ? this.getEpisodeCount(body.meta.videos)
-                : [],
-            totalCount: body.meta.videos
-                ? body.meta.videos.filter(
-                    entry => entry.season !== 0 && entry.episode !== 0
-                ).length
-                : 0,
-        };
-    }
+    private handleKitsuResponse = (body: IKitsuJsonResponse): IMetadataResponse => ({
+        kitsuId: parseInt(body.meta.kitsu_id),
+        type: body.meta.type,
+        title: body.meta.name,
+        year: parseInt(body.meta.year),
+        country: body.meta.country,
+        genres: body.meta.genres,
+        status: body.meta.status,
+        videos: body.meta.videos
+            ? body.meta.videos.map(video => ({
+                name: video.title,
+                season: video.season,
+                episode: video.episode,
+                kitsuId: video.id,
+                kitsuEpisode: video.episode,
+                released: video.released,
+            }))
+            : [],
+        episodeCount: body.meta.videos
+            ? this.getEpisodeCount(body.meta.videos)
+            : [],
+        totalCount: body.meta.videos
+            ? body.meta.videos.filter(
+                entry => entry.season !== 0 && entry.episode !== 0
+            ).length
+            : 0,
+    });
 
-    private getEpisodeCount(videos: ICommonVideoMetadata[]) {
-        return Object.values(
-            videos
-                .filter(entry => entry.season !== 0 && entry.episode !== 0)
-                .sort((a, b) => a.season - b.season)
-                .reduce((map, next) => {
-                    map[next.season] = map[next.season] + 1 || 1;
-                    return map;
-                }, {})
-        );
-    }
+    private getEpisodeCount = (videos: ICommonVideoMetadata[]) => Object.values(
+        videos
+            .filter(entry => entry.season !== 0 && entry.episode !== 0)
+            .sort((a, b) => a.season - b.season)
+            .reduce((map, next) => {
+                map[next.season] = map[next.season] + 1 || 1;
+                return map;
+            }, {})
+    );
 
-    private getIMDbIdFromNameToImdb(name: string, info: IMetaDataQuery): Promise<string | Error> {
+    private getIMDbIdFromNameToImdb = (name: string, info: IMetaDataQuery): Promise<string | Error> => {
         const year = info.year;
         const type = info.type;
         return new Promise((resolve, reject) => {
@@ -192,9 +192,9 @@ class MetadataService implements IMetadataService {
                 }
             });
         });
-    }
+    };
 
-    private async getIMDbIdFromGoogle(query: string): Promise<string | undefined> {
+    private getIMDbIdFromGoogle = async (query: string): Promise<string | undefined> => {
         try {
             const searchResults = await search({query: query});
             for (const result of searchResults) {
@@ -211,8 +211,6 @@ class MetadataService implements IMetadataService {
         } catch (error) {
             throw new Error('Failed to find IMDb ID from Google search');
         }
-    }
+    };
 }
-
-export const metadataService: MetadataService = new MetadataService();
 
