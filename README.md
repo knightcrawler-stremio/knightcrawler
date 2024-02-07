@@ -26,6 +26,7 @@ Join our [Discord](https://discord.gg/8fQdxay9z2)!
       - [Using Grafana and Prometheus](#using-grafana-and-prometheus)
   - [Importing external dumps](#importing-external-dumps)
     - [Import data into database](#import-data-into-database)
+    - [Import data into database (ALTERNATIVE: Using Docker)](#import-data-into-database-alternative-using-docker)
     - [INSERT INTO ingested\_torrents](#insert-into-ingested_torrents)
   - [Selfhostio to KnightCrawler Migration](#selfhostio-to-knightcrawler-migration)
   - [To-do](#to-do)
@@ -207,15 +208,23 @@ docker run --rm -it --network=knightcrawler-network -v "$(pwd)":/data dimitri/pg
 > [!IMPORTANT]
 > The `processed` field should be `false` so that the consumers will properly process it.
 
-Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using `psql`.
+Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using `psql`. Because this specific database also contains categories such as `tv_uhd` we can use a `LIKE` query and coerce it into the `tv` category.
 
 This can be done by running the following command:
 
 ```
 docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "
-INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, "createdAt", "updatedAt")
-SELECT title, 'RARBG', cat, hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
-FROM items WHERE NOT EXISTS (SELECT info_hash FROM ingested_torrents WHERE ingested_torrents.info_hash = items.hash) AND (cat LIKE 'tv%' OR cat LIKE 'movies%');"
+INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, \"createdAt\", \"updatedAt\")
+SELECT title, 'RARBG', 'tv', hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
+FROM items where cat LIKE 'tv%%' ON CONFLICT DO NOTHING;"
+```
+
+And similarly for movies:
+```
+docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "
+INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, \"createdAt\", \"updatedAt\")
+SELECT title, 'RARBG', 'movies', hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
+FROM items where cat LIKE 'movies%%' ON CONFLICT DO NOTHING;"
 ```
 
 You should get a response similar to:
