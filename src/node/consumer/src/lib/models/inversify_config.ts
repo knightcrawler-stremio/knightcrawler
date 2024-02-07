@@ -30,14 +30,14 @@ const serviceContainer = new Container();
 
 serviceContainer.bind<ICompositionalRoot>(IocTypes.ICompositionalRoot).to(CompositionalRoot).inSingletonScope();
 serviceContainer.bind<ICacheService>(IocTypes.ICacheService).to(CacheService).inSingletonScope();
+serviceContainer.bind<ILoggingService>(IocTypes.ILoggingService).to(LoggingService).inSingletonScope();
+serviceContainer.bind<ITrackerService>(IocTypes.ITrackerService).to(TrackerService).inSingletonScope();
 serviceContainer.bind<ITorrentFileService>(IocTypes.ITorrentFileService).to(TorrentFileService);
 serviceContainer.bind<ITorrentProcessingService>(IocTypes.ITorrentProcessingService).to(TorrentProcessingService);
 serviceContainer.bind<ITorrentSubtitleService>(IocTypes.ITorrentSubtitleService).to(TorrentSubtitleService);
 serviceContainer.bind<ITorrentEntriesService>(IocTypes.ITorrentEntriesService).to(TorrentEntriesService);
 serviceContainer.bind<ITorrentDownloadService>(IocTypes.ITorrentDownloadService).to(TorrentDownloadService);
-serviceContainer.bind<ILoggingService>(IocTypes.ILoggingService).to(LoggingService);
 serviceContainer.bind<IMetadataService>(IocTypes.IMetadataService).to(MetadataService);
-serviceContainer.bind<ITrackerService>(IocTypes.ITrackerService).to(TrackerService);
 serviceContainer.bind<IDatabaseRepository>(IocTypes.IDatabaseRepository).to(DatabaseRepository);
 serviceContainer.bind<IProcessTorrentsJob>(IocTypes.IProcessTorrentsJob).to(ProcessTorrentsJob);
 

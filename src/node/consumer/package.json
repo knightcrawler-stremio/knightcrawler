@@ -5,7 +5,7 @@
   "scripts": {
     "build": "node esbuild.js",
     "dev": "tsx watch --ignore node_modules src/main.ts | pino-pretty",
-    "start": "node dist/index.cjs",
+    "start": "node dist/main.cjs",
     "lint": "npx eslint ./src --ext .ts,.js"
   },
   "license": "MIT",
