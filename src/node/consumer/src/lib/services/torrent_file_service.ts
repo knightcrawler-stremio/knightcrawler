@@ -56,8 +56,6 @@ export class TorrentFileService implements ITorrentFileService {
             .catch(() => undefined);
         
         if (metadata === undefined || metadata instanceof Error) {
-            this.logger.warn(`Failed to retrieve metadata for torrent ${torrent.title}`);
-            this.logger.debug(`Metadata Error: ${torrent.title}`, metadata);
             return Promise.reject(new Error('Failed to retrieve metadata'));
         }
 

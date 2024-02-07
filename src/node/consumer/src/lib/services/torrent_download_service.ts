@@ -11,7 +11,10 @@ import {configurationService} from '@services/configuration_service';
 import {inject, injectable} from "inversify";
 import {encode} from 'magnet-uri';
 import {parse} from "parse-torrent-title";
-import WebTorrent from "webtorrent";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import * as torrentStream from "torrent-stream";
+import TorrentEngine = TorrentStream.TorrentEngine;
+import TorrentEngineOptions = TorrentStream.TorrentEngineOptions;
 
 interface ITorrentFile {
     name: string;
@@ -20,27 +23,19 @@ interface ITorrentFile {
     fileIndex: number;
 }
 
-const clientOptions : WebTorrent.Options = {
-    maxConns: configurationService.torrentConfig.MAX_CONNECTIONS_OVERALL,
-    utp: false,    
-}
-
-const torrentOptions: WebTorrent.TorrentOptions = {
-    skipVerify: true,
-    destroyStoreOnDestroy: true,
-    private: true,
-    maxWebConns: configurationService.torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
-}
-
 @injectable()
 export class TorrentDownloadService implements ITorrentDownloadService {
-    private torrentClient: WebTorrent.Instance;
     private logger: ILoggingService;
+    private engineOptions: TorrentEngineOptions = {
+        connections: configurationService.torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
+        uploads: 0,
+        verify: false,
+        dht: false,
+        tracker: true,
+    };
 
     constructor(@inject(IocTypes.ILoggingService) logger: ILoggingService) {
         this.logger = logger;
-        this.torrentClient = new WebTorrent(clientOptions);
-        this.torrentClient.on('error', errors => this.logClientErrors(errors));
     }
 
     public getTorrentFiles = async (torrent: IParsedTorrent, timeout: number = 30000): Promise<ITorrentFileCollection> => {
@@ -64,40 +59,28 @@ export class TorrentDownloadService implements ITorrentDownloadService {
         const magnet = encode({infoHash: torrent.infoHash, announce: torrent.trackers!.split(',')});
 
         return new Promise((resolve, reject) => {
-            this.logger.debug(`Adding torrent with infoHash ${torrent.infoHash} to webtorrent client...`);
-
-            const currentTorrent = this.torrentClient.add(magnet, torrentOptions);
+            this.logger.debug(`Adding torrent with infoHash ${torrent.infoHash} to torrent engine...`);
 
             const timeoutId = setTimeout(() => {
-                this.removeTorrent(currentTorrent, torrent);
+                engine.destroy(() => {});
                 reject(new Error('No available connections for torrent!'));
             }, timeout);
-            
-            currentTorrent.on('ready', () => {
-                const files: ITorrentFile[] = currentTorrent.files.map((file, fileId) => ({
+
+            const engine: TorrentEngine = torrentStream.default(magnet, this.engineOptions);
+
+            engine.on("ready", () => {
+                const files: ITorrentFile[] = engine.files.map((file, fileId) => ({
                     fileIndex: fileId,
                     length: file.length,
                     name: file.name,
                     path: file.path,
                 }));
 
-                this.logger.debug(`Found ${files.length} files in torrent ${torrent.infoHash}`);
-
                 resolve(files);
                 clearTimeout(timeoutId);
-                this.removeTorrent(currentTorrent, torrent);
+                engine.destroy(() => {});
             });
         });
-    };
-
-    private removeTorrent = (currentTorrent: WebTorrent.Torrent, torrent: IParsedTorrent): void => {
-        try {
-            this.torrentClient.remove(currentTorrent, {destroyStore: true}, () => {
-                this.logger.debug(`Removed torrent ${torrent.infoHash} from webtorrent client...`);
-            });
-        } catch (error) {
-            this.logClientErrors(error);
-        }
     };
 
     private filterVideos = (torrent: IParsedTorrent, torrentFiles: ITorrentFile[]): IFileAttributes[] => {
@@ -179,9 +162,5 @@ export class TorrentDownloadService implements ITorrentDownloadService {
         path: file.path,
         size: file.length,
     });
-
-    private logClientErrors(errors: Error | string | unknown): void {
-        this.logger.error(`Error in webtorrent client: ${errors}`);
-    }
 }
 

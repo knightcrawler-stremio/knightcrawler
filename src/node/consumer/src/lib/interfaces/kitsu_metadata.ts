@@ -34,7 +34,6 @@ export interface IKitsuMeta {
 export interface IKitsuVideo extends ICommonVideoMetadata {
     imdbEpisode?: number;
     imdbSeason?: number;
-    imdb_id?: string;
     thumbnail?: string;
 }
 

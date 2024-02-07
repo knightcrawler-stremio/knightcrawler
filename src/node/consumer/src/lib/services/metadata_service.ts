@@ -8,7 +8,7 @@ import {IMetaDataQuery} from "@interfaces/metadata_query";
 import {IMetadataResponse} from "@interfaces/metadata_response";
 import {IMetadataService} from "@interfaces/metadata_service";
 import {IocTypes} from "@models/ioc_types";
-import axios, {AxiosResponse} from 'axios';
+import axios from 'axios';
 import {ResultTypes, search} from 'google-sr';
 import {inject, injectable} from "inversify";
 import nameToImdb from 'name-to-imdb';
@@ -70,12 +70,12 @@ export class MetadataService implements IMetadataService {
 
         const key = Number.isInteger(query.id) || query.id.toString().match(/^\d+$/) ? `kitsu:${query.id}` : query.id;
         const metaType = query.type === TorrentType.Movie ? TorrentType.Movie : TorrentType.Series;
-        return this.cacheService.cacheWrapMetadata(key.toString(), () => this.requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
-            .catch(() => this.requestMetadata(`${CINEMETA_URL}/meta/${metaType}/${key}.json`))
+        return this.cacheService.cacheWrapMetadata(key.toString(), () => this.requestKitsuMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
+            .catch(() => this.requestCinemetaMetadata(`${CINEMETA_URL}/meta/${metaType}/${key}.json`))
             .catch(() => {
                 // try different type in case there was a mismatch
                 const otherType = metaType === TorrentType.Movie ? TorrentType.Series : TorrentType.Movie;
-                return this.requestMetadata(`${CINEMETA_URL}/meta/${otherType}/${key}.json`)
+                return this.requestCinemetaMetadata(`${CINEMETA_URL}/meta/${otherType}/${key}.json`)
             })
             .catch((error) => {
                 throw new Error(`failed metadata query ${key} due: ${error.message}`);
@@ -101,23 +101,20 @@ export class MetadataService implements IMetadataService {
         .replace(/\s{2,}/, ' ') // replace multiple spaces
         .trim();
 
-    private requestMetadata = async (url: string): Promise<IMetadataResponse> => {
-        const response: AxiosResponse = await axios.get(url, {timeout: TIMEOUT});
-        let result: IMetadataResponse;
+    private requestKitsuMetadata = async (url: string): Promise<IMetadataResponse> => {
+        const response = await axios.get(url, {timeout: TIMEOUT});
         const body = response.data;
-        if ('kitsu_id' in body.meta) {
-            result = this.handleKitsuResponse(body as IKitsuJsonResponse);
-        } else if ('imdb_id' in body.meta) {
-            result = this.handleCinemetaResponse(body as ICinemetaJsonResponse);
-        } else {
-            throw new Error('No valid metadata');
-        }
+        return this.handleKitsuResponse(body as IKitsuJsonResponse);
+    };
 
-        return result;
+    private requestCinemetaMetadata = async (url: string): Promise<IMetadataResponse> => {
+        const response = await axios.get(url, {timeout: TIMEOUT});
+        const body = response.data;
+        return this.handleCinemetaResponse(body as ICinemetaJsonResponse);
     };
 
     private handleCinemetaResponse = (body: ICinemetaJsonResponse): IMetadataResponse => ({
-        imdbId: parseInt(body.meta?.imdb_id || '0'),
+        imdbId: parseInt(body.meta?.id || '0'),
         type: body.meta?.type,
         title: body.meta?.name,
         year: parseInt(body.meta?.year || '0'),

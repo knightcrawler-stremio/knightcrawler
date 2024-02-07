@@ -5,4 +5,5 @@ export interface ICommonVideoMetadata {
     title?: string;
     name?: string;
     id?: string;
+    imdb_id?: string;
 }

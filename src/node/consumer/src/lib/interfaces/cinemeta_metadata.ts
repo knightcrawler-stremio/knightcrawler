@@ -16,7 +16,6 @@ export interface ICinemetaMetaData {
     dvdRelease?: null;
     genre?: string[];
     imdbRating?: string;
-    imdb_id?: string;
     name?: string;
     popularity?: number;
     poster?: string;
