@@ -15,7 +15,7 @@ const GLOBAL_TTL: number = Number(process.env.METADATA_TTL) || 7 * 24 * 60 * 60;
 const MEMORY_TTL: number = Number(process.env.METADATA_TTL) || 2 * 60 * 60; // 2 hours
 const TRACKERS_TTL: number = 2 * 24 * 60 * 60; // 2 days
 
-type CacheMethod = () => any;
+export type CacheMethod = () => any;
 
 class CacheService {
     constructor() {

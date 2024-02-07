@@ -16,11 +16,10 @@ import {ParsedTorrent} from "../interfaces/parsed_torrent";
 import {FileAttributes} from "../../repository/interfaces/file_attributes";
 import {ContentAttributes} from "../../repository/interfaces/content_attributes";
 
+const MIN_SIZE: number = 5 * 1024 * 1024; // 5 MB
+const MULTIPLE_FILES_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
+
 class TorrentFileService {
-    private readonly MIN_SIZE: number = 5 * 1024 * 1024; // 5 MB
-        
-    private readonly MULTIPLE_FILES_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
-    
     private readonly imdb_limiter: Bottleneck = new Bottleneck({
         maxConcurrent: configurationService.metadataConfig.IMDB_CONCURRENT,
         minTime: configurationService.metadataConfig.IMDB_INTERVAL_MS
@@ -58,7 +57,7 @@ class TorrentFileService {
             return parsedInfo.complete || typeof parsedInfo.year === 'string' || /movies/i.test(torrent.title);
         }
         const hasMultipleEpisodes = parsedInfo.complete ||
-            torrent.size > this.MULTIPLE_FILES_SIZE ||
+            torrent.size > MULTIPLE_FILES_SIZE ||
             (parsedInfo.seasons && parsedInfo.seasons.length > 1) ||
             (parsedInfo.episodes && parsedInfo.episodes.length > 1) ||
             (parsedInfo.seasons && !parsedInfo.episodes);
@@ -66,18 +65,18 @@ class TorrentFileService {
         return hasMultipleEpisodes && !hasSingleEpisode;
     }
 
-    private parseSeriesVideos(torrent: ParsedTorrent): FileAttributes[] {
+    private parseSeriesVideos(torrent: ParsedTorrent, videos: FileAttributes[]): FileAttributes[] {
         const parsedTorrentName = parse(torrent.title);
         const hasMovies = parsedTorrentName.complete || !!torrent.title.match(/movies?(?:\W|$)/i);
-        const parsedVideos = torrent.fileCollection.videos.map(video => this.parseSeriesVideo(video));
+        const parsedVideos = videos.map(video => this.parseSeriesVideo(video));
         
         return parsedVideos.map(video => ({ ...video, isMovie: this.isMovieVideo(torrent, video, parsedVideos, hasMovies) }));
     }
 
     private async parseMovieFiles(torrent: ParsedTorrent, metadata: MetadataResponse): Promise<TorrentFileCollection> {
-        const {contents, videos, subtitles} = await this.getMoviesTorrentContent(torrent);
-        const filteredVideos = videos
-            .filter(video => video.size > this.MIN_SIZE)
+        const fileCollection: TorrentFileCollection = await this.getMoviesTorrentContent(torrent);
+        const filteredVideos = fileCollection.videos
+            .filter(video => video.size > MIN_SIZE)
             .filter(video => !this.isFeaturette(video));
         if (this.isSingleMovie(filteredVideos)) {
             const parsedVideos = filteredVideos.map(video => ({
@@ -85,10 +84,10 @@ class TorrentFileService {
                 fileIndex: video.fileIndex,
                 title: video.path || torrent.title,
                 size: video.size || torrent.size,
-                imdbId: torrent.imdbId || metadata && metadata.imdbId,
-                kitsuId: torrent.kitsuId || metadata && metadata.kitsuId
+                imdbId: torrent.imdbId.toString() || metadata && metadata.imdbId.toString(),
+                kitsuId: parseInt(torrent.kitsuId.toString() || metadata && metadata.kitsuId.toString())
             }));
-            return {contents, videos: parsedVideos, subtitles};
+            return {...fileCollection, videos: parsedVideos};
         }
 
         const parsedVideos = await PromiseHelpers.sequence(filteredVideos.map(video => () => this.isFeaturette(video)
@@ -101,25 +100,26 @@ class TorrentFileService {
                 size: video.size,
                 imdbId: video.imdbId,
             })));
-        return {contents, videos: parsedVideos, subtitles};
+        return {...fileCollection, videos: parsedVideos};
     }
 
-    private async parseSeriesFiles(torrent: ParsedTorrent, metadata: MetadataResponse): TorrentFileCollection {
+    private async parseSeriesFiles(torrent: ParsedTorrent, metadata: MetadataResponse): Promise<TorrentFileCollection> {
         const fileCollection: TorrentFileCollection = await this.getSeriesTorrentContent(torrent);
         const parsedVideos: FileAttributes[] = await Promise.resolve(fileCollection.videos)
-            .then(videos => videos.filter(video => videos.length === 1 || video.size > this.MIN_SIZE))
-            .then(videos => this.parseSeriesVideos(torrent))
-            .then(videos => this.decomposeEpisodes(torrent, metadata))
-            .then(videos => this.assignKitsuOrImdbEpisodes(torrent, fileCollection.videos, metadata))
+            .then(videos => videos.filter(video => videos.length === 1 || video.size > MIN_SIZE))
+            .then(videos => this.parseSeriesVideos(torrent, videos))
+            .then(videos => this.decomposeEpisodes(torrent, videos, metadata))
+            .then(videos => this.assignKitsuOrImdbEpisodes(torrent, videos, metadata))
             .then(videos => Promise.all(videos.map(video => video.isMovie
-                ? this.mapSeriesMovie(video, torrent)
-                : this.mapSeriesEpisode(video, torrent, videos))))
+                ? this.mapSeriesMovie(torrent, video)
+                : this.mapSeriesEpisode(torrent, video, videos))))
             .then(videos => videos
-                .map((video: ParsedTorrent) => this.isFeaturette(video) ? this.clearInfoFields(video) : video))
+                .reduce((a, b) => a.concat(b), [])
+                .map(video => this.isFeaturette(video) ? this.clearInfoFields(video) : video));
         return {...torrent.fileCollection, videos: parsedVideos};
     }
 
-    private async getMoviesTorrentContent(torrent: ParsedTorrent) {
+    private async getMoviesTorrentContent(torrent: ParsedTorrent): Promise<TorrentFileCollection> {
         const files = await torrentDownloadService.getTorrentFiles(torrent)
             .catch(error => {
                 if (!this.isPackTorrent(torrent)) {
@@ -149,16 +149,16 @@ class TorrentFileService {
             });
     }
 
-    private async mapSeriesEpisode(file: FileAttributes, torrent: ParsedTorrent, files: ParsedTorrent[]) : Promise<FileAttributes[]> {
+    private async mapSeriesEpisode(torrent: ParsedTorrent, file: FileAttributes, files: FileAttributes[]) : Promise<FileAttributes[]> {
         if (!file.episodes && !file.episodes) {
             if (files.length === 1 || files.some(f => f.episodes || f.episodes) || parse(torrent.title).seasons) {
-                return Promise.resolve({
+                return Promise.resolve([{
                     infoHash: torrent.infoHash,
                     fileIndex: file.fileIndex,
                     title: file.path || file.title,
                     size: file.size,
-                    imdbId: torrent.imdbId || file.imdbId,
-                });
+                    imdbId: torrent.imdbId.toString() || file.imdbId.toString(),
+                }]);
             }
             return Promise.resolve([]);
         }
@@ -438,7 +438,7 @@ class TorrentFileService {
             }, {});
 
         if (metadata.videos.some(video => Number.isInteger(video.season)) || !metadata.imdbId) {
-            files.filter((file => Number.isInteger(torrent.season) && torrent.episodes))
+            files.filter((file => Number.isInteger(file.season) && file.episodes))
                 .map(file => {
                     const seasonMapping = seriesMapping[file.season];
                     const episodeMapping = seasonMapping && seasonMapping[file.episodes[0]];
@@ -471,9 +471,9 @@ class TorrentFileService {
                         const skippedCount = episodes.filter(ep => ep.id === firstKitsuId).length;
                         const seasonEpisodes = files
                             .filter((otherFile: FileAttributes) => otherFile.season === file.season)
-                            .reduce((a, b) => a.episodes.concat(b.episodes), []);
-                        const isAbsoluteOrder = seasonEpisodes.episodes.every(ep => ep > skippedCount && ep <= episodes.length)
-                        const isNormalOrder = seasonEpisodes.episodes.every(ep => ep + skippedCount <= episodes.length)
+                            .reduce((a, b) => a.concat(b.episodes), []);
+                        const isAbsoluteOrder = seasonEpisodes.every(ep => ep > skippedCount && ep <= episodes.length)
+                        const isNormalOrder = seasonEpisodes.every(ep => ep + skippedCount <= episodes.length)
                         if (differentTitlesCount >= 1 && (isAbsoluteOrder || isNormalOrder)) {
                             file.imdbId = metadata.imdbId.toString();
                             file.season = file.season - 1;
