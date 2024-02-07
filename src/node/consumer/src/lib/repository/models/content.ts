@@ -1,6 +1,6 @@
+import {IContentAttributes, IContentCreationAttributes} from "@repository/interfaces/content_attributes";
+import {Torrent} from "@repository/models/torrent";
 import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from 'sequelize-typescript';
-import {IContentAttributes, IContentCreationAttributes} from "../interfaces/content_attributes";
-import {Torrent} from "./torrent";
 
 @Table({modelName: 'content', timestamps: false})
 export class Content extends Model<IContentAttributes, IContentCreationAttributes> {

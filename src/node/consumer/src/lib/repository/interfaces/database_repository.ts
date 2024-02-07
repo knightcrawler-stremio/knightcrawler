@@ -1,15 +1,15 @@
+import {IContentCreationAttributes} from "@repository/interfaces/content_attributes";
+import {IFileAttributes, IFileCreationAttributes} from "@repository/interfaces/file_attributes";
+import {ISubtitleAttributes, ISubtitleCreationAttributes} from "@repository/interfaces/subtitle_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "@repository/interfaces/torrent_attributes";
+import {Content} from "@repository/models/content";
+import {File} from "@repository/models/file";
+import {Provider} from "@repository/models/provider";
+import {SkipTorrent} from "@repository/models/skipTorrent";
+import {Subtitle} from "@repository/models/subtitle";
+import {Torrent} from "@repository/models/torrent";
 import {WhereOptions} from "sequelize";
 import {Model} from "sequelize-typescript";
-import {Content} from "../models/content";
-import {File} from "../models/file";
-import {Provider} from "../models/provider";
-import {SkipTorrent} from "../models/skipTorrent";
-import {Subtitle} from "../models/subtitle";
-import {Torrent} from "../models/torrent";
-import {IContentCreationAttributes} from "./content_attributes";
-import {IFileAttributes, IFileCreationAttributes} from "./file_attributes";
-import {ISubtitleAttributes, ISubtitleCreationAttributes} from "./subtitle_attributes";
-import {ITorrentAttributes, ITorrentCreationAttributes} from "./torrent_attributes";
 
 export interface IDatabaseRepository {
     connect(): Promise<void>;

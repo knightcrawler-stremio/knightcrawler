@@ -1,9 +1,9 @@
+import {ICompositionalRoot} from "@interfaces/composition_root";
+import {IProcessTorrentsJob} from "@interfaces/process_torrents_job";
+import {ITrackerService} from "@interfaces/tracker_service";
+import {IocTypes} from "@models/ioc_types";
+import {IDatabaseRepository} from "@repository/interfaces/database_repository";
 import {inject, injectable} from "inversify";
-import {ICompositionalRoot} from "../interfaces/composition_root";
-import {IProcessTorrentsJob} from "../interfaces/process_torrents_job";
-import {ITrackerService} from "../interfaces/tracker_service";
-import {IDatabaseRepository} from "../repository/interfaces/database_repository";
-import {IocTypes} from "./ioc_types";
 
 @injectable()
 export class CompositionalRoot implements ICompositionalRoot {

@@ -1,5 +1,5 @@
+import {ISkipTorrentAttributes, ISkipTorrentCreationAttributes} from "@repository/interfaces/skip_torrent_attributes";
 import {Column, DataType, Model, Table} from 'sequelize-typescript';
-import {ISkipTorrentAttributes, ISkipTorrentCreationAttributes} from "../interfaces/skip_torrent_attributes";
 
 
 @Table({modelName: 'skip_torrent', timestamps: false})

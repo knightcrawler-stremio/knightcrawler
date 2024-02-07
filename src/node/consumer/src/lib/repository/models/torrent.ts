@@ -1,8 +1,8 @@
+import {ITorrentAttributes, ITorrentCreationAttributes} from "@repository/interfaces/torrent_attributes";
+import {Content} from "@repository/models/content";
+import {File} from "@repository/models/file";
+import {Subtitle} from "@repository/models/subtitle";
 import {Column, DataType, HasMany, Model, Table} from 'sequelize-typescript';
-import {ITorrentAttributes, ITorrentCreationAttributes} from "../interfaces/torrent_attributes";
-import {Content} from "./content";
-import {File} from "./file";
-import {Subtitle} from "./subtitle";
 
 @Table({modelName: 'torrent', timestamps: true})
 

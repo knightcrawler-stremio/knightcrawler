@@ -1,12 +1,12 @@
+import {CacheType} from "@enums/cache_types";
+import {ICacheOptions} from "@interfaces/cache_options";
+import {ICacheService} from "@interfaces/cache_service";
+import {ILoggingService} from "@interfaces/logging_service";
+import {IocTypes} from "@models/ioc_types";
+import {configurationService} from '@services/configuration_service';
 import {mongoDbStore} from '@tirke/node-cache-manager-mongodb'
 import {Cache, createCache, MemoryCache, memoryStore} from 'cache-manager';
 import {inject, injectable} from "inversify";
-import {CacheType} from "../enums/cache_types";
-import {ICacheOptions} from "../interfaces/cache_options";
-import {ICacheService} from "../interfaces/cache_service";
-import {ILoggingService} from "../interfaces/logging_service";
-import {IocTypes} from "../models/ioc_types";
-import {configurationService} from './configuration_service';
 
 const GLOBAL_KEY_PREFIX = 'knightcrawler-consumer';
 const IMDB_ID_PREFIX = `${GLOBAL_KEY_PREFIX}|imdb_id`;

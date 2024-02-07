@@ -1,24 +1,24 @@
+import {PromiseHelpers} from '@helpers/promises_helpers';
+import {ILoggingService} from "@interfaces/logging_service";
+import {IocTypes} from "@models/ioc_types";
+import {IContentCreationAttributes} from "@repository/interfaces/content_attributes";
+import {IDatabaseRepository} from "@repository/interfaces/database_repository";
+import {IFileAttributes, IFileCreationAttributes} from "@repository/interfaces/file_attributes";
+import {ISubtitleAttributes, ISubtitleCreationAttributes} from "@repository/interfaces/subtitle_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "@repository/interfaces/torrent_attributes";
+import {Content} from "@repository/models/content";
+import {File} from "@repository/models/file";
+import {IngestedPage} from "@repository/models/ingestedPage";
+import {IngestedTorrent} from "@repository/models/ingestedTorrent";
+import {Provider} from "@repository/models/provider";
+import {SkipTorrent} from "@repository/models/skipTorrent";
+import {Subtitle} from "@repository/models/subtitle";
+import {Torrent} from "@repository/models/torrent";
+import {configurationService} from '@services/configuration_service';
 import {inject, injectable} from "inversify";
 import moment from 'moment';
 import {literal, Op, WhereOptions} from "sequelize";
 import {Model, Sequelize} from 'sequelize-typescript';
-import {PromiseHelpers} from '../helpers/promises_helpers';
-import {ILoggingService} from "../interfaces/logging_service";
-import {IocTypes} from "../models/ioc_types";
-import {configurationService} from '../services/configuration_service';
-import {IContentCreationAttributes} from "./interfaces/content_attributes";
-import {IDatabaseRepository} from "./interfaces/database_repository";
-import {IFileAttributes, IFileCreationAttributes} from "./interfaces/file_attributes";
-import {ISubtitleAttributes, ISubtitleCreationAttributes} from "./interfaces/subtitle_attributes";
-import {ITorrentAttributes, ITorrentCreationAttributes} from "./interfaces/torrent_attributes";
-import {Content} from "./models/content";
-import {File} from "./models/file";
-import {IngestedPage} from "./models/ingestedPage";
-import {IngestedTorrent} from "./models/ingestedTorrent";
-import {Provider} from "./models/provider";
-import {SkipTorrent} from "./models/skipTorrent";
-import {Subtitle} from "./models/subtitle";
-import {Torrent} from "./models/torrent";
 
 @injectable()
 export class DatabaseRepository implements IDatabaseRepository {

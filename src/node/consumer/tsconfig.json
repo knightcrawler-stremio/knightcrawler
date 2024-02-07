@@ -1,29 +1,36 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "target": "es2020",
-    "module": "es2020",
-    "allowJs": true,
-    "removeComments": true,
-    "resolveJsonModule": true,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "sourceMap": true,
-    "outDir": "dist",
-    "strict": true,
-    "lib": [
-      "es2020"
-    ],
-    "baseUrl": ".",
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "typeRoots": ["node_modules/@types"],
+    "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "moduleResolution": "Node",
-    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "pretty": true,
+    "sourceMap": true,
+    "declaration": true,
+    "outDir": "dist",
+    "allowJs": false,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "importHelpers": true,
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"],
+      "@enums/*": ["lib/enums/*"],
+      "@repository/*": ["lib/repository/*"],
+      "@interfaces/*": ["lib/interfaces/*"],
+      "@models/*": ["lib/models/*"],
+      "@services/*": ["lib/services/*"],
+      "@helpers/*": ["lib/helpers/*"],
+      "@jobs/*": ["lib/jobs/*"]
+    }
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": ["node_modules"],
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

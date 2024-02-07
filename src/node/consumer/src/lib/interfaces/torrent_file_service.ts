@@ -1,5 +1,5 @@
-import {IParsedTorrent} from "./parsed_torrent";
-import {ITorrentFileCollection} from "./torrent_file_collection";
+import {IParsedTorrent} from "@interfaces/parsed_torrent";
+import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
 
 export interface ITorrentFileService {
     parseTorrentFiles(torrent: IParsedTorrent): Promise<ITorrentFileCollection>;

@@ -1,5 +1,5 @@
-import {IMetaDataQuery} from "./metadata_query";
-import {IMetadataResponse} from "./metadata_response";
+import {IMetaDataQuery} from "@interfaces/metadata_query";
+import {IMetadataResponse} from "@interfaces/metadata_response";
 
 export interface IMetadataService {
     getKitsuId(info: IMetaDataQuery): Promise<number | Error>;

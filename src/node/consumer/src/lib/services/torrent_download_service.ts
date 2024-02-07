@@ -1,17 +1,17 @@
+import {ExtensionHelpers} from '@helpers/extension_helpers';
+import {ILoggingService} from "@interfaces/logging_service";
+import {IParsedTorrent} from "@interfaces/parsed_torrent";
+import {ITorrentDownloadService} from "@interfaces/torrent_download_service";
+import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
+import {IocTypes} from "@models/ioc_types";
+import {IContentAttributes} from "@repository/interfaces/content_attributes";
+import {IFileAttributes} from "@repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "@repository/interfaces/subtitle_attributes";
+import {configurationService} from '@services/configuration_service';
 import {inject, injectable} from "inversify";
 import {encode} from 'magnet-uri';
 import {parse} from "parse-torrent-title";
 import WebTorrent from "webtorrent";
-import {ExtensionHelpers} from '../helpers/extension_helpers';
-import {ILoggingService} from "../interfaces/logging_service";
-import {IParsedTorrent} from "../interfaces/parsed_torrent";
-import {ITorrentDownloadService} from "../interfaces/torrent_download_service";
-import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {IocTypes} from "../models/ioc_types";
-import {IContentAttributes} from "../repository/interfaces/content_attributes";
-import {IFileAttributes} from "../repository/interfaces/file_attributes";
-import {ISubtitleAttributes} from "../repository/interfaces/subtitle_attributes";
-import {configurationService} from './configuration_service';
 
 interface ITorrentFile {
     name: string;

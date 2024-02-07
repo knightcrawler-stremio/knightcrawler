@@ -1,6 +1,6 @@
+import {ISubtitleAttributes, ISubtitleCreationAttributes} from "@repository/interfaces/subtitle_attributes";
+import {File} from "@repository/models/file";
 import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from 'sequelize-typescript';
-import {ISubtitleAttributes, ISubtitleCreationAttributes} from "../interfaces/subtitle_attributes";
-import {File} from "./file";
 
 const indexes = [
     {

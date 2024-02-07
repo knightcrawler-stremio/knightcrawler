@@ -1,10 +1,10 @@
+import {ICacheService} from "@interfaces/cache_service";
+import {ILoggingService} from "@interfaces/logging_service";
+import {ITrackerService} from "@interfaces/tracker_service";
+import {IocTypes} from "@models/ioc_types";
+import {configurationService} from '@services/configuration_service';
 import axios, {AxiosResponse} from 'axios';
 import {inject, injectable} from "inversify";
-import {ICacheService} from "../interfaces/cache_service";
-import {ILoggingService} from "../interfaces/logging_service";
-import {ITrackerService} from "../interfaces/tracker_service";
-import {IocTypes} from "../models/ioc_types";
-import {configurationService} from './configuration_service';
 
 @injectable()
 export class TrackerService implements ITrackerService {

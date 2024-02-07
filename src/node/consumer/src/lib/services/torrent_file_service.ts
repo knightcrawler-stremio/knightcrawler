@@ -1,24 +1,24 @@
+import {TorrentType} from '@enums/torrent_types';
+import {ExtensionHelpers} from '@helpers/extension_helpers';
+import {PromiseHelpers} from '@helpers/promises_helpers';
+import {ICommonVideoMetadata} from "@interfaces/common_video_metadata";
+import {ILoggingService} from "@interfaces/logging_service";
+import {IMetaDataQuery} from "@interfaces/metadata_query";
+import {IMetadataResponse} from "@interfaces/metadata_response";
+import {IMetadataService} from "@interfaces/metadata_service";
+import {IParsedTorrent} from "@interfaces/parsed_torrent";
+import {ISeasonEpisodeMap} from "@interfaces/season_episode_map";
+import {ITorrentDownloadService} from "@interfaces/torrent_download_service";
+import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
+import {ITorrentFileService} from "@interfaces/torrent_file_service";
+import {IocTypes} from "@models/ioc_types";
+import {IContentAttributes} from "@repository/interfaces/content_attributes";
+import {IFileAttributes} from "@repository/interfaces/file_attributes";
+import {configurationService} from '@services/configuration_service';
 import Bottleneck from 'bottleneck';
 import {inject, injectable} from "inversify";
 import moment from 'moment';
 import {parse} from 'parse-torrent-title';
-import {TorrentType} from '../enums/torrent_types';
-import {ExtensionHelpers} from '../helpers/extension_helpers';
-import {PromiseHelpers} from '../helpers/promises_helpers';
-import {ICommonVideoMetadata} from "../interfaces/common_video_metadata";
-import {ILoggingService} from "../interfaces/logging_service";
-import {IMetaDataQuery} from "../interfaces/metadata_query";
-import {IMetadataResponse} from "../interfaces/metadata_response";
-import {IMetadataService} from "../interfaces/metadata_service";
-import {IParsedTorrent} from "../interfaces/parsed_torrent";
-import {ISeasonEpisodeMap} from "../interfaces/season_episode_map";
-import {ITorrentDownloadService} from "../interfaces/torrent_download_service";
-import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {ITorrentFileService} from "../interfaces/torrent_file_service";
-import {IocTypes} from "../models/ioc_types";
-import {IContentAttributes} from "../repository/interfaces/content_attributes";
-import {IFileAttributes} from "../repository/interfaces/file_attributes";
-import {configurationService} from './configuration_service';
 
 const MIN_SIZE: number = 5 * 1024 * 1024; // 5 MB
 const MULTIPLE_FILES_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB

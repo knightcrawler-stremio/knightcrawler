@@ -1,24 +1,24 @@
+import {TorrentType} from '@enums/torrent_types';
+import {PromiseHelpers} from '@helpers/promises_helpers';
+import {ILoggingService} from "@interfaces/logging_service";
+import {IMetaDataQuery} from "@interfaces/metadata_query";
+import {IMetadataService} from "@interfaces/metadata_service";
+import {IParsedTorrent} from "@interfaces/parsed_torrent";
+import {ITorrentEntriesService} from "@interfaces/torrent_entries_service";
+import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
+import {ITorrentFileService} from "@interfaces/torrent_file_service";
+import {ITorrentSubtitleService} from "@interfaces/torrent_subtitle_service";
+import {IocTypes} from "@models/ioc_types";
+import {IDatabaseRepository} from "@repository/interfaces/database_repository";
+import {IFileCreationAttributes} from "@repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "@repository/interfaces/subtitle_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "@repository/interfaces/torrent_attributes";
+import {File} from "@repository/models/file";
+import {SkipTorrent} from "@repository/models/skipTorrent";
+import {Subtitle} from "@repository/models/subtitle";
+import {Torrent} from "@repository/models/torrent";
 import {inject, injectable} from "inversify";
 import {parse} from 'parse-torrent-title';
-import {TorrentType} from '../enums/torrent_types';
-import {PromiseHelpers} from '../helpers/promises_helpers';
-import {ILoggingService} from "../interfaces/logging_service";
-import {IMetaDataQuery} from "../interfaces/metadata_query";
-import {IMetadataService} from "../interfaces/metadata_service";
-import {IParsedTorrent} from "../interfaces/parsed_torrent";
-import {ITorrentEntriesService} from "../interfaces/torrent_entries_service";
-import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {ITorrentFileService} from "../interfaces/torrent_file_service";
-import {ITorrentSubtitleService} from "../interfaces/torrent_subtitle_service";
-import {IocTypes} from "../models/ioc_types";
-import {IDatabaseRepository} from "../repository/interfaces/database_repository";
-import {IFileCreationAttributes} from "../repository/interfaces/file_attributes";
-import {ISubtitleAttributes} from "../repository/interfaces/subtitle_attributes";
-import {ITorrentAttributes, ITorrentCreationAttributes} from "../repository/interfaces/torrent_attributes";
-import {File} from "../repository/models/file";
-import {SkipTorrent} from "../repository/models/skipTorrent";
-import {Subtitle} from "../repository/models/subtitle";
-import {Torrent} from "../repository/models/torrent";
 
 @injectable()
 export class TorrentEntriesService implements ITorrentEntriesService {

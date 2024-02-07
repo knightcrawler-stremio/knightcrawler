@@ -1,6 +1,6 @@
-import {TorrentType} from "../enums/torrent_types";
-import {IParseTorrentTitleResult} from "./parse_torrent_title_result";
-import {ITorrentFileCollection} from "./torrent_file_collection";
+import {TorrentType} from "@enums/torrent_types";
+import {IParseTorrentTitleResult} from "@interfaces/parse_torrent_title_result";
+import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
 
 export interface IParsedTorrent extends IParseTorrentTitleResult {
     size?: number;

@@ -1,5 +1,5 @@
+import {IIngestedPageAttributes, IIngestedPageCreationAttributes} from "@repository/interfaces/ingested_page_attributes";
 import {Column, DataType, Model, Table} from 'sequelize-typescript';
-import {IIngestedPageAttributes, IIngestedPageCreationAttributes} from "../interfaces/ingested_page_attributes";
 
 const indexes = [
     {

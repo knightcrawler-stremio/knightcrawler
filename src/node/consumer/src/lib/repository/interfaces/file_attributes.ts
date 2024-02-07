@@ -1,6 +1,6 @@
+import {IParseTorrentTitleResult} from "@interfaces/parse_torrent_title_result";
+import {ISubtitleAttributes} from "@repository/interfaces/subtitle_attributes";
 import {Optional} from "sequelize";
-import {IParseTorrentTitleResult} from "../../interfaces/parse_torrent_title_result";
-import {ISubtitleAttributes} from "./subtitle_attributes";
 
 export interface IFileAttributes extends IParseTorrentTitleResult {
     id?: number;

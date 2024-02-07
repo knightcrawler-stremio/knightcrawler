@@ -1,7 +1,7 @@
+import {IFileAttributes, IFileCreationAttributes} from "@repository/interfaces/file_attributes";
+import {Subtitle} from "@repository/models/subtitle";
+import {Torrent} from "@repository/models/torrent";
 import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from 'sequelize-typescript';
-import {IFileAttributes, IFileCreationAttributes} from "../interfaces/file_attributes";
-import {Subtitle} from "./subtitle";
-import {Torrent} from "./torrent";
 
 const indexes = [
     {

@@ -1,7 +1,7 @@
+import {IContentAttributes} from "@repository/interfaces/content_attributes";
+import {IFileAttributes} from "@repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "@repository/interfaces/subtitle_attributes";
 import {Optional} from "sequelize";
-import {IContentAttributes} from "./content_attributes";
-import {IFileAttributes} from "./file_attributes";
-import {ISubtitleAttributes} from "./subtitle_attributes";
 
 export interface ITorrentAttributes {
     infoHash: string;

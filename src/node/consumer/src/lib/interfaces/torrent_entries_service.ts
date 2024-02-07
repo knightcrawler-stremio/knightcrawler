@@ -1,7 +1,7 @@
-import {ITorrentAttributes} from "../repository/interfaces/torrent_attributes";
-import {SkipTorrent} from "../repository/models/skipTorrent";
-import {Torrent} from "../repository/models/torrent";
-import {IParsedTorrent} from "./parsed_torrent";
+import {IParsedTorrent} from "@interfaces/parsed_torrent";
+import {ITorrentAttributes} from "@repository/interfaces/torrent_attributes";
+import {SkipTorrent} from "@repository/models/skipTorrent";
+import {Torrent} from "@repository/models/torrent";
 
 export interface ITorrentEntriesService {
     createTorrentEntry(torrent: IParsedTorrent, overwrite: boolean): Promise<void>;

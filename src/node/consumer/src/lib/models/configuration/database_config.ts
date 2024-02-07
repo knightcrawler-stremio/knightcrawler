@@ -1,4 +1,4 @@
-import {BooleanHelpers} from "../../helpers/boolean_helpers";
+import {BooleanHelpers} from "@helpers/boolean_helpers";
 
 export const databaseConfig = {
     POSTGRES_HOST: process.env.POSTGRES_HOST || 'postgres',

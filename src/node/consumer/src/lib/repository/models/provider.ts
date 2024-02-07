@@ -1,5 +1,5 @@
+import {IProviderAttributes, IProviderCreationAttributes} from "@repository/interfaces/provider_attributes";
 import {Column, DataType, Model, Table} from 'sequelize-typescript';
-import {IProviderAttributes, IProviderCreationAttributes} from "../interfaces/provider_attributes";
 
 @Table({modelName: 'provider', timestamps: false})
 export class Provider extends Model<IProviderAttributes, IProviderCreationAttributes> {

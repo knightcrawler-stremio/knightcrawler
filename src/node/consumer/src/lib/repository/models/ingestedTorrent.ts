@@ -1,5 +1,5 @@
+import {IIngestedTorrentAttributes, IIngestedTorrentCreationAttributes} from "@repository/interfaces/ingested_torrent_attributes";
 import {Column, DataType, Model, Table} from 'sequelize-typescript';
-import {IIngestedTorrentAttributes, IIngestedTorrentCreationAttributes} from "../interfaces/ingested_torrent_attributes";
 
 const indexes = [
     {

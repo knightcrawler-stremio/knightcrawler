@@ -1,4 +1,4 @@
-import {BooleanHelpers} from "../../helpers/boolean_helpers";
+import {BooleanHelpers} from "@helpers/boolean_helpers";
 
 export const cacheConfig = {
     MONGODB_HOST: process.env.MONGODB_HOST || 'mongodb',

@@ -1,4 +1,4 @@
-import {BooleanHelpers} from "../../helpers/boolean_helpers";
+import {BooleanHelpers} from "@helpers/boolean_helpers";
 
 export const trackerConfig = {
     TRACKERS_URL: process.env.TRACKERS_URL || 'https://ngosang.github.io/trackerslist/trackers_all.txt',

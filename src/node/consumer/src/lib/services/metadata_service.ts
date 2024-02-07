@@ -1,20 +1,17 @@
-
+import {TorrentType} from '@enums/torrent_types';
+import {ICacheService} from "@interfaces/cache_service";
+import {ICinemetaJsonResponse} from "@interfaces/cinemeta_metadata";
+import {ICommonVideoMetadata} from "@interfaces/common_video_metadata";
+import {IKitsuCatalogJsonResponse} from "@interfaces/kitsu_catalog_metadata";
+import {IKitsuJsonResponse} from "@interfaces/kitsu_metadata";
+import {IMetaDataQuery} from "@interfaces/metadata_query";
+import {IMetadataResponse} from "@interfaces/metadata_response";
+import {IMetadataService} from "@interfaces/metadata_service";
+import {IocTypes} from "@models/ioc_types";
 import axios, {AxiosResponse} from 'axios';
 import {ResultTypes, search} from 'google-sr';
 import {inject, injectable} from "inversify";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
 import nameToImdb from 'name-to-imdb';
-import {TorrentType} from '../enums/torrent_types';
-import {ICacheService} from "../interfaces/cache_service";
-import {ICinemetaJsonResponse} from "../interfaces/cinemeta_metadata";
-import {ICommonVideoMetadata} from "../interfaces/common_video_metadata";
-import {IKitsuCatalogJsonResponse} from "../interfaces/kitsu_catalog_metadata";
-import {IKitsuJsonResponse} from "../interfaces/kitsu_metadata";
-import {IMetaDataQuery} from "../interfaces/metadata_query";
-import {IMetadataResponse} from "../interfaces/metadata_response";
-import {IMetadataService} from "../interfaces/metadata_service";
-import {IocTypes} from "../models/ioc_types";
 
 const CINEMETA_URL = 'https://v3-cinemeta.strem.io';
 const KITSU_URL = 'https://anime-kitsu.strem.fun';

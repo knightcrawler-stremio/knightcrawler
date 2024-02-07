@@ -1,4 +1,4 @@
-import {IFileAttributes} from "../repository/interfaces/file_attributes";
+import {IFileAttributes} from "@repository/interfaces/file_attributes";
 
 export interface IParseTorrentTitleResult {
     title?: string;

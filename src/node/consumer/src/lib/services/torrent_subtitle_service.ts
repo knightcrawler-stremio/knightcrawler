@@ -1,9 +1,9 @@
+import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
+import {ITorrentSubtitleService} from "@interfaces/torrent_subtitle_service";
+import {IFileAttributes} from "@repository/interfaces/file_attributes";
+import {ISubtitleAttributes} from "@repository/interfaces/subtitle_attributes";
 import {injectable} from "inversify";
 import {parse} from 'parse-torrent-title';
-import {ITorrentFileCollection} from "../interfaces/torrent_file_collection";
-import {ITorrentSubtitleService} from "../interfaces/torrent_subtitle_service";
-import {IFileAttributes} from "../repository/interfaces/file_attributes";
-import {ISubtitleAttributes} from "../repository/interfaces/subtitle_attributes";
 
 @injectable()
 export class TorrentSubtitleService implements ITorrentSubtitleService {

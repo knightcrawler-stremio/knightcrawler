@@ -1,6 +1,6 @@
+import {ILoggingService} from "@interfaces/logging_service";
 import {injectable} from "inversify";
 import {Logger, pino} from "pino";
-import {ILoggingService} from "../interfaces/logging_service";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 @injectable()

@@ -1,4 +1,4 @@
-import {CacheMethod} from "../services/cache_service";
+import {CacheMethod} from "@services/cache_service";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ICacheService {

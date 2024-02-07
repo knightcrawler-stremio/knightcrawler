@@ -1,4 +1,4 @@
-import {IKitsuLink, IKitsuTrailer} from "./kitsu_metadata";
+import {IKitsuLink, IKitsuTrailer} from "@interfaces/kitsu_metadata";
 
 export interface IKitsuCatalogJsonResponse {
     metas: IKitsuCatalogMetaData[];
