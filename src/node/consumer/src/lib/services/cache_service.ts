@@ -1,4 +1,4 @@
-import {Cache, createCache, memoryStore} from 'cache-manager';
+import {Cache, createCache, MemoryCache, memoryStore, Store} from 'cache-manager';
 import {mongoDbStore} from '@tirke/node-cache-manager-mongodb'
 import {configurationService} from './configuration_service';
 import {CacheType} from "../enums/cache_types";
@@ -23,9 +23,12 @@ export type CacheMethod = () => any;
 @injectable()
 export class CacheService implements ICacheService {
     private logger: ILoggingService;
+    private readonly memoryCache: MemoryCache;
+    private readonly remoteCache: Cache<Store> | MemoryCache;
+    
     constructor(@inject(IocTypes.ILoggingService) logger: ILoggingService) {
         this.logger = logger;
-        if (!configurationService.cacheConfig.NO_CACHE) {
+        if (configurationService.cacheConfig.NO_CACHE) {
             this.logger.info('Cache is disabled');
             return;
         }
@@ -49,7 +52,7 @@ export class CacheService implements ICacheService {
     private initiateMemoryCache = () =>
         createCache(memoryStore(), {
             ttl: MEMORY_TTL
-        }) as Cache;
+        });
 
     private initiateMongoCache = () => {
         const store = mongoDbStore({
@@ -76,7 +79,7 @@ export class CacheService implements ICacheService {
         return configurationService.cacheConfig.MONGO_URI ? this.initiateMongoCache() : this.initiateMemoryCache();
     }
 
-    private getCacheType = (cacheType: CacheType): typeof this.memoryCache | null => {
+    private getCacheType = (cacheType: CacheType): MemoryCache | Cache<Store> => {
         switch (cacheType) {
             case CacheType.Memory:
                 return this.memoryCache;
@@ -86,9 +89,6 @@ export class CacheService implements ICacheService {
                 return null;
         }
     }
-
-    private readonly memoryCache: Cache;
-    private readonly remoteCache: Cache;
 
     private cacheWrap = async (
         cacheType: CacheType, key: string, method: CacheMethod, options: ICacheOptions): Promise<any> => {
