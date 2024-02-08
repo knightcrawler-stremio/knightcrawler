@@ -4,7 +4,7 @@ import { getSources } from './magnetHelper.js';
 import { getSubtitles } from './subtitles.js';
 import { Type } from './types.js';
 
-const ADDON_NAME = 'knightcrawler';
+const ADDON_NAME = 'ᴋɴɪɢʜᴛᴄʀᴀᴡʟᴇʀ';
 const SIZE_DELTA = 0.02;
 const UNKNOWN_SIZE = 300000000;
 const CAM_SOURCES = ['CAM', 'TeleSync', 'TeleCine', 'SCR'];
