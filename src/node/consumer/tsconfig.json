@@ -31,6 +31,6 @@
       "@jobs/*": ["lib/jobs/*"]
     }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src", "test"],
   "exclude": ["node_modules"]
 }
