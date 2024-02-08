@@ -1,3 +1,5 @@
+import "reflect-metadata"; // required
+
 describe('Configuration Tests', () => {
     let configurationService;
     beforeAll(async () => {
