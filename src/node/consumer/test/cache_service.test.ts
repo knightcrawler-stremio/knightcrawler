@@ -2,8 +2,6 @@ import "reflect-metadata"; // required
 import { ILoggingService } from '@interfaces/logging_service';
 import { CacheService, CacheMethod } from '@services/cache_service';
 
-process.env.LOG_LEVEL = 'debug';
-
 jest.mock('@services/configuration_service', () => {
     return {
         configurationService: {
@@ -43,12 +41,13 @@ jest.mock('@tirke/node-cache-manager-mongodb', () => {
     };
 });
 
-describe('CacheService', () => {
+describe('CacheService Tests', () => {
     let cacheService: CacheService,
      loggingService: ILoggingService,
      cacheMethod: CacheMethod;
 
     beforeEach(() => {
+        process.env.LOG_LEVEL = 'debug';
         loggingService = jest.requireMock<ILoggingService>('@services/logging_service');
         cacheMethod = jest.fn().mockResolvedValue({});
         cacheService = new CacheService(loggingService);

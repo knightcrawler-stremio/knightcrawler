@@ -47,7 +47,7 @@ jest.mock('@services/torrent_processing_service', () => {
     }
 })
 
-describe('ProcessTorrentsJob', () => {
+describe('ProcessTorrentsJob Tests', () => {
    let  processTorrentsJob: ProcessTorrentsJob,
         loggingService: ILoggingService,
         torrentProcessingService: ITorrentProcessingService;
