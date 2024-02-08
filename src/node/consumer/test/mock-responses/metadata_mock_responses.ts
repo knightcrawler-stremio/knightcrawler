@@ -1,9 +1,9 @@
 import {http, HttpResponse} from "msw";
-import cinemetaQuery from "../assets/cinemeta-query-response.json";
-import cinemetaFlashFull from "../assets/flash-episode-list.json";
-import kitsuNarutoFull from "../assets/kitsu-naruto-full.json";
-import imdbTheFlash from "../assets/name-to-imdb-flash.json";
-import kitsuNarutoSearchId from "../assets/test-kitsu-search-id-naruto.json";
+import cinemetaQuery from "./assets/cinemeta-query-response.json";
+import cinemetaFlashFull from "./assets/flash-episode-list.json";
+import kitsuNarutoFull from "./assets/kitsu-naruto-full.json";
+import imdbTheFlash from "./assets/name-to-imdb-flash.json";
+import kitsuNarutoSearchId from "./assets/test-kitsu-search-id-naruto.json";
 
 const kitsuNarutoIdSearchTestResponse = http.get('https://anime-kitsu.strem.fun/catalog/series/kitsu-anime-list/search=naruto%202002%20S1.json', () => {
     return HttpResponse.json(kitsuNarutoSearchId);
