@@ -15,7 +15,7 @@ import nameToImdb from 'name-to-imdb';
 
 const CINEMETA_URL = 'https://v3-cinemeta.strem.io';
 const KITSU_URL = 'https://anime-kitsu.strem.fun';
-const TIMEOUT = 20000;
+const TIMEOUT = 60000;
 
 @injectable()
 export class MetadataService implements IMetadataService {
@@ -33,7 +33,7 @@ export class MetadataService implements IMetadataService {
         const query = encodeURIComponent(key);
 
         return this.cacheService.cacheWrapKitsuId(key,
-            () => axios.get(`${KITSU_URL}/catalog/series/kitsu-anime-list/search=${query}.json`, {timeout: 60000})
+            () => axios.get(`${KITSU_URL}/catalog/series/kitsu-anime-list/search=${query}.json`, {timeout: TIMEOUT})
                 .then((response) => {
                     const body = response.data as IKitsuCatalogJsonResponse;
                     if (body && body.metas && body.metas.length) {
@@ -75,14 +75,14 @@ export class MetadataService implements IMetadataService {
         return this.cacheService.cacheWrapMetadata(key.toString(), () => {
             switch (isImdbId) {
                 case true:
-                    return this.requestCinemetaMetadata(`${CINEMETA_URL}/meta/imdb/${key}.json`);
+                    return this.requestMetadata(`${CINEMETA_URL}/meta/imdb/${key}.json`, this.handleCinemetaResponse);
                 default:
-                    return this.requestKitsuMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
+                    return this.requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`, this.handleKitsuResponse)
             }})
             .catch(() => {
                 // try different type in case there was a mismatch
                 const otherType = metaType === TorrentType.Movie ? TorrentType.Series : TorrentType.Movie;
-                return this.requestCinemetaMetadata(`${CINEMETA_URL}/meta/${otherType}/${key}.json`)
+                return this.requestMetadata(`${CINEMETA_URL}/meta/${otherType}/${key}.json`, this.handleCinemetaResponse)
             })
             .catch((error) => {
                 throw new Error(`failed metadata query ${key} due: ${error.message}`);
@@ -90,12 +90,16 @@ export class MetadataService implements IMetadataService {
     };
 
     public isEpisodeImdbId = async (imdbId: string | undefined): Promise<boolean> => {
-        if (!imdbId) {
+        if (!imdbId || !imdbId.toString().match(/^tt\d+$/)) {
             return false;
         }
-        return axios.get(`https://www.imdb.com/title/${imdbId}/`, {timeout: 10000})
-            .then(response => !!(response.data && response.data.includes('video.episode')))
-            .catch(() => false);
+
+        try {
+            const response = await axios.get(`https://www.imdb.com/title/${imdbId}/`, {timeout: TIMEOUT});
+            return response.data.includes('video.episode');
+        } catch (error) {
+            return false;
+        }
     };
 
     public escapeTitle = (title: string): string => title.toLowerCase()
@@ -108,72 +112,78 @@ export class MetadataService implements IMetadataService {
         .replace(/\s{2,}/, ' ') // replace multiple spaces
         .trim();
 
-    private requestKitsuMetadata = async (url: string): Promise<IMetadataResponse> => {
-        const response = await axios.get(url, {timeout: TIMEOUT});
-        const body = response.data;
-        return this.handleKitsuResponse(body as IKitsuJsonResponse);
+    private requestMetadata = async (url: string, handler: (body: unknown) => IMetadataResponse): Promise<IMetadataResponse> => {
+        try {
+            const response = await axios.get(url, { timeout: TIMEOUT });
+            const body = response.data;
+            return handler(body);
+        } catch (error) {
+            throw new Error(`HTTP error! status: ${error.response?.status}`);
+        }
     };
 
-    private requestCinemetaMetadata = async (url: string): Promise<IMetadataResponse> => {
-        const response = await axios.get(url, {timeout: TIMEOUT});
-        const body = response.data;
-        return this.handleCinemetaResponse(body as ICinemetaJsonResponse);
+    private handleCinemetaResponse = (response: unknown): IMetadataResponse => {
+        const body = response as ICinemetaJsonResponse
+        
+        return ({
+            imdbId: parseInt(body.meta?.id || '0'),
+            type: body.meta?.type,
+            title: body.meta?.name,
+            year: parseInt(body.meta?.year || '0'),
+            country: body.meta?.country,
+            genres: body.meta?.genres,
+            status: body.meta?.status,
+            videos: body.meta?.videos
+                ? body.meta.videos.map(video => ({
+                    name: video.name,
+                    season: video.season,
+                    episode: video.episode,
+                    imdbSeason: video.season,
+                    imdbEpisode: video.episode,
+                }))
+                : [],
+            episodeCount: body.meta?.videos
+                ? this.getEpisodeCount(body.meta.videos)
+                : [],
+            totalCount: body.meta?.videos
+                ? body.meta.videos.filter(
+                    entry => entry.season !== 0 && entry.episode !== 0
+                ).length
+                : 0,
+        });
     };
 
-    private handleCinemetaResponse = (body: ICinemetaJsonResponse): IMetadataResponse => ({
-        imdbId: parseInt(body.meta?.id || '0'),
-        type: body.meta?.type,
-        title: body.meta?.name,
-        year: parseInt(body.meta?.year || '0'),
-        country: body.meta?.country,
-        genres: body.meta?.genres,
-        status: body.meta?.status,
-        videos: body.meta?.videos
-            ? body.meta.videos.map(video => ({
-                name: video.name,
-                season: video.season,
-                episode: video.episode,
-                imdbSeason: video.season,
-                imdbEpisode: video.episode,
-            }))
-            : [],
-        episodeCount: body.meta?.videos
-            ? this.getEpisodeCount(body.meta.videos)
-            : [],
-        totalCount: body.meta?.videos
-            ? body.meta.videos.filter(
-                entry => entry.season !== 0 && entry.episode !== 0
-            ).length
-            : 0,
-    });
-
-    private handleKitsuResponse = (body: IKitsuJsonResponse): IMetadataResponse => ({
-        kitsuId: parseInt(body.meta?.kitsu_id || '0'),
-        type: body.meta?.type,
-        title: body.meta?.name,
-        year: parseInt(body.meta?.year || '0'),
-        country: body.meta?.country,
-        genres: body.meta?.genres,
-        status: body.meta?.status,
-        videos: body.meta?.videos
-            ? body.meta?.videos.map(video => ({
-                name: video.title,
-                season: video.season,
-                episode: video.episode,
-                kitsuId: video.id,
-                kitsuEpisode: video.episode,
-                released: video.released,
-            }))
-            : [],
-        episodeCount: body.meta?.videos
-            ? this.getEpisodeCount(body.meta.videos)
-            : [],
-        totalCount: body.meta?.videos
-            ? body.meta.videos.filter(
-                entry => entry.season !== 0 && entry.episode !== 0
-            ).length
-            : 0,
-    });
+    private handleKitsuResponse = (response: unknown): IMetadataResponse => {
+        const body = response as IKitsuJsonResponse;
+        
+        return ({
+            kitsuId: parseInt(body.meta?.kitsu_id || '0'),
+            type: body.meta?.type,
+            title: body.meta?.name,
+            year: parseInt(body.meta?.year || '0'),
+            country: body.meta?.country,
+            genres: body.meta?.genres,
+            status: body.meta?.status,
+            videos: body.meta?.videos
+                ? body.meta?.videos.map(video => ({
+                    name: video.title,
+                    season: video.season,
+                    episode: video.episode,
+                    kitsuId: video.id,
+                    kitsuEpisode: video.episode,
+                    released: video.released,
+                }))
+                : [],
+            episodeCount: body.meta?.videos
+                ? this.getEpisodeCount(body.meta.videos)
+                : [],
+            totalCount: body.meta?.videos
+                ? body.meta.videos.filter(
+                    entry => entry.season !== 0 && entry.episode !== 0
+                ).length
+                : 0,
+        });
+    };
 
     private getEpisodeCount = (videos: ICommonVideoMetadata[]): number[] =>
         Object.values(

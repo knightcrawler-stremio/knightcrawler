@@ -79,12 +79,38 @@ describe('MetadataService Tests', () => {
         expect(body.videos.length).toBe(22);
     });
 
-    it("should check if imdb id is an episode", async () => {
+    it("should get imdb id the flash 2014", async () => {
+        const result = await metadataService.getImdbId({
+            title: 'The Flash',
+            year: 2014,
+            type: 'series'
+        });
+        expect(mockCacheService.cacheWrapImdbId).toHaveBeenCalledWith('the flash_2014_series', expect.any(Function));
+        expect(result).not.toBeNull();
+        expect(result).toEqual('tt3107288');
+    });
+
+    it("should return false if imdb id is not provided", async () => {
+        const result = await metadataService.isEpisodeImdbId(undefined);
+        expect(result).toBe(false);
+    });
+
+    it("should return false if kitsu id is provided", async () => {
+        const result = await metadataService.isEpisodeImdbId("kitsu:11");
+        expect(result).toBe(false);
+    });
+
+    it("should escape title naruto, with year", () => {
+        const result = metadataService.escapeTitle('Naruto: Shippuden | 2002');
+        expect(result).toEqual('naruto shippuden 2002');
+    });
+
+    it("should check if imdb id is an episode: the flash 1990", async () => {
         const result = await metadataService.isEpisodeImdbId('tt0579968');
         expect(result).toBe(true);
     });
 
-    it("should escape title", () => {
+    it("should escape title naruto, no year", () => {
         const result = metadataService.escapeTitle('Naruto: Shippuden');
         expect(result).toEqual('naruto shippuden');
     });
