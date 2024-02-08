@@ -45,7 +45,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             this.logger.warn(`No title found for ${torrent.provider} [${torrent.infoHash}]`);
             return;
         }
-        
+
         const titleInfo = parse(torrent.title);
 
         if (!torrent.imdbId && torrent.type !== TorrentType.Anime) {
@@ -98,7 +98,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             contents: fileCollection.contents,
             subtitles: fileCollection.subtitles
         });
-        
+
         return this.repository.createTorrent(newTorrent)
             .then(() => PromiseHelpers.sequence(fileCollection.videos!.map(video => () => {
                 const newVideo: IFileCreationAttributes = {...video, infoHash: video.infoHash, title: video.title};
@@ -110,22 +110,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             .then(() => this.logger.info(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
     };
 
-    private assignKitsuId = async (kitsuQuery: IMetaDataQuery, torrent: IParsedTorrent): Promise<void> => {
-        await this.metadataService.getKitsuId(kitsuQuery)
-            .then((result: number | Error) => {
-                if (typeof result === 'number') {
-                    torrent.kitsuId = result;
-                } else {
-                    torrent.kitsuId = 0;
-                }
-            })
-            .catch((error: Error) => {
-                this.logger.debug(`Failed getting kitsuId for ${torrent.title}`, error.message);
-                torrent.kitsuId = 0;
-            });
-    };
-
-    public createSkipTorrentEntry: (torrent: Torrent) => Promise<[SkipTorrent, boolean | null]> = async (torrent: Torrent)=> this.repository.createSkipTorrent(torrent.dataValues);
+    public createSkipTorrentEntry: (torrent: Torrent) => Promise<[SkipTorrent, boolean | null]> = async (torrent: Torrent) => this.repository.createSkipTorrent(torrent.dataValues);
 
     public getStoredTorrentEntry = async (torrent: Torrent): Promise<Torrent | SkipTorrent | null | undefined> => this.repository.getSkipTorrent(torrent.infoHash)
         .catch(() => this.repository.getTorrent(torrent.dataValues))
@@ -156,7 +141,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             await existingTorrent.save();
             this.logger.debug(`Updated [${existingTorrent.infoHash}] ${existingTorrent.title} language to ${torrent.languages}`);
         }
-        
+
         return this.createTorrentContents(existingTorrent)
             .then(() => this.updateTorrentSeeders(existingTorrent.dataValues))
             .then(() => Promise.resolve(true))
@@ -177,7 +162,10 @@ export class TorrentEntriesService implements ITorrentEntriesService {
         const kitsuId: number = PromiseHelpers.mostCommonValue(storedVideos.map(stored => stored.kitsuId || 0));
 
         const fileCollection: ITorrentFileCollection = await this.fileService.parseTorrentFiles(torrent)
-            .then(torrentContents => notOpenedVideo ? torrentContents : {...torrentContents, videos: storedVideos.map(video => video.dataValues)})
+            .then(torrentContents => notOpenedVideo ? torrentContents : {
+                ...torrentContents,
+                videos: storedVideos.map(video => video.dataValues)
+            })
             .then(torrentContents => this.subtitleService.assignSubtitles(torrentContents))
             .then(torrentContents => this.assignMetaIds(torrentContents, imdbId, kitsuId))
             .catch(error => {
@@ -230,17 +218,32 @@ export class TorrentEntriesService implements ITorrentEntriesService {
         if (!(torrent.infoHash || (torrent.provider && torrent.torrentId)) || !Number.isInteger(torrent.seeders)) {
             return [0];
         }
-        
+
         if (torrent.seeders === undefined) {
             this.logger.warn(`Seeders not found for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`);
             return [0];
         }
-        
-        
+
+
         return this.repository.setTorrentSeeders(torrent, torrent.seeders)
             .catch(error => {
                 this.logger.warn('Failed updating seeders:', error);
                 return [0];
+            });
+    };
+
+    private assignKitsuId = async (kitsuQuery: IMetaDataQuery, torrent: IParsedTorrent): Promise<void> => {
+        await this.metadataService.getKitsuId(kitsuQuery)
+            .then((result: number | Error) => {
+                if (typeof result === 'number') {
+                    torrent.kitsuId = result;
+                } else {
+                    torrent.kitsuId = 0;
+                }
+            })
+            .catch((error: Error) => {
+                this.logger.debug(`Failed getting kitsuId for ${torrent.title}`, error.message);
+                torrent.kitsuId = 0;
             });
     };
 

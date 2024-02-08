@@ -62,7 +62,8 @@ export class TorrentDownloadService implements ITorrentDownloadService {
             this.logger.debug(`Adding torrent with infoHash ${torrent.infoHash} to torrent engine...`);
 
             const timeoutId = setTimeout(() => {
-                engine.destroy(() => {});
+                engine.destroy(() => {
+                });
                 reject(new Error('No available connections for torrent!'));
             }, timeout);
 
@@ -78,7 +79,8 @@ export class TorrentDownloadService implements ITorrentDownloadService {
 
                 resolve(files);
                 clearTimeout(timeoutId);
-                engine.destroy(() => {});
+                engine.destroy(() => {
+                });
             });
         });
     };
@@ -94,13 +96,13 @@ export class TorrentDownloadService implements ITorrentDownloadService {
         const minRedundantRatio = videos.length <= 3 ? 30 : Number.MAX_VALUE;
 
         const isSample = (video: ITorrentFile): boolean => video.path?.toString()?.match(/sample|bonus|promo/i) && maxSize / video.length > minSampleRatio || false;
-        const isRedundant = (video: ITorrentFile):boolean => maxSize / video.length > minRedundantRatio;
+        const isRedundant = (video: ITorrentFile): boolean => maxSize / video.length > minRedundantRatio;
         const isExtra = (video: ITorrentFile): boolean => /extras?\//i.test(video.path?.toString() || "");
         const isAnimeExtra = (video: ITorrentFile): boolean => {
             if (!video.path || !video.length) {
                 return false;
             }
-            
+
             return video.path.toString()?.match(/(?:\b|_)(?:NC)?(?:ED|OP|PV)(?:v?\d\d?)?(?:\b|_)/i)
                 && maxSize / parseInt(video.length.toString()) > minAnimeExtraRatio || false;
         };
@@ -108,7 +110,7 @@ export class TorrentDownloadService implements ITorrentDownloadService {
             if (!video.path || !video.length) {
                 return false;
             }
-                        
+
             return video.path.toString()?.match(/^[A-Z-]+(?:\.[A-Z]+)?\.\w{3,4}$/)
                 && maxSize / parseInt(video.length.toString()) > minAnimeExtraRatio || false;
         }

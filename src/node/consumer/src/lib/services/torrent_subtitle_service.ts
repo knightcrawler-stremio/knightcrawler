@@ -40,7 +40,7 @@ export class TorrentSubtitleService implements ITorrentSubtitleService {
         };
     }
 
-    private mostProbableSubtitleVideos = (subtitle: ISubtitleAttributes, parsedVideos: IFileAttributes[]) : IFileAttributes[] => {
+    private mostProbableSubtitleVideos = (subtitle: ISubtitleAttributes, parsedVideos: IFileAttributes[]): IFileAttributes[] => {
         const subTitle = (subtitle.title || subtitle.path)?.split('/')?.pop()?.replace(/\.(\w{2,4})$/, '') || '';
         const parsedSub = this.parsePath(subtitle.title || subtitle.path);
         const byFileName = parsedVideos.filter(video => subTitle.includes(video.title!));
@@ -79,7 +79,7 @@ export class TorrentSubtitleService implements ITorrentSubtitleService {
         return parsedWithEpisode || pathParts[pathParts.length - 1];
     }
 
-    private parseFilename = (filename: string) : IFileAttributes => {
+    private parseFilename = (filename: string): IFileAttributes => {
         const parsedInfo = parse(filename)
         const titleEpisode = parsedInfo.title.match(/(\d+)$/);
         if (!parsedInfo.episodes && titleEpisode) {

@@ -2,8 +2,12 @@
   "compileOnSave": false,
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ESNext"],
-    "typeRoots": ["node_modules/@types"],
+    "lib": [
+      "ESNext"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -21,16 +25,37 @@
     "importHelpers": true,
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"],
-      "@enums/*": ["lib/enums/*"],
-      "@repository/*": ["lib/repository/*"],
-      "@interfaces/*": ["lib/interfaces/*"],
-      "@models/*": ["lib/models/*"],
-      "@services/*": ["lib/services/*"],
-      "@helpers/*": ["lib/helpers/*"],
-      "@jobs/*": ["lib/jobs/*"]
+      "@/*": [
+        "*"
+      ],
+      "@enums/*": [
+        "lib/enums/*"
+      ],
+      "@repository/*": [
+        "lib/repository/*"
+      ],
+      "@interfaces/*": [
+        "lib/interfaces/*"
+      ],
+      "@models/*": [
+        "lib/models/*"
+      ],
+      "@services/*": [
+        "lib/services/*"
+      ],
+      "@helpers/*": [
+        "lib/helpers/*"
+      ],
+      "@jobs/*": [
+        "lib/jobs/*"
+      ]
     }
   },
-  "include": ["src", "test"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src",
+    "test"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

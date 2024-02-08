@@ -1,5 +1,5 @@
 import "reflect-metadata"; // required
-import { LoggingService } from '@services/logging_service';
+import {LoggingService} from '@services/logging_service';
 
 jest.mock('pino', () => {
     const actualPino = jest.requireActual('pino');
@@ -14,7 +14,7 @@ jest.mock('pino', () => {
     };
 });
 
-describe('LoggingService', () => {
+describe('LoggingService Tests', () => {
     let service: LoggingService,
         mockLogger: any;
 
@@ -24,22 +24,22 @@ describe('LoggingService', () => {
     });
 
     it('should log info', () => {
-        service.info('test message', { key: 'value' });
-        expect(mockLogger.info).toHaveBeenCalledWith('test message', [{ key: 'value' }]);
+        service.info('test message', {key: 'value'});
+        expect(mockLogger.info).toHaveBeenCalledWith('test message', [{key: 'value'}]);
     });
 
     it('should log error', () => {
-        service.error('test message', { key: 'value' });
-        expect(mockLogger.error).toHaveBeenCalledWith('test message', [{ key: 'value' }]);
+        service.error('test message', {key: 'value'});
+        expect(mockLogger.error).toHaveBeenCalledWith('test message', [{key: 'value'}]);
     });
 
     it('should log debug', () => {
-        service.debug('test message', { key: 'value' });
-        expect(mockLogger.debug).toHaveBeenCalledWith('test message', [{ key: 'value' }]);
+        service.debug('test message', {key: 'value'});
+        expect(mockLogger.debug).toHaveBeenCalledWith('test message', [{key: 'value'}]);
     });
 
     it('should log warn', () => {
-        service.warn('test message', { key: 'value' });
-        expect(mockLogger.warn).toHaveBeenCalledWith('test message', [{ key: 'value' }]);
+        service.warn('test message', {key: 'value'});
+        expect(mockLogger.warn).toHaveBeenCalledWith('test message', [{key: 'value'}]);
     })
 });

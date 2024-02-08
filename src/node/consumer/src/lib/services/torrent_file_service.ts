@@ -45,7 +45,7 @@ export class TorrentFileService implements ITorrentFileService {
         if (!torrent.title) {
             return Promise.reject(new Error('Torrent title is missing'));
         }
-        
+
         const parsedTorrentName = parse(torrent.title);
         const query: IMetaDataQuery = {
             id: torrent.kitsuId || torrent.imdbId,
@@ -54,7 +54,7 @@ export class TorrentFileService implements ITorrentFileService {
         const metadata = await this.metadataService.getMetadata(query)
             .then(meta => Object.assign({}, meta))
             .catch(() => undefined);
-        
+
         if (metadata === undefined || metadata instanceof Error) {
             return Promise.reject(new Error('Failed to retrieve metadata'));
         }
@@ -83,14 +83,14 @@ export class TorrentFileService implements ITorrentFileService {
         if (torrent.type === TorrentType.Movie) {
             return parsedInfo.complete || typeof parsedInfo.year === 'string' || /movies/i.test(torrent.title);
         }
-        
+
         const hasMultipleEpisodes = Boolean(parsedInfo.complete || torrent.size || 0 > MULTIPLE_FILES_SIZE ||
             (parsedInfo.seasons && parsedInfo.seasons.length > 1) ||
             (parsedInfo.episodes && parsedInfo.episodes.length > 1) ||
             (parsedInfo.seasons && !parsedInfo.episodes));
 
         const hasSingleEpisode: boolean = Boolean(Number.isInteger(parsedInfo.episode) || (!parsedInfo.episodes && parsedInfo.date));
-        
+
         return hasMultipleEpisodes && !hasSingleEpisode;
     };
 
@@ -107,7 +107,7 @@ export class TorrentFileService implements ITorrentFileService {
         if (fileCollection.videos === undefined || fileCollection.videos.length === 0) {
             return {...fileCollection, videos: this.getDefaultFileEntries(torrent)};
         }
-        
+
         const filteredVideos = fileCollection.videos
             .filter(video => video.size! > MIN_SIZE)
             .filter(video => !this.isFeaturette(video));
@@ -118,7 +118,7 @@ export class TorrentFileService implements ITorrentFileService {
                 title: video.path || video.title || video.fileName || '',
                 size: video.size || torrent.size,
                 imdbId: torrent.imdbId?.toString() || metadata && metadata.imdbId?.toString(),
-                kitsuId: parseInt(torrent.kitsuId?.toString() || metadata && metadata.kitsuId?.toString() || '0') 
+                kitsuId: parseInt(torrent.kitsuId?.toString() || metadata && metadata.kitsuId?.toString() || '0')
             }));
             return {...fileCollection, videos: parsedVideos};
         }
@@ -141,7 +141,7 @@ export class TorrentFileService implements ITorrentFileService {
         if (fileCollection.videos === undefined || fileCollection.videos.length === 0) {
             return {...fileCollection, videos: this.getDefaultFileEntries(torrent)};
         }
-        
+
         const parsedVideos: IFileAttributes[] = await Promise.resolve(fileCollection.videos)
             .then(videos => videos.filter(video => videos?.length === 1 || video.size! > MIN_SIZE))
             .then(videos => this.parseSeriesVideos(torrent, videos))
@@ -169,7 +169,7 @@ export class TorrentFileService implements ITorrentFileService {
         if (files.contents && files.contents.length && !files.videos?.length && this.isDiskTorrent(files.contents)) {
             files.videos = this.getDefaultFileEntries(torrent);
         }
-        
+
         return files;
     };
 
@@ -269,7 +269,7 @@ export class TorrentFileService implements ITorrentFileService {
         }];
     };
 
-    private decomposeEpisodes = async (torrent: IParsedTorrent, files: IFileAttributes[], metadata: IMetadataResponse = {episodeCount: []}):Promise<IFileAttributes[]> => {
+    private decomposeEpisodes = async (torrent: IParsedTorrent, files: IFileAttributes[], metadata: IMetadataResponse = {episodeCount: []}): Promise<IFileAttributes[]> => {
         if (files.every(file => !file.episodes && !file.date)) {
             return files;
         }
@@ -370,7 +370,7 @@ export class TorrentFileService implements ITorrentFileService {
 
     private isNewEpisodeNotInMetadata = (torrent: IParsedTorrent, video: IFileAttributes, metadata: IMetadataResponse): boolean => {
         const isAnime = torrent.type === TorrentType.Anime && torrent.kitsuId;
-        return !!( !isAnime && !video.isMovie && video.episodes && video.season !== 1
+        return !!(!isAnime && !video.isMovie && video.episodes && video.season !== 1
             && metadata.status && /continuing|current/i.test(metadata.status)
             && metadata.episodeCount && video.season && video.season >= metadata.episodeCount.length
             && video.episodes.every(ep => metadata.episodeCount && video.season && ep > (metadata.episodeCount[video.season - 1] || 0)));
@@ -410,9 +410,9 @@ export class TorrentFileService implements ITorrentFileService {
                 return !file.season || (metadata.episodeCount[file.season - 1] || 0) < file.episodes[0];
             })
             .forEach(file => {
-                if(!file.episodes || !metadata.episodeCount) return;
+                if (!file.episodes || !metadata.episodeCount) return;
 
-                let seasonIdx =  metadata.episodeCount
+                let seasonIdx = metadata.episodeCount
                     .map((_, i) => i)
                     .find(i => metadata.episodeCount && file.episodes && metadata.episodeCount.slice(0, i + 1).reduce((a, b) => a + b) >= file.episodes[0]);
 
@@ -609,7 +609,7 @@ export class TorrentFileService implements ITorrentFileService {
             })
     };
 
-    private findMovieImdbId = (title: IFileAttributes | string):Promise<string | undefined>  => {
+    private findMovieImdbId = (title: IFileAttributes | string): Promise<string | undefined> => {
         const parsedTitle = typeof title === 'string' ? parse(title) : title;
         this.logger.debug(`Finding movie imdbId for ${title}`);
         return this.imdb_limiter.schedule(async () => {
@@ -626,7 +626,7 @@ export class TorrentFileService implements ITorrentFileService {
         });
     };
 
-    private findMovieKitsuId = async (title: IFileAttributes | string):Promise<number | Error | undefined> => {
+    private findMovieKitsuId = async (title: IFileAttributes | string): Promise<number | Error | undefined> => {
         const parsedTitle = typeof title === 'string' ? parse(title) : title;
         const kitsuQuery = {
             title: parsedTitle.title,
@@ -645,10 +645,10 @@ export class TorrentFileService implements ITorrentFileService {
 
     private isSingleMovie = (videos: IFileAttributes[]): boolean => videos.length === 1 ||
         (videos.length === 2 &&
-            videos.find(v => /\b(?:part|disc|cd)[ ._-]?0?1\b|^0?1\.\w{2,4}$/i.test(v.path!)) && 
+            videos.find(v => /\b(?:part|disc|cd)[ ._-]?0?1\b|^0?1\.\w{2,4}$/i.test(v.path!)) &&
             videos.find(v => /\b(?:part|disc|cd)[ ._-]?0?2\b|^0?2\.\w{2,4}$/i.test(v.path!))) !== undefined;
 
-    private isFeaturette = (video: IFileAttributes):boolean => /featurettes?\/|extras-grym/i.test(video.path!);
+    private isFeaturette = (video: IFileAttributes): boolean => /featurettes?\/|extras-grym/i.test(video.path!);
 
     private parseSeriesVideo = (video: IFileAttributes): IFileAttributes => {
         const videoInfo = parse(video.title);

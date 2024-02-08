@@ -29,4 +29,5 @@ export class LoggingService implements ILoggingService {
         this.logger.warn(message, args);
     };
 }
+
 /* eslint-enable @typescript-eslint/no-explicit-any */

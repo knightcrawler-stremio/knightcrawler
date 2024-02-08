@@ -7,4 +7,5 @@ export interface ICacheService {
     cacheWrapMetadata: (id: string, method: CacheMethod) => Promise<any>;
     cacheTrackers: (method: CacheMethod) => Promise<any>;
 }
+
 /* eslint-enable @typescript-eslint/no-explicit-any */

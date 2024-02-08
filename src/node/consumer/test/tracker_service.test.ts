@@ -1,15 +1,11 @@
 import "reflect-metadata"; // required
-import { ICacheService } from '@interfaces/cache_service';
-import { ILoggingService } from '@interfaces/logging_service';
-import { TrackerService } from '@services/tracker_service';
-import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node';
+import {ICacheService} from '@interfaces/cache_service';
+import {ILoggingService} from '@interfaces/logging_service';
+import {TrackerService} from '@services/tracker_service';
+import {setupServer} from 'msw/node';
+import * as responses from "./mock-responses/trackers_mock_responses";
 
-const server = setupServer(
-    http.get('https://ngosang.github.io/trackerslist/trackers_all.txt', ({ request, params, cookies }) => {
-        return HttpResponse.text('http://tracker1.com\nhttp://tracker2.com')
-    }),
-)
+const server = setupServer(responses.trackerTestResponse);
 
 jest.mock('@services/logging_service', () => {
     return {
@@ -38,8 +34,8 @@ afterAll(() => server.close())
 
 describe('TrackerService', () => {
     let trackerService: TrackerService,
-     mockCacheService: ICacheService,
-     mockLoggingService: ILoggingService;
+        mockCacheService: ICacheService,
+        mockLoggingService: ILoggingService;
 
     beforeEach(() => {
         mockCacheService = jest.requireMock<ICacheService>('@services/cache_service');
@@ -54,6 +50,6 @@ describe('TrackerService', () => {
 
         expect(result).toEqual(mockTrackers);
         expect(mockLoggingService.info).toHaveBeenCalledWith(`Trackers updated at 1234567890: ${mockTrackers.length} trackers`);
-        
+
     });
 });

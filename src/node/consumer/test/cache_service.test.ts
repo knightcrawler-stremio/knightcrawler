@@ -1,6 +1,6 @@
 import "reflect-metadata"; // required
-import { ILoggingService } from '@interfaces/logging_service';
-import { CacheService, CacheMethod } from '@services/cache_service';
+import {ILoggingService} from '@interfaces/logging_service';
+import {CacheMethod, CacheService} from '@services/cache_service';
 
 jest.mock('@services/configuration_service', () => {
     return {
@@ -12,7 +12,7 @@ jest.mock('@services/configuration_service', () => {
                 MONGO_INITDB_ROOT_USERNAME: 'mongo',
                 MONGO_INITDB_ROOT_PASSWORD: 'mongo',
                 NO_CACHE: false,
-                COLLECTION_NAME: 'knightcrawler_consumer_collection',                
+                COLLECTION_NAME: 'knightcrawler_consumer_collection',
             },
         }
     }
@@ -43,8 +43,8 @@ jest.mock('@tirke/node-cache-manager-mongodb', () => {
 
 describe('CacheService Tests', () => {
     let cacheService: CacheService,
-     loggingService: ILoggingService,
-     cacheMethod: CacheMethod;
+        loggingService: ILoggingService,
+        cacheMethod: CacheMethod;
 
     beforeEach(() => {
         process.env.LOG_LEVEL = 'debug';
@@ -100,7 +100,7 @@ describe('CacheService Tests', () => {
         cacheMethod = jest.fn().mockRejectedValue(new Error('Test error'));
         await expect(cacheService.cacheTrackers(cacheMethod)).rejects.toThrow('Test error');
     });
-    
+
     it('should handle when cache is disabled', async () => {
         jest.mock('@services/configuration_service', () => {
             return {

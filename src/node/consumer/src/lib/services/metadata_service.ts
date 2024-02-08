@@ -70,8 +70,15 @@ export class MetadataService implements IMetadataService {
 
         const key = Number.isInteger(query.id) || query.id.toString().match(/^\d+$/) ? `kitsu:${query.id}` : query.id;
         const metaType = query.type === TorrentType.Movie ? TorrentType.Movie : TorrentType.Series;
-        return this.cacheService.cacheWrapMetadata(key.toString(), () => this.requestKitsuMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
-            .catch(() => this.requestCinemetaMetadata(`${CINEMETA_URL}/meta/${metaType}/${key}.json`))
+        const isImdbId = Boolean(key.toString().match(/^tt\d+$/));
+        
+        return this.cacheService.cacheWrapMetadata(key.toString(), () => {
+            switch (isImdbId) {
+                case true:
+                    return this.requestCinemetaMetadata(`${CINEMETA_URL}/meta/imdb/${key}.json`);
+                default:
+                    return this.requestKitsuMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`)
+            }})
             .catch(() => {
                 // try different type in case there was a mismatch
                 const otherType = metaType === TorrentType.Movie ? TorrentType.Series : TorrentType.Movie;
@@ -79,7 +86,7 @@ export class MetadataService implements IMetadataService {
             })
             .catch((error) => {
                 throw new Error(`failed metadata query ${key} due: ${error.message}`);
-            }));
+            });
     };
 
     public isEpisodeImdbId = async (imdbId: string | undefined): Promise<boolean> => {
@@ -174,7 +181,7 @@ export class MetadataService implements IMetadataService {
                 .filter(entry => entry.season !== null && entry.season !== 0 && entry.episode !== 0)
                 .sort((a, b) => (a.season || 0) - (b.season || 0))
                 .reduce((map: Record<number, number>, next) => {
-                    if(next.season || next.season === 0) {
+                    if (next.season || next.season === 0) {
                         map[next.season] = (map[next.season] || 0) + 1;
                     }
                     return map;

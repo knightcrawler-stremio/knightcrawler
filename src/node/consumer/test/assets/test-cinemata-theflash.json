@@ -1,0 +1,373 @@
+{
+  "meta": {
+    "awards": "Nominated for 2 Primetime Emmys. 4 nominations total",
+    "cast": [
+      "John Wesley Shipp",
+      "Amanda Pays",
+      "Alex Désert"
+    ],
+    "country": "United States",
+    "description": "A police forensic scientist, Barry Allen, battles crimes as the super-fast superhero \"The Flash.\"",
+    "director": null,
+    "dvdRelease": "2011-01-25T00:00:00.000Z",
+    "genre": [
+      "Action",
+      "Crime",
+      "Fantasy"
+    ],
+    "imdbRating": "7.1",
+    "imdb_id": "tt0098798",
+    "name": "The Flash",
+    "popularity": 0.987,
+    "poster": "https://images.metahub.space/poster/small/tt0098798/img",
+    "released": "1990-09-20T00:00:00.000Z",
+    "runtime": "2 min",
+    "status": "Ended",
+    "tvdb_id": "78650",
+    "type": "series",
+    "writer": [
+      "Danny Bilson",
+      "Paul De Meo"
+    ],
+    "year": "1990–1991",
+    "popularities": {
+      "moviedb": 57.842,
+      "trakt": 2,
+      "stremio": 0.987,
+      "stremio_lib": 0
+    },
+    "background": "https://images.metahub.space/background/medium/tt0098798/img",
+    "logo": "https://images.metahub.space/logo/medium/tt0098798/img",
+    "moviedb_id": 236,
+    "slug": "series/the-flash-0098798",
+    "id": "tt0098798",
+    "genres": [
+      "Action",
+      "Crime",
+      "Fantasy"
+    ],
+    "releaseInfo": "1990–1991",
+    "videos": [
+      {
+        "name": "Pilot",
+        "season": 1,
+        "number": 1,
+        "firstAired": "1990-09-20T00:00:00.000Z",
+        "tvdb_id": 335168,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/1/w780.jpg",
+        "id": "tt0098798:1:1",
+        "released": "1990-09-20T00:00:00.000Z",
+        "episode": 1
+      },
+      {
+        "name": "Out of Control",
+        "season": 1,
+        "number": 2,
+        "firstAired": "1990-09-27T00:00:00.000Z",
+        "tvdb_id": 291041,
+        "rating": "7.5",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/2/w780.jpg",
+        "id": "tt0098798:1:2",
+        "released": "1990-09-27T00:00:00.000Z",
+        "episode": 2
+      },
+      {
+        "name": "Watching the Detectives",
+        "season": 1,
+        "number": 3,
+        "firstAired": "1990-10-18T00:00:00.000Z",
+        "tvdb_id": 291042,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/3/w780.jpg",
+        "id": "tt0098798:1:3",
+        "released": "1990-10-18T00:00:00.000Z",
+        "episode": 3
+      },
+      {
+        "name": "Honor Among Thieves",
+        "season": 1,
+        "number": 4,
+        "firstAired": "1990-10-25T00:00:00.000Z",
+        "tvdb_id": 291043,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/4/w780.jpg",
+        "id": "tt0098798:1:4",
+        "released": "1990-10-25T00:00:00.000Z",
+        "episode": 4
+      },
+      {
+        "name": "Double Vision",
+        "season": 1,
+        "number": 5,
+        "firstAired": "1990-11-01T00:00:00.000Z",
+        "tvdb_id": 291044,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/5/w780.jpg",
+        "id": "tt0098798:1:5",
+        "released": "1990-11-01T00:00:00.000Z",
+        "episode": 5
+      },
+      {
+        "name": "Sins of the Father",
+        "season": 1,
+        "number": 6,
+        "firstAired": "1990-11-08T00:00:00.000Z",
+        "tvdb_id": 291045,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/6/w780.jpg",
+        "id": "tt0098798:1:6",
+        "released": "1990-11-08T00:00:00.000Z",
+        "episode": 6
+      },
+      {
+        "name": "Child's Play",
+        "season": 1,
+        "number": 7,
+        "firstAired": "1990-11-15T00:00:00.000Z",
+        "tvdb_id": 291046,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/7/w780.jpg",
+        "id": "tt0098798:1:7",
+        "released": "1990-11-15T00:00:00.000Z",
+        "episode": 7
+      },
+      {
+        "name": "Shroud of Death",
+        "season": 1,
+        "number": 8,
+        "firstAired": "1990-11-29T00:00:00.000Z",
+        "tvdb_id": 291047,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/8/w780.jpg",
+        "id": "tt0098798:1:8",
+        "released": "1990-11-29T00:00:00.000Z",
+        "episode": 8
+      },
+      {
+        "name": "Ghost in the Machine",
+        "season": 1,
+        "number": 9,
+        "firstAired": "1990-12-13T00:00:00.000Z",
+        "tvdb_id": 291048,
+        "rating": "7.5",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/9/w780.jpg",
+        "id": "tt0098798:1:9",
+        "released": "1990-12-13T00:00:00.000Z",
+        "episode": 9
+      },
+      {
+        "name": "Sight Unseen",
+        "season": 1,
+        "number": 10,
+        "firstAired": "1991-01-10T00:00:00.000Z",
+        "tvdb_id": 291049,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/10/w780.jpg",
+        "id": "tt0098798:1:10",
+        "released": "1991-01-10T00:00:00.000Z",
+        "episode": 10
+      },
+      {
+        "name": "Beat the Clock",
+        "season": 1,
+        "number": 11,
+        "firstAired": "1991-01-31T00:00:00.000Z",
+        "tvdb_id": 291050,
+        "rating": "6.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/11/w780.jpg",
+        "id": "tt0098798:1:11",
+        "released": "1991-01-31T00:00:00.000Z",
+        "episode": 11
+      },
+      {
+        "name": "The Trickster",
+        "season": 1,
+        "number": 12,
+        "firstAired": "1991-02-07T00:00:00.000Z",
+        "tvdb_id": 291051,
+        "rating": "7.5",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/12/w780.jpg",
+        "id": "tt0098798:1:12",
+        "released": "1991-02-07T00:00:00.000Z",
+        "episode": 12
+      },
+      {
+        "name": "Tina, Is That You?",
+        "season": 1,
+        "number": 13,
+        "firstAired": "1991-02-14T00:00:00.000Z",
+        "tvdb_id": 291052,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/13/w780.jpg",
+        "id": "tt0098798:1:13",
+        "released": "1991-02-14T00:00:00.000Z",
+        "episode": 13
+      },
+      {
+        "name": "Be My Baby",
+        "season": 1,
+        "number": 14,
+        "firstAired": "1991-02-21T00:00:00.000Z",
+        "tvdb_id": 291053,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/14/w780.jpg",
+        "id": "tt0098798:1:14",
+        "released": "1991-02-21T00:00:00.000Z",
+        "episode": 14
+      },
+      {
+        "name": "Fast Forward",
+        "season": 1,
+        "number": 15,
+        "firstAired": "1991-02-27T00:00:00.000Z",
+        "tvdb_id": 291054,
+        "rating": "6.5",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/15/w780.jpg",
+        "id": "tt0098798:1:15",
+        "released": "1991-02-27T00:00:00.000Z",
+        "episode": 15
+      },
+      {
+        "name": "Deadly Nightshade",
+        "season": 1,
+        "number": 16,
+        "firstAired": "1991-03-30T00:00:00.000Z",
+        "tvdb_id": 291055,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/16/w780.jpg",
+        "id": "tt0098798:1:16",
+        "released": "1991-03-30T00:00:00.000Z",
+        "episode": 16
+      },
+      {
+        "name": "Captain Cold",
+        "season": 1,
+        "number": 17,
+        "firstAired": "1991-04-06T00:00:00.000Z",
+        "tvdb_id": 291056,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/17/w780.jpg",
+        "id": "tt0098798:1:17",
+        "released": "1991-04-06T00:00:00.000Z",
+        "episode": 17
+      },
+      {
+        "name": "Twin Streaks",
+        "season": 1,
+        "number": 18,
+        "firstAired": "1991-04-13T00:00:00.000Z",
+        "tvdb_id": 291057,
+        "rating": "6.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/18/w780.jpg",
+        "id": "tt0098798:1:18",
+        "released": "1991-04-13T00:00:00.000Z",
+        "episode": 18
+      },
+      {
+        "name": "Done with Mirrors",
+        "season": 1,
+        "number": 19,
+        "firstAired": "1991-04-27T00:00:00.000Z",
+        "tvdb_id": 291058,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/19/w780.jpg",
+        "id": "tt0098798:1:19",
+        "released": "1991-04-27T00:00:00.000Z",
+        "episode": 19
+      },
+      {
+        "name": "Good Night, Central City",
+        "season": 1,
+        "number": 20,
+        "firstAired": "1991-05-04T00:00:00.000Z",
+        "tvdb_id": 291059,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/20/w780.jpg",
+        "id": "tt0098798:1:20",
+        "released": "1991-05-04T00:00:00.000Z",
+        "episode": 20
+      },
+      {
+        "name": "Alpha",
+        "season": 1,
+        "number": 21,
+        "firstAired": "1991-05-11T00:00:00.000Z",
+        "tvdb_id": 291060,
+        "rating": "7.0",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/21/w780.jpg",
+        "id": "tt0098798:1:21",
+        "released": "1991-05-11T00:00:00.000Z",
+        "episode": 21
+      },
+      {
+        "name": "The Trial of the Trickster",
+        "season": 1,
+        "number": 22,
+        "firstAired": "1991-05-18T00:00:00.000Z",
+        "tvdb_id": 291061,
+        "rating": "7.5",
+        "thumbnail": "https://episodes.metahub.space/tt0098798/1/22/w780.jpg",
+        "id": "tt0098798:1:22",
+        "released": "1991-05-18T00:00:00.000Z",
+        "episode": 22
+      }
+    ],
+    "links": [
+      {
+        "name": "7.1",
+        "category": "imdb",
+        "url": "https://imdb.com/title/tt0098798"
+      },
+      {
+        "name": "The Flash",
+        "category": "share",
+        "url": "https://www.strem.io/s/series/the-flash-0098798"
+      },
+      {
+        "name": "Action",
+        "category": "Genres",
+        "url": "stremio:///discover/https%3A%2F%2Fv3-cinemeta.strem.io%2Fmanifest.json/series/top?genre=Action"
+      },
+      {
+        "name": "Crime",
+        "category": "Genres",
+        "url": "stremio:///discover/https%3A%2F%2Fv3-cinemeta.strem.io%2Fmanifest.json/series/top?genre=Crime"
+      },
+      {
+        "name": "Fantasy",
+        "category": "Genres",
+        "url": "stremio:///discover/https%3A%2F%2Fv3-cinemeta.strem.io%2Fmanifest.json/series/top?genre=Fantasy"
+      },
+      {
+        "name": "John Wesley Shipp",
+        "category": "Cast",
+        "url": "stremio:///search?search=John%20Wesley%20Shipp"
+      },
+      {
+        "name": "Amanda Pays",
+        "category": "Cast",
+        "url": "stremio:///search?search=Amanda%20Pays"
+      },
+      {
+        "name": "Alex Désert",
+        "category": "Cast",
+        "url": "stremio:///search?search=Alex%20D%C3%A9sert"
+      },
+      {
+        "name": "Danny Bilson",
+        "category": "Writers",
+        "url": "stremio:///search?search=Danny%20Bilson"
+      },
+      {
+        "name": "Paul De Meo",
+        "category": "Writers",
+        "url": "stremio:///search?search=Paul%20De%20Meo"
+      }
+    ],
+    "behaviorHints": {
+      "defaultVideoId": null,
+      "hasScheduledVideos": true
+    }
+  }
+}

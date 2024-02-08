@@ -1,7 +1,7 @@
 import "reflect-metadata"; // required
-import { ILoggingService } from '@interfaces/logging_service';
+import {ILoggingService} from '@interfaces/logging_service';
 import {IParsedTorrent} from "@interfaces/parsed_torrent";
-import { TorrentDownloadService } from '@services/torrent_download_service';
+import {TorrentDownloadService} from '@services/torrent_download_service';
 import torrentStream from 'torrent-stream';
 
 jest.mock('@services/logging_service', () => {
@@ -22,7 +22,7 @@ jest.mock('torrent-stream', () => {
 
 describe('TorrentDownloadService', () => {
     let torrentDownloadService: TorrentDownloadService,
-     mockLoggingService: ILoggingService;
+        mockLoggingService: ILoggingService;
 
     beforeEach(() => {
         mockLoggingService = jest.requireMock<ILoggingService>('@services/logging_service');
@@ -42,7 +42,7 @@ describe('TorrentDownloadService', () => {
             uploadDate: new Date(),
             seeders: 100,
             torrentId: 'torrent1',
-            fileCollection: { },
+            fileCollection: {},
             title: 'Test Movie',
             year: 2020,
             season: 1,
@@ -58,7 +58,7 @@ describe('TorrentDownloadService', () => {
             container: 'mp4',
             unrated: false,
         };
-        
+
         const mockFiles = [
             {
                 name: 'file1.mp4',
@@ -134,7 +134,7 @@ describe('TorrentDownloadService', () => {
                 fileId: file.fileIndex,
             })),
         });
-        
+
         expect(torrentStream).toHaveBeenCalledWith(expect.any(String), expect.any(Object));
         expect(mockLoggingService.debug).toHaveBeenCalledWith(`Adding torrent with infoHash ${mockTorrent.infoHash} to torrent engine...`);
     });

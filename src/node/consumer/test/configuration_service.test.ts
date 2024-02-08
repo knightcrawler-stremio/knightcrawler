@@ -26,13 +26,13 @@ describe('Configuration Tests', () => {
         process.env.IMDB_INTERVAL_MS = '1000';
         process.env.JOB_CONCURRENCY = '1';
         process.env.JOBS_ENABLED = 'true';
-        
+
         // shitty hack cause jest caches modules and resetModules isnt working
-        ({ configurationService } = await import("@services/configuration_service")); 
+        ({configurationService} = await import("@services/configuration_service"));
     });
-    
+
     it('should populate cacheConfig correctly', () => {
-        const { cacheConfig } = configurationService;
+        const {cacheConfig} = configurationService;
         expect(cacheConfig.MONGODB_HOST).toBe('test_mongodb');
         expect(cacheConfig.MONGODB_PORT).toBe('27017');
         expect(cacheConfig.MONGODB_DB).toBe('knightcrawler');
@@ -44,7 +44,7 @@ describe('Configuration Tests', () => {
     });
 
     it('should populate databaseConfig correctly', () => {
-        const { databaseConfig } = configurationService;
+        const {databaseConfig} = configurationService;
         expect(databaseConfig.POSTGRES_HOST).toBe('postgres');
         expect(databaseConfig.POSTGRES_PORT).toBe(5432);
         expect(databaseConfig.POSTGRES_DB).toBe('knightcrawler');
@@ -55,33 +55,33 @@ describe('Configuration Tests', () => {
     });
 
     it('should populate jobConfig correctly', () => {
-        const { jobConfig } = configurationService;
+        const {jobConfig} = configurationService;
         expect(jobConfig.JOB_CONCURRENCY).toBe(1);
         expect(jobConfig.JOBS_ENABLED).toBe(true);
     });
 
     it('should populate metadataConfig correctly', () => {
-        const { metadataConfig } = configurationService;
+        const {metadataConfig} = configurationService;
         expect(metadataConfig.IMDB_CONCURRENT).toBe(1);
         expect(metadataConfig.IMDB_INTERVAL_MS).toBe(1000);
     });
 
     it('should populate rabbitConfig correctly', () => {
-        const { rabbitConfig } = configurationService;
+        const {rabbitConfig} = configurationService;
         expect(rabbitConfig.RABBIT_URI).toBe('amqp://localhost');
         expect(rabbitConfig.QUEUE_NAME).toBe('test-queue');
     });
 
     it('should populate torrentConfig correctly', () => {
-        const { torrentConfig } = configurationService;
+        const {torrentConfig} = configurationService;
         expect(torrentConfig.MAX_CONNECTIONS_PER_TORRENT).toBe(20);
         expect(torrentConfig.TIMEOUT).toBe(30000);
     });
 
     it('should populate trackerConfig correctly', () => {
-        const { trackerConfig } = configurationService;
+        const {trackerConfig} = configurationService;
         expect(trackerConfig.TRACKERS_URL).toBe('https://ngosang.github.io/trackerslist/trackers_all.txt');
         expect(trackerConfig.UDP_ENABLED).toBe(false);
     });
-    
+
 });

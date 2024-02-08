@@ -1,8 +1,8 @@
 import "reflect-metadata"; // required
-import { ILoggingService } from '@interfaces/logging_service';
-import { ITorrentProcessingService } from '@interfaces/torrent_processing_service';
-import { ProcessTorrentsJob } from '@jobs/process_torrents_job';
-import { configurationService } from '@services/configuration_service';
+import {ILoggingService} from '@interfaces/logging_service';
+import {ITorrentProcessingService} from '@interfaces/torrent_processing_service';
+import {ProcessTorrentsJob} from '@jobs/process_torrents_job';
+import {configurationService} from '@services/configuration_service';
 import client, {ConsumeMessage} from 'amqplib';
 
 jest.mock('@services/configuration_service', () => {
@@ -48,7 +48,7 @@ jest.mock('@services/torrent_processing_service', () => {
 })
 
 describe('ProcessTorrentsJob Tests', () => {
-   let  processTorrentsJob: ProcessTorrentsJob,
+    let processTorrentsJob: ProcessTorrentsJob,
         loggingService: ILoggingService,
         torrentProcessingService: ITorrentProcessingService;
 
@@ -60,7 +60,7 @@ describe('ProcessTorrentsJob Tests', () => {
 
     afterEach(() => {
         jest.clearAllMocks()
-      })
+    })
 
     describe('listenToQueue', () => {
         test('should connect to the rabbitmq server and create a channel', async () => {
@@ -79,7 +79,7 @@ describe('ProcessTorrentsJob Tests', () => {
 
         test('should process messages from the queue', async () => {
             const mockMessage = {
-                content: Buffer.from(JSON.stringify({ 
+                content: Buffer.from(JSON.stringify({
                     message: {
                         name: 'test_name',
                         source: 'test_source',
@@ -90,7 +90,7 @@ describe('ProcessTorrentsJob Tests', () => {
                         leechers: 0,
                         imdb: 'test_imdb',
                         processed: false,
-                    } 
+                    }
                 })),
             } as ConsumeMessage;
 
