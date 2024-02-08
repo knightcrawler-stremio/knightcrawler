@@ -94,7 +94,7 @@ describe('ProcessTorrentsJob', () => {
                 })),
             } as ConsumeMessage;
 
-            (client.connect as any).mockResolvedValue({
+            (client.connect as jest.Mock).mockResolvedValue({
                 createChannel: jest.fn().mockResolvedValue({
                     assertQueue: jest.fn().mockResolvedValue({
                         consumerCount: 1,
