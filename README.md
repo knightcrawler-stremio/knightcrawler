@@ -280,10 +280,10 @@ Don't worry, we can still correct this. We can retroactively update the categori
 
 ```
 # Update movie categories
-docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"```
+docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"
 
 # Update TV categories
-docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"
+docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='tv', processed='f' WHERE category LIKE 'tv_%';"
 ```
 
 ## Selfhostio to KnightCrawler Migration
