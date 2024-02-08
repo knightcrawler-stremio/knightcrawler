@@ -4,7 +4,7 @@ export const cacheConfig = {
     MONGODB_DB: process.env.MONGODB_DB || 'knightcrawler',
     MONGO_INITDB_ROOT_USERNAME: process.env.MONGO_INITDB_ROOT_USERNAME || 'mongo',
     MONGO_INITDB_ROOT_PASSWORD: process.env.MONGO_INITDB_ROOT_PASSWORD || 'mongo',
-    COLLECTION_NAME: process.env.MONGODB_COLLECTION || 'knightcrawler_consumer_collection',
+    COLLECTION_NAME: process.env.MONGODB_ADDON_COLLECTION || 'knightcrawler_addon_collection',
     NO_CACHE: parseBool(process.env.NO_CACHE, false),
 }
 
