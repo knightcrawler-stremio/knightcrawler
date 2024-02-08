@@ -25,10 +25,11 @@ Join our [Discord](https://discord.gg/8fQdxay9z2)!
       - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
       - [Using Grafana and Prometheus](#using-grafana-and-prometheus)
   - [Importing external dumps](#importing-external-dumps)
-    - [Import data into database](#import-data-into-database)
-      - [Alternative: Using Docker](#alternative-using-docker)
-    - [INSERT INTO ingested\_torrents](#insert-into-ingested_torrents)
-      - [Fixing imported databases](#fixing-imported-databases)
+    - [Importing data into PostgreSQL](#importing-data-into-postgresql)
+      - [Using pgloader via docker](#using-pgloader-via-docker)
+      - [Using native installation of pgloader](#using-native-installation-of-pgloader)
+    - [Process the data we have imported](#process-the-data-we-have-imported)
+    - [I imported the data without the `LIKE 'movies%%'` queries!](#i-imported-the-data-without-the-like-movies-queries)
   - [Selfhostio to KnightCrawler Migration](#selfhostio-to-knightcrawler-migration)
   - [To-do](#to-do)
 
@@ -150,24 +151,81 @@ Now, you can use these dashboards to monitor RabbitMQ and Postgres metrics.
 
 ## Importing external dumps
 
-A brief record of the steps required to import external data, in this case the rarbg dump which can be found on RD:
+If you stumble upon some data, perhaps a database dump from rarbg, which is almost certainly not available on Real Debrid, and wished to utilise it, you might be interested in the following:
 
-### Import data into database
-
+### Importing data into PostgreSQL
 
 Using [pgloader](https://pgloader.readthedocs.io/en/latest/ref/sqlite.html) we can import other databases into Knight Crawler.
 
-For example, if you had a sql database called `rarbg_db.sqlite` stored in `/tmp/` you would create a file called `db.load` containing the following:
+For example, if you *possessed* a sqlite database named `rarbg_db.sqlite` it's possible to then import this.
+
+#### Using pgloader via docker
+
+---
+
+Make sure the file `rarbg_db.sqlite` is on the same server as PostgreSQL. Place it in any temp directory, it doesn't matter, we will delete the these files afterwards to free up storage.
+
+For this example I'm placing my files in `~/tmp/load`
+
+So after uploading the file, I have `~/tmp/load/rarbg_db.sqlite`. We need to create the file `~/tmp/load/db.load` which should contain the following:
 
 ```
 load database
-     from sqlite:///tmp/rarbg_db.sqlite
+     from sqlite:///data/rarbg_db.sqlite
+     into postgresql://postgres:postgres@postgres:5432/knightcrawler
+
+with include drop, create tables, create indexes, reset sequences
+
+  set work_mem to '16MB', maintenance_work_mem to '512 MB';
+```
+
+> [!NOTE]
+> If you have changed the default password for PostgreSQL (RECOMMENDED) please change it above accordingly
+> 
+> `postgresql://postgres:<password here>@postgres:5432/knightcrawler`
+
+Then run the following docker run command to import the database:
+
+```
+docker run --rm -it --network=knightcrawler-network -v "$(pwd)":/data dimitri/pgloader:latest pgloader /data/db.load
+```
+
+> [!IMPORTANT]
+> The above line does not work on ARM devices (Raspberry Pi, etc). The image does not contain a build that supports ARM.
+>
+> I found [jahan9/pgloader](https://hub.docker.com/r/jahan9/pgloader) which supports ARM64 but I offer no guarantees that this is a safe image.
+>
+> USE RESPONSIBLY
+>
+> The command to utilise this image would be:
+> ```
+> docker run --rm -it --network=knightcrawler-network -v "$(pwd)":/data jahan9/pgloader:latest pgloader /data/db.load
+> ```
+
+#### Using native installation of pgloader
+
+---
+
+Similarly to above, make sure the file `rarbg_db.sqlite` is on the same server as PostgreSQL. Place it in any temp directory, it doesn't matter, we will delete the these files afterwards to free up storage.
+
+For this example I'm placing my files in `~/tmp/load`
+
+So after uploading the file, I have `~/tmp/load/rarbg_db.sqlite`. We need to create the file `~/tmp/load/db.load` which should contain the following:
+
+```
+load database
+     from sqlite://~/tmp/load/rarbg_db.sqlite
      into postgresql://postgres:postgres@<docker-ip>/knightcrawler
 
 with include drop, create tables, create indexes, reset sequences
 
   set work_mem to '16MB', maintenance_work_mem to '512 MB';
 ```
+
+> [!NOTE]
+> If you have changed the default password for PostgreSQL (RECOMMENDED) please change it above accordingly
+> 
+> `postgresql://postgres:<password here>@<docker-ip>/knightcrawler`
 
 > [!TIP]
 > Your `docker-ip` can be found using the following command:
@@ -175,75 +233,58 @@ with include drop, create tables, create indexes, reset sequences
 > docker network inspect knightcrawler-network | grep knightcrawler-postgres -A 4
 > ```
 
-Then run `pgloader db.load` to create a new `items` table. This can take a few minutes, depending on the size of the database.
+Then run `pgloader db.load`.
 
-#### Alternative: Using Docker
+### Process the data we have imported
 
-Move your sql database called `rarbg_db.sqlite` and `db.load` into your current working directoy
+The data we have imported is not usable immediately. It is loaded into a new table called `items`. We need to move this data into the `ingested_torrents` table to be processed. The producer and atleast one consumer need to be running to process this data.
 
-`db.load` should contain the following:
+We are going to concatenate all of the different movie categories into one e.g. movies_uhd, movies_hd, movies_sd -> `movies`. This will give us a lot more data to work with.
 
-```
-load database
-     from sqlite:///data/rarbg_db.sqlite
-     into postgresql://postgres:postgres@<docker-ip>/knightcrawler
-
-with include drop, create tables, create indexes, reset sequences
-
-  set work_mem to '16MB', maintenance_work_mem to '512 MB';
-```
-
-Then run the following docker run command to import the database
+The following command will process the tv shows:
 
 ```
-docker run --rm -it --network=knightcrawler-network -v "$(pwd)":/data dimitri/pgloader:latest pgloader /data/db.load
-```
-
-
-### INSERT INTO ingested_torrents
-
-> [!NOTE]
-> This is specific to this example external database, other databases may/will have different column names and the sql command will require tweaking
-
-> [!IMPORTANT]
-> The `processed` field should be `false` so that the consumers will properly process it.
-
-Once the `items` table is available in the postgres database, put all the tv/movie items into the `ingested_torrents` table using `psql`. 
-Because this specific database also contains categories such as `tv_uhd` we can use a `LIKE` query and coerce it into the `tv` category.
-
-This can be done by running the following command:
-
-```
-docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "
+docker exec -it knightcrawler-postgres-1 psql -U postgres -d knightcrawler -c "
 INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, \"createdAt\", \"updatedAt\")
 SELECT title, 'RARBG', 'tv', hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
 FROM items where cat LIKE 'tv%%' ON CONFLICT DO NOTHING;"
 ```
 
-And similarly for movies:
+This will do the movies:
+
 ```
-docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "
+docker exec -it knightcrawler-postgres-1 psql -U postgres -d knightcrawler -c "
 INSERT INTO ingested_torrents (name, source, category, info_hash, size, seeders, leechers, imdb, processed, \"createdAt\", \"updatedAt\")
 SELECT title, 'RARBG', 'movies', hash, size, NULL, NULL, imdb, false, current_timestamp, current_timestamp
 FROM items where cat LIKE 'movies%%' ON CONFLICT DO NOTHING;"
 ```
 
-You should get a response similar to:
+Both should return a response that looks like:
 
-`INSERT 0 669475`
+```
+INSERT 0 669475
+```
 
-After, you can delete the `items` table by running:
+As soon as both commands have been run, we can immediately drop the items table. The data inside has now been processed, and will just take up space.
 
-```docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "drop table items";```
+```
+docker exec -it knightcrawler-postgres-1 psql -U postgres -d knightcrawler -c "drop table items";
+```
 
 
-#### Fixing imported databases
+### I imported the data without the `LIKE 'movies%%'` queries!
 
-If you've already imported a database with incorrect categories, you can fix these categories by running the following commands:
+If you've already imported the database using the old instructions, you will have imported a ton of new movies and tv shows, but the new queries will give you a lot more!
 
-```docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"```
+Don't worry, we can still correct this. We can retroactively update the categories by running the following commands
 
-```docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"```
+```
+# Update movie categories
+docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"```
+
+# Update TV categories
+docker exec -it knightcrawler-postgres-1 psql -d knightcrawler -c "UPDATE ingested_torrents  SET category='movies', processed='f' WHERE category LIKE 'movies_%';"
+```
 
 ## Selfhostio to KnightCrawler Migration
 
