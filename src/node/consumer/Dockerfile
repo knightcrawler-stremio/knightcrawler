@@ -1,28 +1,24 @@
 FROM node:lts-buster-slim as builder
 
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y python3 make g++ && \
-    rm -rf /var/lib/apt/lists/* 
-
-RUN npm install -g npm@^8 && npm config set python /usr/bin/python3
+RUN apt update && apt install -y git && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+COPY package.json ./
+COPY yarn.lock ./
+RUN yarn install
 COPY . .
-RUN npm run build
+RUN yarn run build
+RUN yarn install --production
 
-# --- Runtime Stage ---
 FROM node:lts-buster-slim
 
 WORKDIR /app
 
-ENV NODE_ENV production
-
 COPY --from=builder /app ./
-RUN npm prune --omit=dev
+
+ENV NODE_ENV production
+ENV NODE_OPTIONS "--no-deprecation"
 
 # CIS-DI-0001
 RUN useradd -d /home/consumer -m -s /bin/bash consumer
