@@ -4,12 +4,11 @@ RUN apt update && apt install -y git && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY package.json ./
-COPY yarn.lock ./
-RUN yarn install
+COPY package*.json ./
+RUN npm install
 COPY . .
-RUN yarn run build
-RUN yarn install --production
+RUN npm run build
+RUN npm install --omit=dev
 
 FROM node:lts-buster-slim
 

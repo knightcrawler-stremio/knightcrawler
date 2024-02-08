@@ -7,8 +7,8 @@
     "build": "node esbuild.js",
     "dev": "tsx watch --ignore node_modules src/main.ts | pino-pretty",
     "start": "node --trace-deprecation dist/main.cjs",
-    "lint": "yarn eslint ./src --ext .ts,.js",
-    "lint-fix": "yarn run lint --fix",
+    "lint": "eslint ./src --ext .ts,.js",
+    "lint-fix": "npm run lint --fix",
     "test": "jest",
     "test:watch": "jest --watch"
   },
