@@ -1,12 +1,12 @@
 import {IParsedTorrent} from "@interfaces/parsed_torrent";
-import {ITorrentAttributes} from "@repository/interfaces/torrent_attributes";
+import {ITorrentAttributes, ITorrentCreationAttributes} from "@repository/interfaces/torrent_attributes";
 import {SkipTorrent} from "@repository/models/skipTorrent";
 import {Torrent} from "@repository/models/torrent";
 
 export interface ITorrentEntriesService {
     createTorrentEntry(torrent: IParsedTorrent, overwrite: boolean): Promise<void>;
 
-    createSkipTorrentEntry(torrent: Torrent): Promise<[SkipTorrent, boolean | null]>;
+    createSkipTorrentEntry(torrent: ITorrentCreationAttributes): Promise<[SkipTorrent, boolean | null]>;
 
     getStoredTorrentEntry(torrent: Torrent): Promise<Torrent | SkipTorrent | null | undefined>;
 

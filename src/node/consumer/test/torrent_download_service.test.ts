@@ -25,6 +25,7 @@ describe('TorrentDownloadService', () => {
         mockLoggingService: ILoggingService;
 
     beforeEach(() => {
+        jest.clearAllMocks();
         mockLoggingService = jest.requireMock<ILoggingService>('@services/logging_service');
         torrentDownloadService = new TorrentDownloadService(mockLoggingService);
     });

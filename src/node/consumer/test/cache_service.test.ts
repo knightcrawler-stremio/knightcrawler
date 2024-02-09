@@ -47,6 +47,7 @@ describe('CacheService Tests', () => {
         cacheMethod: CacheMethod;
 
     beforeEach(() => {
+        jest.clearAllMocks();
         process.env.LOG_LEVEL = 'debug';
         loggingService = jest.requireMock<ILoggingService>('@services/logging_service');
         cacheMethod = jest.fn().mockResolvedValue({});

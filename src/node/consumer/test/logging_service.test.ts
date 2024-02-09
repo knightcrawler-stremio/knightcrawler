@@ -19,6 +19,7 @@ describe('LoggingService Tests', () => {
         mockLogger: any;
 
     beforeEach(() => {
+        jest.clearAllMocks();
         service = new LoggingService();
         mockLogger = (service as any).logger;
     });

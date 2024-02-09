@@ -23,6 +23,7 @@ const server = setupServer(
 
 beforeAll(() => server.listen())
 beforeEach(() => {
+    jest.clearAllMocks();
     jest.spyOn(Date, 'now').mockImplementation(() => 1234567890);
 })
 afterEach(() => () => {

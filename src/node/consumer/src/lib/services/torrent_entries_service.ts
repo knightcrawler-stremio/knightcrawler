@@ -110,7 +110,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             .then(() => this.logger.info(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
     };
 
-    public createSkipTorrentEntry: (torrent: Torrent) => Promise<[SkipTorrent, boolean | null]> = async (torrent: Torrent) => this.repository.createSkipTorrent(torrent.dataValues);
+    public createSkipTorrentEntry: (torrent: ITorrentCreationAttributes) => Promise<[SkipTorrent, boolean | null]> = async (torrent: ITorrentCreationAttributes) => this.repository.createSkipTorrent(torrent);
 
     public getStoredTorrentEntry = async (torrent: Torrent): Promise<Torrent | SkipTorrent | null | undefined> => this.repository.getSkipTorrent(torrent.infoHash)
         .catch(() => this.repository.getTorrent(torrent.dataValues))
@@ -173,8 +173,6 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                 return {};
             });
 
-        this.assignMetaIds(fileCollection, imdbId, kitsuId);
-
         if (!fileCollection.contents || !fileCollection.contents.length) {
             return;
         }
@@ -206,10 +204,13 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                 }
                 return Promise.resolve();
             })
-            .then(() => PromiseHelpers.sequence(fileCollection.videos!.map(video => (): Promise<void> => {
-                const newVideo: IFileCreationAttributes = {...video, infoHash: video.infoHash, title: video.title};
-                return this.repository.createFile(newVideo)
-            })))
+            .then(() => {
+                const promises = fileCollection.videos!.map(video => {
+                    const newVideo: IFileCreationAttributes = {...video, infoHash: video.infoHash, title: video.title};
+                    return this.repository.createFile(newVideo);
+                });
+                return Promise.all(promises);
+            })
             .then(() => this.logger.info(`Created contents for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`))
             .catch(error => this.logger.error(`Failed saving contents for [${torrent.infoHash}] ${torrent.title}`, error));
     };
@@ -248,7 +249,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
     };
 
     private assignMetaIds = (fileCollection: ITorrentFileCollection, imdbId: string | undefined, kitsuId: number): ITorrentFileCollection => {
-        if (fileCollection.videos && fileCollection.videos.length) {
+        if (fileCollection && fileCollection.videos && fileCollection.videos.length) {
             fileCollection.videos.forEach(video => {
                 video.imdbId = imdbId || '';
                 video.kitsuId = kitsuId || 0;

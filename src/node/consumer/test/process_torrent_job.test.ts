@@ -53,6 +53,7 @@ describe('ProcessTorrentsJob Tests', () => {
         torrentProcessingService: ITorrentProcessingService;
 
     beforeEach(() => {
+        jest.clearAllMocks();
         loggingService = jest.requireMock<ILoggingService>('@services/logging_service');
         torrentProcessingService = jest.requireMock('@services/torrent_processing_service');
         processTorrentsJob = new ProcessTorrentsJob(torrentProcessingService, loggingService);
