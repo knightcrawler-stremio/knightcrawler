@@ -2,7 +2,7 @@ import "reflect-metadata"; // required
 import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
 import {TorrentSubtitleService} from "@services/torrent_subtitle_service";
 
-describe('TrrentSubtitleService tests', () => {
+describe('TorrentSubtitleService tests', () => {
     let torrentSubtitleService: TorrentSubtitleService;
 
     beforeEach(() => {

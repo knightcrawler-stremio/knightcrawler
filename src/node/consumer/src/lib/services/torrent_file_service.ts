@@ -46,6 +46,10 @@ export class TorrentFileService implements ITorrentFileService {
             return Promise.reject(new Error('Torrent title is missing'));
         }
 
+        if (!torrent.infoHash) {
+            return Promise.reject(new Error('Torrent infoHash is missing'));
+        }
+
         const parsedTorrentName = parse(torrent.title);
         const query: IMetaDataQuery = {
             id: torrent.kitsuId || torrent.imdbId,
@@ -115,7 +119,7 @@ export class TorrentFileService implements ITorrentFileService {
             const parsedVideos = filteredVideos.map(video => ({
                 infoHash: torrent.infoHash,
                 fileIndex: video.fileIndex,
-                title: video.path || video.title || video.fileName || '',
+                title: video.title || video.path || video.fileName || '',
                 size: video.size || torrent.size,
                 imdbId: torrent.imdbId?.toString() || metadata && metadata.imdbId?.toString(),
                 kitsuId: parseInt(torrent.kitsuId?.toString() || metadata && metadata.kitsuId?.toString() || '0')
@@ -129,7 +133,7 @@ export class TorrentFileService implements ITorrentFileService {
             .then(videos => videos.map((video: IFileAttributes) => ({
                 infoHash: torrent.infoHash,
                 fileIndex: video.fileIndex,
-                title: video.path || video.title,
+                title: video.title || video.path,
                 size: video.size,
                 imdbId: video.imdbId,
             })));
