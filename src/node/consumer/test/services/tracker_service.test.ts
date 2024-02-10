@@ -5,7 +5,7 @@ import {TrackerService} from '@services/tracker_service';
 import {IocTypes} from "@setup/ioc_types";
 import {Container} from "inversify";
 import {setupServer} from 'msw/node';
-import * as responses from "./mock-responses/trackers_mock_responses";
+import * as responses from "../mock-responses/trackers_mock_responses";
 
 const server = setupServer(responses.trackerTestResponse);
 

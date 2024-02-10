@@ -5,7 +5,7 @@ import {MetadataService} from "@services/metadata_service";
 import {IocTypes} from "@setup/ioc_types";
 import {Container} from "inversify";
 import {setupServer} from "msw/node";
-import * as responses from "./mock-responses/metadata_mock_responses";
+import * as responses from "../mock-responses/metadata_mock_responses";
 
 jest.mock('@services/cache_service', () => {
     return {
