@@ -1,23 +1,19 @@
 import {ICacheService} from "@interfaces/cache_service";
 import {ILoggingService} from "@interfaces/logging_service";
 import {ITrackerService} from "@interfaces/tracker_service";
-import {IocTypes} from "@models/ioc_types";
 import {configurationService} from '@services/configuration_service';
+import {IocTypes} from "@setup/ioc_types";
 import axios, {AxiosResponse} from 'axios';
 import {inject, injectable} from "inversify";
 
 @injectable()
 export class TrackerService implements ITrackerService {
-    private cacheService: ICacheService;
-    private logger: ILoggingService;
+    @inject(IocTypes.ICacheService) cacheService: ICacheService;
+    @inject(IocTypes.ILoggingService) logger: ILoggingService;
 
-    constructor(@inject(IocTypes.ICacheService) cacheService: ICacheService,
-                @inject(IocTypes.ILoggingService) logger: ILoggingService) {
-        this.cacheService = cacheService;
-        this.logger = logger;
+    async getTrackers(): Promise<string[]> {
+        return this.cacheService.cacheTrackers(this.downloadTrackers);
     }
-
-    public getTrackers = async (): Promise<string[]> => this.cacheService.cacheTrackers(this.downloadTrackers);
 
     private downloadTrackers = async (): Promise<string[]> => {
         const response: AxiosResponse<string> = await axios.get(configurationService.trackerConfig.TRACKERS_URL);
@@ -38,4 +34,3 @@ export class TrackerService implements ITrackerService {
         return urlTrackers;
     };
 }
-

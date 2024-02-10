@@ -7,7 +7,7 @@ import {parse} from 'parse-torrent-title';
 
 @injectable()
 export class TorrentSubtitleService implements ITorrentSubtitleService {
-    public assignSubtitles = (fileCollection: ITorrentFileCollection): ITorrentFileCollection => {
+    assignSubtitles(fileCollection: ITorrentFileCollection): ITorrentFileCollection {
         if (fileCollection.videos && fileCollection.videos.length && fileCollection.subtitles && fileCollection.subtitles.length) {
             if (fileCollection.videos.length === 1) {
                 const matchingSubtitles = fileCollection.subtitles.filter(subtitle =>
@@ -33,7 +33,7 @@ export class TorrentSubtitleService implements ITorrentSubtitleService {
             return {...fileCollection, subtitles: unassignedSubs};
         }
         return fileCollection;
-    };
+    }
 
     private parseVideo = (video: IFileAttributes): IFileAttributes => {
         const fileName = video.title?.split('/')?.pop()?.replace(/\.(\w{2,4})$/, '') || '';

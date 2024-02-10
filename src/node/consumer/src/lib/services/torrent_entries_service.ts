@@ -8,7 +8,6 @@ import {ITorrentEntriesService} from "@interfaces/torrent_entries_service";
 import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
 import {ITorrentFileService} from "@interfaces/torrent_file_service";
 import {ITorrentSubtitleService} from "@interfaces/torrent_subtitle_service";
-import {IocTypes} from "@models/ioc_types";
 import {IDatabaseRepository} from "@repository/interfaces/database_repository";
 import {IFileCreationAttributes} from "@repository/interfaces/file_attributes";
 import {ISubtitleAttributes} from "@repository/interfaces/subtitle_attributes";
@@ -17,30 +16,19 @@ import {File} from "@repository/models/file";
 import {SkipTorrent} from "@repository/models/skipTorrent";
 import {Subtitle} from "@repository/models/subtitle";
 import {Torrent} from "@repository/models/torrent";
+import {IocTypes} from "@setup/ioc_types";
 import {inject, injectable} from "inversify";
 import {parse} from 'parse-torrent-title';
 
 @injectable()
 export class TorrentEntriesService implements ITorrentEntriesService {
-    private metadataService: IMetadataService;
-    private logger: ILoggingService;
-    private fileService: ITorrentFileService;
-    private subtitleService: ITorrentSubtitleService;
-    private repository: IDatabaseRepository;
+    @inject(IocTypes.IMetadataService) private metadataService: IMetadataService;
+    @inject(IocTypes.ILoggingService) private logger: ILoggingService;
+    @inject(IocTypes.ITorrentFileService) private fileService: ITorrentFileService;
+    @inject(IocTypes.ITorrentSubtitleService) private subtitleService: ITorrentSubtitleService;
+    @inject(IocTypes.IDatabaseRepository) private repository: IDatabaseRepository;
 
-    constructor(@inject(IocTypes.IMetadataService) metadataService: IMetadataService,
-                @inject(IocTypes.ILoggingService) logger: ILoggingService,
-                @inject(IocTypes.ITorrentFileService) fileService: ITorrentFileService,
-                @inject(IocTypes.ITorrentSubtitleService) torrentSubtitleService: ITorrentSubtitleService,
-                @inject(IocTypes.IDatabaseRepository) repository: IDatabaseRepository) {
-        this.metadataService = metadataService;
-        this.logger = logger;
-        this.fileService = fileService;
-        this.subtitleService = torrentSubtitleService;
-        this.repository = repository;
-    }
-
-    public createTorrentEntry = async (torrent: IParsedTorrent, overwrite = false): Promise<void> => {
+    async createTorrentEntry(torrent: IParsedTorrent, overwrite = false): Promise<void> {
         if (!torrent.title) {
             this.logger.warn(`No title found for ${torrent.provider} [${torrent.infoHash}]`);
             return;
@@ -108,15 +96,19 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                 return this.repository.createFile(newVideo)
             })))
             .then(() => this.logger.info(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
-    };
+    }
 
-    public createSkipTorrentEntry: (torrent: ITorrentCreationAttributes) => Promise<[SkipTorrent, boolean | null]> = async (torrent: ITorrentCreationAttributes) => this.repository.createSkipTorrent(torrent);
+    async createSkipTorrentEntry(torrent: ITorrentCreationAttributes): Promise<[SkipTorrent, boolean | null]> {
+        return this.repository.createSkipTorrent(torrent);
+    }
 
-    public getStoredTorrentEntry = async (torrent: Torrent): Promise<Torrent | SkipTorrent | null | undefined> => this.repository.getSkipTorrent(torrent.infoHash)
-        .catch(() => this.repository.getTorrent(torrent.dataValues))
-        .catch(() => undefined);
+    async getStoredTorrentEntry(torrent: Torrent): Promise<Torrent | SkipTorrent | null | undefined> {
+        return this.repository.getSkipTorrent(torrent.infoHash)
+            .catch(() => this.repository.getTorrent(torrent.dataValues))
+            .catch(() => undefined);
+    }
 
-    public checkAndUpdateTorrent = async (torrent: IParsedTorrent): Promise<boolean> => {
+    async checkAndUpdateTorrent(torrent: IParsedTorrent): Promise<boolean> {
         const query: ITorrentAttributes = {
             infoHash: torrent.infoHash,
             provider: torrent.provider,
@@ -146,9 +138,9 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             .then(() => this.updateTorrentSeeders(existingTorrent.dataValues))
             .then(() => Promise.resolve(true))
             .catch(() => Promise.reject(false));
-    };
+    }
 
-    public createTorrentContents = async (torrent: Torrent): Promise<void> => {
+    async createTorrentContents(torrent: Torrent): Promise<void> {
         if (torrent.opened) {
             return;
         }
@@ -213,9 +205,9 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             })
             .then(() => this.logger.info(`Created contents for ${torrent.provider} [${torrent.infoHash}] ${torrent.title}`))
             .catch(error => this.logger.error(`Failed saving contents for [${torrent.infoHash}] ${torrent.title}`, error));
-    };
+    }
 
-    public updateTorrentSeeders = async (torrent: ITorrentAttributes): Promise<[number]> => {
+    async updateTorrentSeeders(torrent: ITorrentAttributes): Promise<[number]> {
         if (!(torrent.infoHash || (torrent.provider && torrent.torrentId)) || !Number.isInteger(torrent.seeders)) {
             return [0];
         }
@@ -231,7 +223,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                 this.logger.warn('Failed updating seeders:', error);
                 return [0];
             });
-    };
+    }
 
     private assignKitsuId = async (kitsuQuery: IMetaDataQuery, torrent: IParsedTorrent): Promise<void> => {
         await this.metadataService.getKitsuId(kitsuQuery)

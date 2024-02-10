@@ -1,6 +1,8 @@
 import "reflect-metadata"; // required
 import {ILoggingService} from '@interfaces/logging_service';
 import {CacheMethod, CacheService} from '@services/cache_service';
+import {IocTypes} from "@setup/ioc_types";
+import {Container} from "inversify";
 
 jest.mock('@services/configuration_service', () => {
     return {
@@ -49,9 +51,12 @@ describe('CacheService Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         process.env.LOG_LEVEL = 'debug';
-        loggingService = jest.requireMock<ILoggingService>('@services/logging_service');
         cacheMethod = jest.fn().mockResolvedValue({});
-        cacheService = new CacheService(loggingService);
+        loggingService = jest.requireMock<ILoggingService>('@services/logging_service');
+        const container = new Container();
+        container.bind<CacheService>(CacheService).toSelf();
+        container.bind<ILoggingService>(IocTypes.ILoggingService).toConstantValue(loggingService);
+        cacheService = container.get(CacheService);
     });
 
     afterEach(() => {
@@ -113,7 +118,6 @@ describe('CacheService Tests', () => {
             }
         });
 
-        cacheService = new CacheService(loggingService);
         const result = await cacheService.cacheWrapImdbId('testKey', cacheMethod);
         expect(result).toBeDefined();
     });

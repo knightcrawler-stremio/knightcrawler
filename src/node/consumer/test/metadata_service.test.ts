@@ -2,6 +2,8 @@ import "reflect-metadata"; // required
 import {ICacheService} from "@interfaces/cache_service";
 import {IMetadataResponse} from "@interfaces/metadata_response";
 import {MetadataService} from "@services/metadata_service";
+import {IocTypes} from "@setup/ioc_types";
+import {Container} from "inversify";
 import {setupServer} from "msw/node";
 import * as responses from "./mock-responses/metadata_mock_responses";
 
@@ -38,7 +40,10 @@ describe('MetadataService Tests', () => {
 
     beforeEach(() => {
         mockCacheService = jest.requireMock<ICacheService>('@services/cache_service');
-        metadataService = new MetadataService(mockCacheService);
+        const container = new Container();
+        container.bind<MetadataService>(MetadataService).toSelf();
+        container.bind<ICacheService>(IocTypes.ICacheService).toConstantValue(mockCacheService);
+        metadataService = container.get(MetadataService);
     });
 
     it("should get kitsu id", async () => {
@@ -57,10 +62,10 @@ describe('MetadataService Tests', () => {
             id: 'kitsu:11',
             type: 'series'
         });
-        
+
         expect(mockCacheService.cacheWrapMetadata).toHaveBeenCalledWith('kitsu:11', expect.any(Function));
         expect(result).not.toBeNull();
-        
+
         const body = result as IMetadataResponse;
         expect(body.videos).not.toBeNull();
         expect(body.videos.length).toBe(220);

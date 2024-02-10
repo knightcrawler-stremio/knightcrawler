@@ -7,14 +7,13 @@ import {IMetaDataQuery} from "@interfaces/metadata_query";
 import {IMetadataResponse} from "@interfaces/metadata_response";
 import {IMetadataService} from "@interfaces/metadata_service";
 import {IParsedTorrent} from "@interfaces/parsed_torrent";
-import {ISeasonEpisodeMap} from "@interfaces/season_episode_map";
 import {ITorrentDownloadService} from "@interfaces/torrent_download_service";
 import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
 import {ITorrentFileService} from "@interfaces/torrent_file_service";
-import {IocTypes} from "@models/ioc_types";
 import {IContentAttributes} from "@repository/interfaces/content_attributes";
 import {IFileAttributes} from "@repository/interfaces/file_attributes";
 import {configurationService} from '@services/configuration_service';
+import {IocTypes} from "@setup/ioc_types";
 import Bottleneck from 'bottleneck';
 import {inject, injectable} from "inversify";
 import moment from 'moment';
@@ -23,25 +22,20 @@ import {parse} from 'parse-torrent-title';
 const MIN_SIZE: number = 5 * 1024 * 1024; // 5 MB
 const MULTIPLE_FILES_SIZE = 4 * 1024 * 1024 * 1024; // 4 GB
 
+type SeasonEpisodeMap = Record<number, Record<number, ICommonVideoMetadata>>;
+
 @injectable()
 export class TorrentFileService implements ITorrentFileService {
-    private metadataService: IMetadataService;
-    private torrentDownloadService: ITorrentDownloadService;
-    private logger: ILoggingService;
+    @inject(IocTypes.IMetadataService) metadataService: IMetadataService;
+    @inject(IocTypes.ITorrentDownloadService) torrentDownloadService: ITorrentDownloadService;
+    @inject(IocTypes.ILoggingService) logger: ILoggingService;
+
     private readonly imdb_limiter: Bottleneck = new Bottleneck({
         maxConcurrent: configurationService.metadataConfig.IMDB_CONCURRENT,
         minTime: configurationService.metadataConfig.IMDB_INTERVAL_MS
     });
 
-    constructor(@inject(IocTypes.IMetadataService) metadataService: IMetadataService,
-                @inject(IocTypes.ITorrentDownloadService) torrentDownloadService: ITorrentDownloadService,
-                @inject(IocTypes.ILoggingService) logger: ILoggingService) {
-        this.metadataService = metadataService;
-        this.torrentDownloadService = torrentDownloadService;
-        this.logger = logger;
-    }
-
-    public parseTorrentFiles = async (torrent: IParsedTorrent): Promise<ITorrentFileCollection> => {
+    async parseTorrentFiles(torrent: IParsedTorrent): Promise<ITorrentFileCollection> {
         if (!torrent.title) {
             return Promise.reject(new Error('Torrent title is missing'));
         }
@@ -74,9 +68,9 @@ export class TorrentFileService implements ITorrentFileService {
         }
 
         return this.parseSeriesFiles(torrent, metadata)
-    };
+    }
 
-    public isPackTorrent = (torrent: IParsedTorrent): boolean => {
+    isPackTorrent(torrent: IParsedTorrent): boolean {
         if (torrent.isPack) {
             return true;
         }
@@ -96,7 +90,7 @@ export class TorrentFileService implements ITorrentFileService {
         const hasSingleEpisode: boolean = Boolean(Number.isInteger(parsedInfo.episode) || (!parsedInfo.episodes && parsedInfo.date));
 
         return hasMultipleEpisodes && !hasSingleEpisode;
-    };
+    }
 
     private parseSeriesVideos = (torrent: IParsedTorrent, videos: IFileAttributes[]): IFileAttributes[] => {
         const parsedTorrentName = parse(torrent.title!);
@@ -482,7 +476,7 @@ export class TorrentFileService implements ITorrentFileService {
 
         const seriesMapping = metadata.videos
             .filter(video => video.season !== undefined && Number.isInteger(video.season) && video.episode !== undefined && Number.isInteger(video.episode))
-            .reduce<ISeasonEpisodeMap>((map, video) => {
+            .reduce<SeasonEpisodeMap>((map, video) => {
                 if (video.season !== undefined && video.episode !== undefined) {
                     const episodeMap = map[video.season] || {};
                     episodeMap[video.episode] = video;
@@ -737,25 +731,3 @@ export class TorrentFileService implements ITorrentFileService {
 
     private mod100 = (episode: number): number => episode % 100;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

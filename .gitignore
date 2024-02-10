@@ -404,4 +404,3 @@ FodyWeavers.xsd
 *.sln.iml
 
 dist/
-**/localdev.compose.yml

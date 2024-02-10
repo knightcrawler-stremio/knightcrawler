@@ -6,11 +6,13 @@ import {IParsedTorrent} from "@interfaces/parsed_torrent";
 import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
 import {ITorrentFileService} from "@interfaces/torrent_file_service";
 import {ITorrentSubtitleService} from "@interfaces/torrent_subtitle_service";
-import {IDatabaseRepository} from "@repository/interfaces/database_repository"; 
+import {IDatabaseRepository} from "@repository/interfaces/database_repository";
 import {IFileAttributes} from "@repository/interfaces/file_attributes";
 import {ITorrentCreationAttributes} from "@repository/interfaces/torrent_attributes";
 import {Torrent} from "@repository/models/torrent";
 import {TorrentEntriesService} from "@services/torrent_entries_service";
+import {IocTypes} from "@setup/ioc_types";
+import {Container} from "inversify";
 
 jest.mock('@services/logging_service', () => {
     return {
@@ -63,24 +65,32 @@ describe('TorrentEntriesService Tests', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        
+
         mockFileService = jest.requireMock<ITorrentFileService>('@services/torrent_file_service');
         mockMetadataService = jest.requireMock<IMetadataService>('@services/metadata_service');
         mockSubtitleService = jest.requireMock<ITorrentSubtitleService>('@services/torrent_subtitle_service');
         mockLoggingService = jest.requireMock<ILoggingService>('@services/logging_service');
         mockDatabaseRepository = jest.requireMock<IDatabaseRepository>('@repository/database_repository');
-        torrentEntriesService = new TorrentEntriesService(mockMetadataService, mockLoggingService, mockFileService , mockSubtitleService, mockDatabaseRepository);
+
+        const container = new Container();
+        container.bind<TorrentEntriesService>(TorrentEntriesService).toSelf();
+        container.bind<ILoggingService>(IocTypes.ILoggingService).toConstantValue(mockLoggingService);
+        container.bind<ITorrentFileService>(IocTypes.ITorrentFileService).toConstantValue(mockFileService);
+        container.bind<ITorrentSubtitleService>(IocTypes.ITorrentSubtitleService).toConstantValue(mockSubtitleService);
+        container.bind<IDatabaseRepository>(IocTypes.IDatabaseRepository).toConstantValue(mockDatabaseRepository);
+        container.bind<IMetadataService>(IocTypes.IMetadataService).toConstantValue(mockMetadataService);
+        torrentEntriesService = container.get(TorrentEntriesService);
     });
 
     it('should create a torrent entry', async () => {
-        const torrent : IParsedTorrent = {
+        const torrent: IParsedTorrent = {
             title: 'Test title',
             provider: 'Test provider',
             infoHash: 'Test infoHash',
             type: TorrentType.Movie,
         };
 
-        const fileCollection : ITorrentFileCollection = {
+        const fileCollection: ITorrentFileCollection = {
             videos: [{
                 fileIndex: 0,
                 title: 'Test video',
@@ -91,9 +101,9 @@ describe('TorrentEntriesService Tests', () => {
             subtitles: [],
         };
 
-        const fileCollectionWithSubtitles : ITorrentFileCollection = {
+        const fileCollectionWithSubtitles: ITorrentFileCollection = {
             ...fileCollection,
-            subtitles: [ {
+            subtitles: [{
                 fileId: 0,
                 title: 'Test subtitle',
                 fileIndex: 0,
@@ -109,7 +119,11 @@ describe('TorrentEntriesService Tests', () => {
 
         await torrentEntriesService.createTorrentEntry(torrent);
 
-        expect(mockMetadataService.getImdbId).toHaveBeenCalledWith({ title: 'Test title', year: undefined, type: TorrentType.Movie });
+        expect(mockMetadataService.getImdbId).toHaveBeenCalledWith({
+            title: 'Test title',
+            year: undefined,
+            type: TorrentType.Movie
+        });
         expect(mockFileService.parseTorrentFiles).toHaveBeenCalledWith(torrent);
         expect(mockFileService.parseTorrentFiles).toHaveReturnedWith(Promise.resolve(fileCollection));
         expect(mockSubtitleService.assignSubtitles).toHaveBeenCalledWith(fileCollection);
@@ -118,14 +132,14 @@ describe('TorrentEntriesService Tests', () => {
     });
 
     it('should assign imdbId correctly', async () => {
-        const torrent : IParsedTorrent = {
+        const torrent: IParsedTorrent = {
             title: 'Test title',
             provider: 'Test provider',
             infoHash: 'Test infoHash',
             type: TorrentType.Movie,
         };
 
-        const fileCollection : ITorrentFileCollection = {
+        const fileCollection: ITorrentFileCollection = {
             videos: [{
                 fileIndex: 0,
                 title: 'Test video',
@@ -136,9 +150,9 @@ describe('TorrentEntriesService Tests', () => {
             subtitles: [],
         };
 
-        const fileCollectionWithSubtitles : ITorrentFileCollection = {
+        const fileCollectionWithSubtitles: ITorrentFileCollection = {
             ...fileCollection,
-            subtitles: [ {
+            subtitles: [{
                 fileId: 0,
                 title: 'Test subtitle',
                 fileIndex: 0,
@@ -159,14 +173,14 @@ describe('TorrentEntriesService Tests', () => {
     });
 
     it('should assign kitsuId correctly', async () => {
-        const torrent : IParsedTorrent = {
+        const torrent: IParsedTorrent = {
             title: 'Test title',
             provider: 'Test provider',
             infoHash: 'Test infoHash',
             type: TorrentType.Anime,
         };
 
-        const fileCollection : ITorrentFileCollection = {
+        const fileCollection: ITorrentFileCollection = {
             videos: [{
                 fileIndex: 0,
                 title: 'Test video',
@@ -177,9 +191,9 @@ describe('TorrentEntriesService Tests', () => {
             subtitles: [],
         };
 
-        const fileCollectionWithSubtitles : ITorrentFileCollection = {
+        const fileCollectionWithSubtitles: ITorrentFileCollection = {
             ...fileCollection,
-            subtitles: [ {
+            subtitles: [{
                 fileId: 0,
                 title: 'Test subtitle',
                 fileIndex: 0,
@@ -208,9 +222,9 @@ describe('TorrentEntriesService Tests', () => {
         };
 
         (mockDatabaseRepository.createSkipTorrent as jest.Mock).mockResolvedValue([torrent, null]);
-        
+
         const result = await torrentEntriesService.createSkipTorrentEntry(torrent);
-        
+
         expect(mockDatabaseRepository.createSkipTorrent).toHaveBeenCalledWith(torrent);
         expect(result).toEqual([torrent, null]);
     });
@@ -240,7 +254,7 @@ describe('TorrentEntriesService Tests', () => {
     });
 
     it('should check and update torrent', async () => {
-        const torrent : IParsedTorrent = {
+        const torrent: IParsedTorrent = {
             title: 'Test title',
             provider: 'Test provider',
             infoHash: 'Test infoHash',
@@ -248,13 +262,13 @@ describe('TorrentEntriesService Tests', () => {
             seeders: 1,
         };
 
-        const files : IFileAttributes[] = [{
+        const files: IFileAttributes[] = [{
             infoHash: 'Test infoHash',
             fileIndex: 0,
             title: 'Test title',
             path: 'Test path',
-            size: 123456,  
-        },{
+            size: 123456,
+        }, {
             infoHash: 'Test infoHash 2',
             fileIndex: 1,
             title: 'Test title 2',
@@ -264,16 +278,16 @@ describe('TorrentEntriesService Tests', () => {
 
         const torrentInstance = {
             ...torrent,
-            dataValues:{ ...torrent},
+            dataValues: {...torrent},
             save: jest.fn().mockResolvedValue(torrent),
         };
 
         const filesInstance = {
             ...files,
-            dataValues:{ ...files},
+            dataValues: {...files},
             save: jest.fn().mockResolvedValue(files),
         };
-        
+
         const seedersResponse = [1];
 
         (mockDatabaseRepository.getTorrent as jest.Mock).mockResolvedValue(torrentInstance);
@@ -284,10 +298,10 @@ describe('TorrentEntriesService Tests', () => {
         const result = await torrentEntriesService.checkAndUpdateTorrent(torrent);
 
         expect(mockDatabaseRepository.getTorrent).toHaveBeenCalledWith({
-            infoHash: torrent.infoHash, 
+            infoHash: torrent.infoHash,
             provider: torrent.provider
         });
-        
+
         expect(mockDatabaseRepository.getFiles).toHaveBeenCalledWith(torrent.infoHash);
         expect(mockDatabaseRepository.setTorrentSeeders).toHaveBeenCalledWith(torrentInstance.dataValues, 1);
         expect(result).toEqual(true);
@@ -307,7 +321,7 @@ describe('TorrentEntriesService Tests', () => {
             }
         } as Torrent;
 
-        const fileCollection : ITorrentFileCollection = {
+        const fileCollection: ITorrentFileCollection = {
             videos: [{
                 id: 1,
                 title: 'Test video',
@@ -319,7 +333,7 @@ describe('TorrentEntriesService Tests', () => {
             subtitles: [],
         };
 
-        const fileCollectionWithContents : ITorrentFileCollection = {
+        const fileCollectionWithContents: ITorrentFileCollection = {
             ...fileCollection,
             contents: [{
                 size: 123456,

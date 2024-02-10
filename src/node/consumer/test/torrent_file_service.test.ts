@@ -5,6 +5,8 @@ import {IMetadataService} from "@interfaces/metadata_service";
 import {IParsedTorrent} from "@interfaces/parsed_torrent";
 import {ITorrentDownloadService} from "@interfaces/torrent_download_service";
 import {TorrentFileService} from "@services/torrent_file_service";
+import {IocTypes} from "@setup/ioc_types";
+import {Container} from "inversify";
 
 jest.mock('@services/logging_service', () => {
     return {
@@ -38,10 +40,17 @@ describe('TorrentFileService tests', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+
         mockLoggingService = jest.requireMock<ILoggingService>('@services/logging_service');
         mockDownloadService = jest.requireMock<ITorrentDownloadService>('@services/torrent_download_service');
         mockMetadataService = jest.requireMock<IMetadataService>('@services/metadata_service');
-        torrentFileService = new TorrentFileService(mockMetadataService, mockDownloadService, mockLoggingService);
+
+        const container = new Container();
+        container.bind<TorrentFileService>(TorrentFileService).toSelf();
+        container.bind<ILoggingService>(IocTypes.ILoggingService).toConstantValue(mockLoggingService);
+        container.bind<IMetadataService>(IocTypes.IMetadataService).toConstantValue(mockMetadataService);
+        container.bind<ITorrentDownloadService>(IocTypes.ITorrentDownloadService).toConstantValue(mockDownloadService);
+        torrentFileService = container.get(TorrentFileService);
     });
 
 
@@ -56,7 +65,7 @@ describe('TorrentFileService tests', () => {
         const result = torrentFileService.parseTorrentFiles(mockTorrent);
 
         expect(result).toBeInstanceOf(Promise);
-        
+
         result.then(res => {
             expect(res).toHaveProperty('videos');
             expect(res).toHaveProperty('subtitles');

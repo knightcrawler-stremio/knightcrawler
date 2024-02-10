@@ -7,7 +7,7 @@ import {IKitsuJsonResponse} from "@interfaces/kitsu_metadata";
 import {IMetaDataQuery} from "@interfaces/metadata_query";
 import {IMetadataResponse} from "@interfaces/metadata_response";
 import {IMetadataService} from "@interfaces/metadata_service";
-import {IocTypes} from "@models/ioc_types";
+import {IocTypes} from "@setup/ioc_types";
 import axios from 'axios';
 import {ResultTypes, search} from 'google-sr';
 import {inject, injectable} from "inversify";
@@ -19,13 +19,9 @@ const TIMEOUT = 60000;
 
 @injectable()
 export class MetadataService implements IMetadataService {
-    private cacheService: ICacheService;
+    @inject(IocTypes.ICacheService) private cacheService: ICacheService;
 
-    constructor(@inject(IocTypes.ICacheService) cacheService: ICacheService) {
-        this.cacheService = cacheService;
-    }
-
-    public getKitsuId = async (info: IMetaDataQuery): Promise<number | Error> => {
+    async getKitsuId(info: IMetaDataQuery): Promise<number | Error> {
         const title = this.escapeTitle(info.title!.replace(/\s\|\s.*/, ''));
         const year = info.year ? ` ${info.year}` : '';
         const season = info.season || 0 > 1 ? ` S${info.season}` : '';
@@ -42,9 +38,9 @@ export class MetadataService implements IMetadataService {
                         throw new Error('No search results');
                     }
                 }));
-    };
+    }
 
-    public getImdbId = async (info: IMetaDataQuery): Promise<string | undefined> => {
+    async getImdbId(info: IMetaDataQuery): Promise<string | undefined> {
         const name = this.escapeTitle(info.title!);
         const year = info.year || (info.date && info.date.slice(0, 4));
         const key = `${name}_${year || 'NA'}_${info.type}`;
@@ -61,9 +57,9 @@ export class MetadataService implements IMetadataService {
             const imdbIdFallback = await this.getIMDbIdFromGoogle(googleQuery);
             return imdbIdFallback && 'tt' + imdbIdFallback.toString().replace(/tt0*([1-9][0-9]*)$/, '$1').padStart(7, '0');
         }
-    };
+    }
 
-    public getMetadata = (query: IMetaDataQuery): Promise<IMetadataResponse | Error> => {
+    async getMetadata(query: IMetaDataQuery): Promise<IMetadataResponse | Error> {
         if (!query.id) {
             return Promise.reject("no valid id provided");
         }
@@ -71,25 +67,28 @@ export class MetadataService implements IMetadataService {
         const key = Number.isInteger(query.id) || query.id.toString().match(/^\d+$/) ? `kitsu:${query.id}` : query.id;
         const metaType = query.type === TorrentType.Movie ? TorrentType.Movie : TorrentType.Series;
         const isImdbId = Boolean(key.toString().match(/^tt\d+$/));
-        
-        return this.cacheService.cacheWrapMetadata(key.toString(), () => {
-            switch (isImdbId) {
-                case true:
-                    return this.requestMetadata(`${CINEMETA_URL}/meta/imdb/${key}.json`, this.handleCinemetaResponse);
-                default:
-                    return this.requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`, this.handleKitsuResponse)
-            }})
-            .catch(() => {
+
+        try {
+            try {
+                return await this.cacheService.cacheWrapMetadata(key.toString(), () => {
+                    switch (isImdbId) {
+                        case true:
+                            return this.requestMetadata(`${CINEMETA_URL}/meta/imdb/${key}.json`, this.handleCinemetaResponse);
+                        default:
+                            return this.requestMetadata(`${KITSU_URL}/meta/${metaType}/${key}.json`, this.handleKitsuResponse)
+                    }
+                });
+            } catch (e) {
                 // try different type in case there was a mismatch
                 const otherType = metaType === TorrentType.Movie ? TorrentType.Series : TorrentType.Movie;
                 return this.requestMetadata(`${CINEMETA_URL}/meta/${otherType}/${key}.json`, this.handleCinemetaResponse)
-            })
-            .catch((error) => {
-                throw new Error(`failed metadata query ${key} due: ${error.message}`);
-            });
-    };
+            }
+        } catch (error) {
+            throw new Error(`failed metadata query ${key} due: ${error.message}`);
+        }
+    }
 
-    public isEpisodeImdbId = async (imdbId: string | undefined): Promise<boolean> => {
+    async isEpisodeImdbId(imdbId: string | undefined): Promise<boolean> {
         if (!imdbId || !imdbId.toString().match(/^tt\d+$/)) {
             return false;
         }
@@ -100,21 +99,23 @@ export class MetadataService implements IMetadataService {
         } catch (error) {
             return false;
         }
-    };
+    }
 
-    public escapeTitle = (title: string): string => title.toLowerCase()
-        .normalize('NFKD') // normalize non-ASCII characters
-        .replace(/[\u0300-\u036F]/g, '')
-        .replace(/&/g, 'and')
-        .replace(/[;, ~./]+/g, ' ') // replace dots, commas or underscores with spaces
-        .replace(/[^\w \-()×+#@!'\u0400-\u04ff]+/g, '') // remove all non-alphanumeric chars
-        .replace(/^\d{1,2}[.#\s]+(?=(?:\d+[.\s]*)?[\u0400-\u04ff])/i, '') // remove russian movie numbering
-        .replace(/\s{2,}/, ' ') // replace multiple spaces
-        .trim();
+    escapeTitle(title: string): string {
+        return title.toLowerCase()
+            .normalize('NFKD') // normalize non-ASCII characters
+            .replace(/[\u0300-\u036F]/g, '')
+            .replace(/&/g, 'and')
+            .replace(/[;, ~./]+/g, ' ') // replace dots, commas or underscores with spaces
+            .replace(/[^\w \-()×+#@!'\u0400-\u04ff]+/g, '') // remove all non-alphanumeric chars
+            .replace(/^\d{1,2}[.#\s]+(?=(?:\d+[.\s]*)?[\u0400-\u04ff])/i, '') // remove russian movie numbering
+            .replace(/\s{2,}/, ' ') // replace multiple spaces
+            .trim();
+    }
 
     private requestMetadata = async (url: string, handler: (body: unknown) => IMetadataResponse): Promise<IMetadataResponse> => {
         try {
-            const response = await axios.get(url, { timeout: TIMEOUT });
+            const response = await axios.get(url, {timeout: TIMEOUT});
             const body = response.data;
             return handler(body);
         } catch (error) {
@@ -124,7 +125,7 @@ export class MetadataService implements IMetadataService {
 
     private handleCinemetaResponse = (response: unknown): IMetadataResponse => {
         const body = response as ICinemetaJsonResponse
-        
+
         return ({
             imdbId: parseInt(body.meta?.id || '0'),
             type: body.meta?.type,
@@ -155,7 +156,7 @@ export class MetadataService implements IMetadataService {
 
     private handleKitsuResponse = (response: unknown): IMetadataResponse => {
         const body = response as IKitsuJsonResponse;
-        
+
         return ({
             kitsuId: parseInt(body.meta?.kitsu_id || '0'),
             type: body.meta?.type,
@@ -231,4 +232,3 @@ export class MetadataService implements IMetadataService {
         }
     };
 }
-

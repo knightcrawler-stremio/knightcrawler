@@ -4,25 +4,17 @@ import {IParsedTorrent} from "@interfaces/parsed_torrent";
 import {ITorrentEntriesService} from "@interfaces/torrent_entries_service";
 import {ITorrentProcessingService} from "@interfaces/torrent_processing_service";
 import {ITrackerService} from "@interfaces/tracker_service";
-import {IocTypes} from "@models/ioc_types";
 import {IIngestedTorrentAttributes} from "@repository/interfaces/ingested_torrent_attributes";
+import {IocTypes} from "@setup/ioc_types";
 import {inject, injectable} from "inversify";
 
 @injectable()
 export class TorrentProcessingService implements ITorrentProcessingService {
-    private torrentEntriesService: ITorrentEntriesService;
-    private logger: ILoggingService;
-    private trackerService: ITrackerService;
+    @inject(IocTypes.ITorrentEntriesService) torrentEntriesService: ITorrentEntriesService;
+    @inject(IocTypes.ILoggingService) logger: ILoggingService;
+    @inject(IocTypes.ITrackerService) trackerService: ITrackerService;
 
-    constructor(@inject(IocTypes.ITorrentEntriesService) torrentEntriesService: ITorrentEntriesService,
-                @inject(IocTypes.ILoggingService) logger: ILoggingService,
-                @inject(IocTypes.ITrackerService) trackerService: ITrackerService) {
-        this.torrentEntriesService = torrentEntriesService;
-        this.logger = logger;
-        this.trackerService = trackerService;
-    }
-
-    public processTorrentRecord = async (torrent: IIngestedTorrentAttributes): Promise<void> => {
+    async processTorrentRecord(torrent: IIngestedTorrentAttributes): Promise<void> {
         const {category} = torrent;
         const type = category === 'tv' ? TorrentType.Series : TorrentType.Movie;
         const torrentInfo: IParsedTorrent = await this.parseTorrent(torrent, type);
@@ -34,7 +26,7 @@ export class TorrentProcessingService implements ITorrentProcessingService {
         }
 
         return this.torrentEntriesService.createTorrentEntry(torrentInfo, false);
-    };
+    }
 
     private assignTorrentTrackers = async (): Promise<string> => {
         const trackers = await this.trackerService.getTrackers();
@@ -65,4 +57,3 @@ export class TorrentProcessingService implements ITorrentProcessingService {
         return torrent.imdb;
     };
 }
-

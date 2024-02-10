@@ -1,14 +1,22 @@
-import {build} from "esbuild";
-import {readFileSync, rmSync} from "fs";
+import { build } from "esbuild";
+import { readFileSync, rmSync } from "fs";
 
-const {devDependencies} = JSON.parse(readFileSync("./package.json", "utf8"));
+interface DevDependencies {
+    [key: string]: string;
+}
+
+interface PackageJson {
+    devDependencies?: DevDependencies;
+}
+
+const { devDependencies } = JSON.parse(readFileSync("./package.json", "utf8")) as PackageJson;
 
 const start = Date.now();
 
 try {
     const outdir = "dist";
 
-    rmSync(outdir, {recursive: true, force: true});
+    rmSync(outdir, { recursive: true, force: true });
 
     build({
         bundle: true,
@@ -27,8 +35,8 @@ try {
         plugins: [
             {
                 name: "populate-import-meta",
-                setup: ({onLoad}) => {
-                    onLoad({filter: new RegExp(`${import.meta.dirname}/src/.*.(js|ts)$`)}, args => {
+                setup: ({ onLoad }) => {
+                    onLoad({ filter: new RegExp(`${import.meta.dirname}/src/.*.(js|ts)$`) }, args => {
                         const contents = readFileSync(args.path, "utf8");
 
                         const transformedContents = contents
@@ -36,19 +44,15 @@ try {
                             .replace(/import\.meta\.filename/g, "__filename")
                             .replace(/import\.meta\.dirname/g, "__dirname");
 
-                        return {contents: transformedContents, loader: "default"};
+                        return { contents: transformedContents, loader: "default" };
                     });
                 },
             }
         ],
     }).then(() => {
-        // biome-ignore lint/style/useTemplate: <explanation>
-        // eslint-disable-next-line no-undef
         console.log("⚡ " + "\x1b[32m" + `Done in ${Date.now() - start}ms`);
     });
 } catch (e) {
-    // eslint-disable-next-line no-undef
     console.log(e);
-    // eslint-disable-next-line no-undef
     process.exit(1);
 }

@@ -2,6 +2,8 @@ import "reflect-metadata"; // required
 import {ICacheService} from '@interfaces/cache_service';
 import {ILoggingService} from '@interfaces/logging_service';
 import {TrackerService} from '@services/tracker_service';
+import {IocTypes} from "@setup/ioc_types";
+import {Container} from "inversify";
 import {setupServer} from 'msw/node';
 import * as responses from "./mock-responses/trackers_mock_responses";
 
@@ -20,7 +22,6 @@ jest.mock('@services/cache_service', () => {
         cacheTrackers: jest.fn().mockImplementation((fn) => fn()),
     }
 })
-
 
 beforeAll(() => server.listen())
 beforeEach(() => {
@@ -41,7 +42,12 @@ describe('TrackerService', () => {
     beforeEach(() => {
         mockCacheService = jest.requireMock<ICacheService>('@services/cache_service');
         mockLoggingService = jest.requireMock<ILoggingService>('@services/logging_service');
-        trackerService = new TrackerService(mockCacheService, mockLoggingService);
+
+        const container = new Container();
+        container.bind<TrackerService>(TrackerService).toSelf();
+        container.bind<ILoggingService>(IocTypes.ILoggingService).toConstantValue(mockLoggingService);
+        container.bind<ICacheService>(IocTypes.ICacheService).toConstantValue(mockCacheService);
+        trackerService = container.get(TrackerService);
     });
 
     it('should get trackers', async () => {

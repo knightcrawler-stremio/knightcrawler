@@ -2,6 +2,8 @@ import "reflect-metadata"; // required
 import {ILoggingService} from '@interfaces/logging_service';
 import {IParsedTorrent} from "@interfaces/parsed_torrent";
 import {TorrentDownloadService} from '@services/torrent_download_service';
+import {IocTypes} from "@setup/ioc_types";
+import {Container} from "inversify";
 import torrentStream from 'torrent-stream';
 
 jest.mock('@services/logging_service', () => {
@@ -27,7 +29,11 @@ describe('TorrentDownloadService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockLoggingService = jest.requireMock<ILoggingService>('@services/logging_service');
-        torrentDownloadService = new TorrentDownloadService(mockLoggingService);
+
+        const container = new Container();
+        container.bind<TorrentDownloadService>(TorrentDownloadService).toSelf();
+        container.bind<ILoggingService>(IocTypes.ILoggingService).toConstantValue(mockLoggingService);
+        torrentDownloadService = container.get(TorrentDownloadService);
     });
 
     it('should get torrent files', async () => {

@@ -3,7 +3,9 @@ import {ILoggingService} from '@interfaces/logging_service';
 import {ITorrentProcessingService} from '@interfaces/torrent_processing_service';
 import {ProcessTorrentsJob} from '@jobs/process_torrents_job';
 import {configurationService} from '@services/configuration_service';
+import {IocTypes} from "@setup/ioc_types";
 import client, {ConsumeMessage} from 'amqplib';
+import {Container} from "inversify";
 
 jest.mock('@services/configuration_service', () => {
     return {
@@ -56,7 +58,12 @@ describe('ProcessTorrentsJob Tests', () => {
         jest.clearAllMocks();
         loggingService = jest.requireMock<ILoggingService>('@services/logging_service');
         torrentProcessingService = jest.requireMock('@services/torrent_processing_service');
-        processTorrentsJob = new ProcessTorrentsJob(torrentProcessingService, loggingService);
+
+        const container = new Container();
+        container.bind<ProcessTorrentsJob>(ProcessTorrentsJob).toSelf();
+        container.bind<ILoggingService>(IocTypes.ILoggingService).toConstantValue(loggingService);
+        container.bind<ITorrentProcessingService>(IocTypes.ITorrentProcessingService).toConstantValue(torrentProcessingService);
+        processTorrentsJob = container.get(ProcessTorrentsJob);
     });
 
     afterEach(() => {

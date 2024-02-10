@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "node esbuild.js",
+    "build": "tsx esbuild.ts",
     "dev": "tsx watch --ignore node_modules src/main.ts | pino-pretty",
-    "start": "node --trace-deprecation dist/main.cjs",
+    "start": "node dist/main.cjs",
     "lint": "eslint ./src --ext .ts,.js",
     "lint-fix": "npm run lint -- --fix",
     "test": "jest",

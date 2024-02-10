@@ -2,26 +2,21 @@
 import {ILoggingService} from "@interfaces/logging_service";
 import {IProcessTorrentsJob} from "@interfaces/process_torrents_job";
 import {ITorrentProcessingService} from "@interfaces/torrent_processing_service";
-import {IocTypes} from "@models/ioc_types";
 import {IIngestedTorrentAttributes} from "@repository/interfaces/ingested_torrent_attributes";
 import {configurationService} from '@services/configuration_service';
+import {IocTypes} from "@setup/ioc_types";
 import client, {Channel, Connection, ConsumeMessage, Options} from 'amqplib'
 import {inject, injectable} from "inversify";
 
 @injectable()
 export class ProcessTorrentsJob implements IProcessTorrentsJob {
+    @inject(IocTypes.ITorrentProcessingService) torrentProcessingService: ITorrentProcessingService;
+    @inject(IocTypes.ILoggingService) logger: ILoggingService;
+
     private readonly assertQueueOptions: Options.AssertQueue = {durable: true};
     private readonly consumeQueueOptions: Options.Consume = {noAck: false};
-    private torrentProcessingService: ITorrentProcessingService;
-    private logger: ILoggingService;
 
-    constructor(@inject(IocTypes.ITorrentProcessingService) torrentProcessingService: ITorrentProcessingService,
-                @inject(IocTypes.ILoggingService) logger: ILoggingService) {
-        this.torrentProcessingService = torrentProcessingService;
-        this.logger = logger;
-    }
-
-    public listenToQueue = async (): Promise<void> => {
+    async listenToQueue(): Promise<void> {
         if (!configurationService.jobConfig.JOBS_ENABLED) {
             return;
         }

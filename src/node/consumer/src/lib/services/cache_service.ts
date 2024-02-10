@@ -2,8 +2,8 @@ import {CacheType} from "@enums/cache_types";
 import {ICacheOptions} from "@interfaces/cache_options";
 import {ICacheService} from "@interfaces/cache_service";
 import {ILoggingService} from "@interfaces/logging_service";
-import {IocTypes} from "@models/ioc_types";
 import {configurationService} from '@services/configuration_service';
+import {IocTypes} from "@setup/ioc_types";
 import {mongoDbStore} from '@tirke/node-cache-manager-mongodb'
 import {Cache, createCache, MemoryCache, memoryStore} from 'cache-manager';
 import {inject, injectable} from "inversify";
@@ -23,12 +23,12 @@ export type CacheMethod = () => any;
 
 @injectable()
 export class CacheService implements ICacheService {
-    private logger: ILoggingService;
+    @inject(IocTypes.ILoggingService) private logger: ILoggingService;
+
     private readonly memoryCache: MemoryCache | undefined;
     private readonly remoteCache: Cache | MemoryCache | undefined;
 
-    constructor(@inject(IocTypes.ILoggingService) logger: ILoggingService) {
-        this.logger = logger;
+    constructor() {
         if (configurationService.cacheConfig.NO_CACHE) {
             this.logger.info('Cache is disabled');
             return;
@@ -38,17 +38,21 @@ export class CacheService implements ICacheService {
         this.remoteCache = this.initiateRemoteCache();
     }
 
-    public cacheWrapImdbId = (key: string, method: CacheMethod): Promise<CacheMethod> =>
-        this.cacheWrap(CacheType.MongoDb, `${IMDB_ID_PREFIX}:${key}`, method, {ttl: GLOBAL_TTL});
+    cacheWrapImdbId(key: string, method: CacheMethod): Promise<CacheMethod> {
+        return this.cacheWrap(CacheType.MongoDb, `${IMDB_ID_PREFIX}:${key}`, method, {ttl: GLOBAL_TTL});
+    }
 
-    public cacheWrapKitsuId = (key: string, method: CacheMethod): Promise<CacheMethod> =>
-        this.cacheWrap(CacheType.MongoDb, `${KITSU_ID_PREFIX}:${key}`, method, {ttl: GLOBAL_TTL});
+    cacheWrapKitsuId(key: string, method: CacheMethod): Promise<CacheMethod> {
+        return this.cacheWrap(CacheType.MongoDb, `${KITSU_ID_PREFIX}:${key}`, method, {ttl: GLOBAL_TTL});
+    }
 
-    public cacheWrapMetadata = (id: string, method: CacheMethod): Promise<CacheMethod> =>
-        this.cacheWrap(CacheType.Memory, `${METADATA_PREFIX}:${id}`, method, {ttl: MEMORY_TTL});
+    cacheWrapMetadata(id: string, method: CacheMethod): Promise<CacheMethod> {
+        return this.cacheWrap(CacheType.Memory, `${METADATA_PREFIX}:${id}`, method, {ttl: MEMORY_TTL});
+    }
 
-    public cacheTrackers = (method: CacheMethod): Promise<CacheMethod> =>
-        this.cacheWrap(CacheType.Memory, `${TRACKERS_KEY_PREFIX}`, method, {ttl: TRACKERS_TTL});
+    cacheTrackers(method: CacheMethod): Promise<CacheMethod> {
+        return this.cacheWrap(CacheType.Memory, `${TRACKERS_KEY_PREFIX}`, method, {ttl: TRACKERS_TTL});
+    }
 
     private initiateMemoryCache = (): MemoryCache =>
         createCache(memoryStore(), {
@@ -91,8 +95,7 @@ export class CacheService implements ICacheService {
         }
     }
 
-    private cacheWrap = async (
-        cacheType: CacheType, key: string, method: CacheMethod, options: ICacheOptions): Promise<CacheMethod> => {
+    private cacheWrap = async (cacheType: CacheType, key: string, method: CacheMethod, options: ICacheOptions): Promise<CacheMethod> => {
         const cache = this.getCacheType(cacheType);
 
         if (configurationService.cacheConfig.NO_CACHE || !cache) {
@@ -104,6 +107,5 @@ export class CacheService implements ICacheService {
         this.logger.debug(`Cache options: ${JSON.stringify(options)}`);
 
         return cache.wrap(key, method, options.ttl);
-    }
+    };
 }
-

@@ -1,5 +1,5 @@
 export const BooleanHelpers = {
-    parseBool: function (value: string | number | undefined, defaultValue: boolean): boolean {
+    parseBool: (value: string | number | undefined, defaultValue: boolean): boolean => {
         switch (typeof value) {
             case 'string':
                 return parseStringToBool(value, defaultValue);

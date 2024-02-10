@@ -3,11 +3,11 @@ import {ILoggingService} from "@interfaces/logging_service";
 import {IParsedTorrent} from "@interfaces/parsed_torrent";
 import {ITorrentDownloadService} from "@interfaces/torrent_download_service";
 import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
-import {IocTypes} from "@models/ioc_types";
 import {IContentAttributes} from "@repository/interfaces/content_attributes";
 import {IFileAttributes} from "@repository/interfaces/file_attributes";
 import {ISubtitleAttributes} from "@repository/interfaces/subtitle_attributes";
 import {configurationService} from '@services/configuration_service';
+import {IocTypes} from "@setup/ioc_types";
 import {inject, injectable} from "inversify";
 import {encode} from 'magnet-uri';
 import {parse} from "parse-torrent-title";
@@ -25,7 +25,8 @@ interface ITorrentFile {
 
 @injectable()
 export class TorrentDownloadService implements ITorrentDownloadService {
-    private logger: ILoggingService;
+    @inject(IocTypes.ILoggingService) private logger: ILoggingService;
+
     private engineOptions: TorrentEngineOptions = {
         connections: configurationService.torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
         uploads: 0,
@@ -34,11 +35,7 @@ export class TorrentDownloadService implements ITorrentDownloadService {
         tracker: true,
     };
 
-    constructor(@inject(IocTypes.ILoggingService) logger: ILoggingService) {
-        this.logger = logger;
-    }
-
-    public getTorrentFiles = async (torrent: IParsedTorrent, timeout: number = 30000): Promise<ITorrentFileCollection> => {
+    async getTorrentFiles(torrent: IParsedTorrent, timeout: number = 30000): Promise<ITorrentFileCollection> {
         const torrentFiles: ITorrentFile[] = await this.filesFromTorrentStream(torrent, timeout);
 
         const videos = this.filterVideos(torrent, torrentFiles);
@@ -50,7 +47,7 @@ export class TorrentDownloadService implements ITorrentDownloadService {
             videos: videos,
             subtitles: subtitles,
         };
-    };
+    }
 
     private filesFromTorrentStream = async (torrent: IParsedTorrent, timeout: number): Promise<ITorrentFile[]> => {
         if (!torrent.infoHash) {
@@ -165,4 +162,3 @@ export class TorrentDownloadService implements ITorrentDownloadService {
         size: file.length,
     });
 }
-

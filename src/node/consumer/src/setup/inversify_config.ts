@@ -1,5 +1,4 @@
 import {ICacheService} from "@interfaces/cache_service";
-import {ICompositionalRoot} from "@interfaces/composition_root";
 import {ILoggingService} from "@interfaces/logging_service";
 import {IMetadataService} from "@interfaces/metadata_service";
 import {IProcessTorrentsJob} from "@interfaces/process_torrents_job";
@@ -10,8 +9,6 @@ import {ITorrentProcessingService} from "@interfaces/torrent_processing_service"
 import {ITorrentSubtitleService} from "@interfaces/torrent_subtitle_service";
 import {ITrackerService} from "@interfaces/tracker_service";
 import {ProcessTorrentsJob} from "@jobs/process_torrents_job";
-import {CompositionalRoot} from "@models/composition_root";
-import {IocTypes} from "@models/ioc_types";
 import {DatabaseRepository} from "@repository/database_repository";
 import {IDatabaseRepository} from "@repository/interfaces/database_repository";
 import {CacheService} from "@services/cache_service";
@@ -23,6 +20,8 @@ import {TorrentFileService} from "@services/torrent_file_service";
 import {TorrentProcessingService} from "@services/torrent_processing_service";
 import {TorrentSubtitleService} from "@services/torrent_subtitle_service";
 import {TrackerService} from "@services/tracker_service";
+import {ICompositionalRoot, CompositionalRoot} from "@setup/composition_root";
+import {IocTypes} from "@setup/ioc_types";
 import {Container} from "inversify";
 
 const serviceContainer = new Container();
