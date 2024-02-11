@@ -1,9 +1,7 @@
 import { build } from "esbuild";
 import { readFileSync, rmSync } from "fs";
 
-interface DevDependencies {
-    [key: string]: string;
-}
+type DevDependencies = Record<string, string>
 
 interface PackageJson {
     devDependencies?: DevDependencies;
