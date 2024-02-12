@@ -1,14 +1,6 @@
 import { build } from "esbuild";
 import { readFileSync, rmSync } from "fs";
 
-type DevDependencies = Record<string, string>
-
-interface PackageJson {
-    devDependencies?: DevDependencies;
-}
-
-const { devDependencies } = JSON.parse(readFileSync("./package.json", "utf8")) as PackageJson;
-
 const start = Date.now();
 
 try {
@@ -21,7 +13,6 @@ try {
         entryPoints: [
             "./src/main.ts",
         ],
-        external: [...(devDependencies && Object.keys(devDependencies))],
         keepNames: true,
         minify: true,
         outbase: "./src",
