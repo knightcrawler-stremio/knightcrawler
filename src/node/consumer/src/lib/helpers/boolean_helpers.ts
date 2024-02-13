@@ -1,10 +1,8 @@
 export const BooleanHelpers = {
     parseBool: (value: string | undefined, defaultValue: boolean): boolean => {
-        if (value === undefined) {
-            return defaultValue;
-        }
-
-        switch (value.trim().toLowerCase()) {
+        switch (value?.trim().toLowerCase()) {
+            case undefined:
+                return defaultValue;
             case 'true':
             case 'yes':
             case '1':
@@ -14,7 +12,7 @@ export const BooleanHelpers = {
             case '0':
                 return false;
             default:
-                return defaultValue;
+                throw new Error(`Invalid boolean value: '${value}'. Allowed values are 'true', 'false', 'yes', 'no', '1', or '0'.`);
         }
     }
 }
