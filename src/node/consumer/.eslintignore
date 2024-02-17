@@ -1,1 +1,3 @@
-*.ts
+dist/
+esbuild.ts
+jest.config.ts

@@ -1,8 +1,6 @@
 FROM node:lts-buster-slim as builder
 
-RUN apt-get update && \
-    apt-get install -y git && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y git && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -10,16 +8,16 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
+RUN npm prune --omit=dev
 
-# --- Runtime Stage ---
 FROM node:lts-buster-slim
 
 WORKDIR /app
 
-ENV NODE_ENV production
-
 COPY --from=builder /app ./
-RUN npm prune --omit=dev
+
+ENV NODE_ENV production
+ENV NODE_OPTIONS "--no-deprecation"
 
 # CIS-DI-0001
 RUN useradd -d /home/consumer -m -s /bin/bash consumer
