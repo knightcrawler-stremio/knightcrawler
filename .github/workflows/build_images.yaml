@@ -59,8 +59,9 @@ jobs:
           flavor: |
             latest=auto
           tags: |
-            type=edge,branch=main,commit=${{ github.sha }}
+            type=edge,branch=master,commit=${{ github.sha }}
             type=sha,commit=${{ github.sha }}
+            type=raw,value=latest,enable={{is_default_branch}}
             
       - name: Build image for scanning ${{ matrix.image_name }}
         uses: docker/build-push-action@v5
