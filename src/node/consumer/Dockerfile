@@ -26,6 +26,6 @@ RUN chmod u-s /usr/bin/wall /usr/bin/expiry /usr/bin/chage /usr/bin/passwd /usr/
 USER consumer
 
 EXPOSE 7001
-ENTRYPOINT [ "node", "dist/index.cjs" ]
+ENTRYPOINT [ "node", "dist/main.cjs" ]
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD pgrep -x node > /dev/null || exit 1
