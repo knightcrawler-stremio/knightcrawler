@@ -1,6 +1,6 @@
 FROM node:lts-buster-slim as builder
 
-RUN apt update && apt install -y git && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y git procps && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
