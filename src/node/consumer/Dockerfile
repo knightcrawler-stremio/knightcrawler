@@ -13,7 +13,7 @@ RUN npm prune --omit=dev
 FROM node:lts-buster-slim
 
 # Install necessary packages, including procps
-RUN apt update && apt install -y procps && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y git procps && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
