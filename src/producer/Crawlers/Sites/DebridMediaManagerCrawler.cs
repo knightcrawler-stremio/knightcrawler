@@ -13,9 +13,11 @@ public partial class DebridMediaManagerCrawler(
     
     [GeneratedRegex(@"[sS]([0-9]{1,2})|seasons?[\s-]?([0-9]{1,2})", RegexOptions.IgnoreCase, "en-GB")]
     private static partial Regex SeasonMatcher();
+
+    private const string DownloadBaseUrl = "https://raw.githubusercontent.com/debridmediamanager/hashlists/main";
     
     protected override IReadOnlyDictionary<string, string> Mappings => new Dictionary<string, string>();
-    protected override string Url => "https://api.github.com/repos/debridmediamanager/hashlists/contents";
+    protected override string Url => "https://api.github.com/repos/debridmediamanager/hashlists/git/trees/main?recursive=1";
     protected override string Source => "DMM";
 
     public override async Task Execute()
@@ -28,7 +30,11 @@ public partial class DebridMediaManagerCrawler(
         
         var json =  JsonDocument.Parse(jsonBody);
 
-        foreach (var entry in json.RootElement.EnumerateArray())
+        var entriesArray = json.RootElement.GetProperty("tree");
+        
+        logger.LogInformation("Found {Entries} total DMM pages", entriesArray.GetArrayLength());
+
+        foreach (var entry in entriesArray.EnumerateArray())
         {
             await ParsePage(entry, client);
         }
@@ -43,9 +49,7 @@ public partial class DebridMediaManagerCrawler(
             return;
         }
         
-        var url = entry.GetProperty("download_url").GetString();
-        
-        var pageSource = await client.GetStringAsync(url);
+        var pageSource = await client.GetStringAsync($"{DownloadBaseUrl}/{name}");
         
         await ExtractPageContents(pageSource, name);
     }
@@ -130,7 +134,7 @@ public partial class DebridMediaManagerCrawler(
     
     private async Task<(bool Success, string? Name)> IsAlreadyIngested(JsonElement entry)
     {
-        var name = entry.GetProperty("name").GetString();
+        var name = entry.GetProperty("path").GetString();
 
         if (string.IsNullOrEmpty(name))
         {
