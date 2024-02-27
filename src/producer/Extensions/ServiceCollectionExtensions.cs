@@ -10,6 +10,7 @@ public static class ServiceCollectionExtensions
 
         services
             .AddKeyedTransient<ICrawler, EzTvCrawler>(nameof(EzTvCrawler))
+            .AddKeyedTransient<ICrawler, NyaaCrawler>(nameof(NyaaCrawler))
             .AddKeyedTransient<ICrawler, YtsCrawler>(nameof(YtsCrawler))
             .AddKeyedTransient<ICrawler, TpbCrawler>(nameof(TpbCrawler))
             .AddKeyedTransient<ICrawler, TgxCrawler>(nameof(TgxCrawler))
@@ -60,6 +61,7 @@ public static class ServiceCollectionExtensions
 
         services
             .AddTransient<SyncEzTvJob>()
+            .AddTransient<SyncNyaaJob>()
             .AddTransient<SyncTpbJob>()
             .AddTransient<SyncYtsJob>()
             .AddTransient<SyncTgxJob>()
@@ -75,6 +77,7 @@ public static class ServiceCollectionExtensions
             quartz =>
             {
                AddJobWithTrigger<SyncEzTvJob>(quartz, SyncEzTvJob.Key, SyncEzTvJob.Trigger, scrapeConfiguration);
+               AddJobWithTrigger<SyncNyaaJob>(quartz, SyncNyaaJob.Key, SyncNyaaJob.Trigger, scrapeConfiguration);
                AddJobWithTrigger<SyncTpbJob>(quartz, SyncTpbJob.Key, SyncTpbJob.Trigger, scrapeConfiguration);
                AddJobWithTrigger<SyncYtsJob>(quartz, SyncYtsJob.Key, SyncYtsJob.Trigger, scrapeConfiguration);
                AddJobWithTrigger<SyncTgxJob>(quartz, SyncTgxJob.Key, SyncTgxJob.Trigger, scrapeConfiguration);
