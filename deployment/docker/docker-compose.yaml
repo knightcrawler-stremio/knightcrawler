@@ -54,6 +54,9 @@ services:
     image: mongo:latest
     env_file:
       - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER:?Variable MONGODB_USER not set}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:?Variable MONGODB_PASSWORD not set}
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, change the username and password in the .env file.
     # ports:
@@ -100,6 +103,16 @@ services:
     deploy:
       replicas: ${CONSUMER_REPLICAS}
     <<: *knightcrawler-app
+    networks:
+      - knightcrawler-network
+
+  metadata:
+    image: gabisonfire/knightcrawler-metadata:latest
+    env_file:
+      - .env
+    labels:
+      logging: "promtail"
+    restart: no
     networks:
       - knightcrawler-network
 

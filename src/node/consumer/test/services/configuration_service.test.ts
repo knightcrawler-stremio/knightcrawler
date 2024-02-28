@@ -8,8 +8,8 @@ describe('Configuration Tests', () => {
         process.env.MONGODB_HOST = 'test_mongodb';
         process.env.MONGODB_PORT = '27017';
         process.env.MONGODB_DB = 'knightcrawler';
-        process.env.MONGO_INITDB_ROOT_USERNAME = 'mongo';
-        process.env.MONGO_INITDB_ROOT_PASSWORD = 'mongo';
+        process.env.MONGODB_USER = 'mongo';
+        process.env.MONGODB_PASSWORD = 'mongo';
         process.env.NO_CACHE = 'false';
         process.env.MONGODB_COLLECTION = 'knightcrawler_consumer_collection';
         const {configurationService} = await import("@services/configuration_service");
@@ -17,8 +17,8 @@ describe('Configuration Tests', () => {
         expect(cacheConfig.MONGODB_HOST).toBe('test_mongodb');
         expect(cacheConfig.MONGODB_PORT).toBe('27017');
         expect(cacheConfig.MONGODB_DB).toBe('knightcrawler');
-        expect(cacheConfig.MONGO_INITDB_ROOT_USERNAME).toBe('mongo');
-        expect(cacheConfig.MONGO_INITDB_ROOT_PASSWORD).toBe('mongo');
+        expect(cacheConfig.MONGODB_USER).toBe('mongo');
+        expect(cacheConfig.MONGODB_PASSWORD).toBe('mongo');
         expect(cacheConfig.NO_CACHE).toBe(false);
         expect(cacheConfig.COLLECTION_NAME).toBe('knightcrawler_consumer_collection');
         expect(cacheConfig.MONGO_URI).toBe('mongodb://mongo:mongo@test_mongodb:27017/knightcrawler?authSource=admin');
