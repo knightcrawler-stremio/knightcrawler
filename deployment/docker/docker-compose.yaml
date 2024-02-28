@@ -106,6 +106,16 @@ services:
     networks:
       - knightcrawler-network
 
+  metadata:
+    image: gabisonfire/knightcrawler-metadata:latest
+    env_file:
+      - .env
+    labels:
+      logging: "promtail"
+    <<: *knightcrawler-app
+    networks:
+      - knightcrawler-network
+
   addon:
     image: gabisonfire/knightcrawler-addon:latest
     ports:
