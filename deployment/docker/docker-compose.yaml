@@ -54,6 +54,9 @@ services:
     image: mongo:latest
     env_file:
       - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, change the username and password in the .env file.
     # ports:

@@ -10,17 +10,17 @@ jest.mock('@services/configuration_service', () => {
                 MONGODB_HOST: 'localhost',
                 MONGODB_PORT: '27017',
                 MONGODB_DB: 'knightcrawler',
-                MONGO_INITDB_ROOT_USERNAME: 'mongo',
-                MONGO_INITDB_ROOT_PASSWORD: 'mongo',
+                MONGODB_USER: 'mongo',
+                MONGODB_PASSWORD: 'mongo',
                 get MONGO_URI(): string {
-                    return `mongodb://${this.MONGO_INITDB_ROOT_USERNAME}:${this.MONGO_INITDB_ROOT_PASSWORD}@${this.MONGODB_HOST}:${this.MONGODB_PORT}/${this.MONGODB_DB}?authSource=admin`;
+                    return `mongodb://${this.MONGODB_USER}:${this.MONGODB_PASSWORD}@${this.MONGODB_HOST}:${this.MONGODB_PORT}/${this.MONGODB_DB}?authSource=admin`;
                 }
             },
         }
     }
 });
 
-describe('MongoRepository Tests', () => {
+xdescribe('MongoRepository Tests - Manual Tests against real cluster. Skipped by default.', () => {
     let mongoRepository: MongoRepository;
         
     beforeEach(() => {

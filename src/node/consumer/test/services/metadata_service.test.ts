@@ -1,6 +1,7 @@
 import "reflect-metadata"; // required
 import {ICacheService} from "@interfaces/cache_service";
 import {IMetadataResponse} from "@interfaces/metadata_response";
+import {IMongoRepository} from "@mongo/interfaces/mongo_repository";
 import {MetadataService} from "@services/metadata_service";
 import {IocTypes} from "@setup/ioc_types";
 import {Container} from "inversify";
@@ -12,6 +13,12 @@ jest.mock('@services/cache_service', () => {
         cacheWrapImdbId: jest.fn().mockImplementation(async (key, fn) => await fn()),
         cacheWrapKitsuId: jest.fn().mockImplementation(async (key, fn) => await fn()),
         cacheWrapMetadata: jest.fn().mockImplementation(async (key, fn) => await fn()),
+    }
+})
+
+jest.mock('@mongo/mongo_repository', () => {
+    return {
+        getImdbId: jest.fn().mockImplementation(),
     }
 })
 
@@ -36,13 +43,16 @@ afterAll(() => server.close())
 
 describe('MetadataService Tests', () => {
     let metadataService: MetadataService,
-        mockCacheService: ICacheService;
+        mockCacheService: ICacheService,
+        mockMongoService: IMongoRepository;
 
     beforeEach(() => {
         mockCacheService = jest.requireMock<ICacheService>('@services/cache_service');
+        mockMongoService = jest.requireMock<IMongoRepository>('@mongo/mongo_repository');
         const container = new Container();
         container.bind<MetadataService>(MetadataService).toSelf();
         container.bind<ICacheService>(IocTypes.ICacheService).toConstantValue(mockCacheService);
+        container.bind<IMongoRepository>(IocTypes.IMongoRepository).toConstantValue(mockMongoService);
         metadataService = container.get(MetadataService);
     });
 

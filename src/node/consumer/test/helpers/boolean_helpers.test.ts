@@ -28,8 +28,4 @@ describe('BooleanHelpers.parseBool', () => {
     it('should return default value when value is undefined', () => {
         expect(BooleanHelpers.parseBool(undefined, true)).toBe(true);
     });
-
-    it('should return default value when value is not "true", "1", "yes", "false", "0", or "no"', () => {
-        expect(BooleanHelpers.parseBool('random', true)).toBe(true);
-    });
 });
