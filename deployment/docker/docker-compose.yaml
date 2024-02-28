@@ -112,7 +112,7 @@ services:
       - .env
     labels:
       logging: "promtail"
-    <<: *knightcrawler-app
+    restart: no
     networks:
       - knightcrawler-network
 
