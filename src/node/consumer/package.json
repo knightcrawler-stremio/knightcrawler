@@ -23,6 +23,7 @@
     "inversify": "^6.0.2",
     "magnet-uri": "^6.2.0",
     "moment": "^2.30.1",
+    "mongoose": "^8.2.0",
     "name-to-imdb": "^3.0.4",
     "parse-torrent-title": "https://github.com/TheBeastLT/parse-torrent-title.git#022408972c2a040f846331a912a6a8487746a654",
     "pg": "^8.11.3",
