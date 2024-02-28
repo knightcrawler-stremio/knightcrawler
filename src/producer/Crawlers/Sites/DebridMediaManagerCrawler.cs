@@ -1,5 +1,3 @@
-using Producer.Models.Configuration;
-
 namespace Producer.Crawlers.Sites;
 
 public partial class DebridMediaManagerCrawler(

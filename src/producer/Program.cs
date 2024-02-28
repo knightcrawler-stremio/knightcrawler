@@ -1,6 +1,4 @@
-﻿using Producer.Extensions;
-
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .AddScrapeConfiguration();
@@ -9,7 +7,7 @@ builder.Host
     .SetupSerilog(builder.Configuration);
 
 builder.Services
-    .RegisterMassTransit(builder.Configuration)
+    .RegisterMassTransit()
     .AddDataStorage()
     .AddCrawlers()
     .AddQuartz(builder.Configuration);

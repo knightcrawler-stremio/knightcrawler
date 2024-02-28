@@ -110,12 +110,19 @@ describe('Configuration Tests', () => {
     });
 
     it('should populate rabbitConfig correctly', async () => {
-        process.env.RABBIT_URI = 'amqp://localhost';
-        process.env.QUEUE_NAME = 'test-queue';
+        process.env.RABBITMQ_HOST = 'rabbitmq';
+        process.env.RABBITMQ_USER = 'guest';
+        process.env.RABBITMQ_PASSWORD = 'guest';
+        process.env.RABBITMQ_QUEUE_NAME = 'ingested';
+        process.env.RABBITMQ_DURABLE = 'true';
         const {configurationService} = await import("@services/configuration_service");
         const {rabbitConfig} = configurationService;
-        expect(rabbitConfig.RABBIT_URI).toBe('amqp://localhost');
-        expect(rabbitConfig.QUEUE_NAME).toBe('test-queue');
+        expect(rabbitConfig.HOST).toBe('rabbitmq');
+        expect(rabbitConfig.USER).toBe('guest');
+        expect(rabbitConfig.PASSWORD).toBe('guest');
+        expect(rabbitConfig.QUEUE_NAME).toBe('ingested');
+        expect(rabbitConfig.DURABLE).toBe(true);
+        expect(rabbitConfig.RABBIT_URI).toBe('amqp://guest:guest@rabbitmq?heartbeat=30');
     });
 
     it('should populate torrentConfig correctly', async () => {
