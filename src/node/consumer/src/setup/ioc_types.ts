@@ -13,6 +13,7 @@ export const IocTypes = {
     ITrackerService: Symbol.for("ITrackerService"),
     // DAL
     IDatabaseRepository: Symbol.for("IDatabaseRepository"),
+    IMongoRepository: Symbol.for("IMongoRepository"),
     // Jobs
     IProcessTorrentsJob: Symbol.for("IProcessTorrentsJob"),
 };

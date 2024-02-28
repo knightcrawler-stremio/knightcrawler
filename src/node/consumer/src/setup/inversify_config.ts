@@ -9,6 +9,8 @@ import {ITorrentProcessingService} from "@interfaces/torrent_processing_service"
 import {ITorrentSubtitleService} from "@interfaces/torrent_subtitle_service";
 import {ITrackerService} from "@interfaces/tracker_service";
 import {ProcessTorrentsJob} from "@jobs/process_torrents_job";
+import {IMongoRepository} from "@mongo/interfaces/mongo_repository";
+import {MongoRepository} from "@mongo/mongo_repository";
 import {DatabaseRepository} from "@repository/database_repository";
 import {IDatabaseRepository} from "@repository/interfaces/database_repository";
 import {CacheService} from "@services/cache_service";
@@ -37,6 +39,7 @@ serviceContainer.bind<ITorrentSubtitleService>(IocTypes.ITorrentSubtitleService)
 serviceContainer.bind<ITorrentEntriesService>(IocTypes.ITorrentEntriesService).to(TorrentEntriesService);
 serviceContainer.bind<IMetadataService>(IocTypes.IMetadataService).to(MetadataService);
 serviceContainer.bind<IDatabaseRepository>(IocTypes.IDatabaseRepository).to(DatabaseRepository);
+serviceContainer.bind<IMongoRepository>(IocTypes.IMongoRepository).to(MongoRepository);
 serviceContainer.bind<IProcessTorrentsJob>(IocTypes.IProcessTorrentsJob).to(ProcessTorrentsJob);
 
 export {serviceContainer};

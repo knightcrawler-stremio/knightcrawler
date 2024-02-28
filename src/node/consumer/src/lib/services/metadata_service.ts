@@ -7,6 +7,7 @@ import {IKitsuJsonResponse} from "@interfaces/kitsu_metadata";
 import {IMetaDataQuery} from "@interfaces/metadata_query";
 import {IMetadataResponse} from "@interfaces/metadata_response";
 import {IMetadataService} from "@interfaces/metadata_service";
+import {IMongoRepository} from "@mongo/interfaces/mongo_repository";
 import {IocTypes} from "@setup/ioc_types";
 import axios from 'axios';
 import {ResultTypes, search} from 'google-sr';
@@ -20,6 +21,7 @@ const TIMEOUT = 60000;
 @injectable()
 export class MetadataService implements IMetadataService {
     @inject(IocTypes.ICacheService) private cacheService: ICacheService;
+    @inject(IocTypes.IMongoRepository) private mongoRepository: IMongoRepository;
 
     async getKitsuId(info: IMetaDataQuery): Promise<number | Error> {
         const title = this.escapeTitle(info.title!.replace(/\s\|\s.*/, ''));
@@ -47,6 +49,12 @@ export class MetadataService implements IMetadataService {
         const query = `${name} ${year || ''} ${info.type} imdb`;
         const fallbackQuery = `${name} ${info.type} imdb`;
         const googleQuery = year ? query : fallbackQuery;
+        
+        const imdbInMongo = await this.mongoRepository.getImdbId(name, info.type, year);
+        
+        if (imdbInMongo) {
+            return imdbInMongo;
+        }
 
         try {
             const imdbId = await this.cacheService.cacheWrapImdbId(key,
