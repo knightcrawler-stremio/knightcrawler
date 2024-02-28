@@ -1,9 +1,7 @@
 namespace Metadata.Features.ImportImdbData;
 
-public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> logger, ImdbMongoDbService mongoDbService)
+public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> logger, ImdbMongoDbService mongoDbService, JobConfiguration configuration)
 {
-    private const int BatchSize = 50_000;
-    
     public async Task<DeleteDownloadedImdbDataRequest> Handle(ImportImdbDataRequest request, CancellationToken cancellationToken)
     {
         logger.LogInformation("Importing Downloaded IMDB data from {FilePath}", request.FilePath);
@@ -18,7 +16,7 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
         using var reader = new StreamReader(request.FilePath);
         using var csv = new CsvReader(reader, config);
 
-        var channel = Channel.CreateBounded<ImdbEntry>(new BoundedChannelOptions(BatchSize)
+        var channel = Channel.CreateBounded<ImdbEntry>(new BoundedChannelOptions(configuration.InsertBatchSize)
         {
             FullMode = BoundedChannelFullMode.Wait,
         });
@@ -53,7 +51,7 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
                     movieData,
                 };
 
-                while (batch.Count < BatchSize && channel.Reader.TryRead(out var nextMovieData))
+                while (batch.Count < configuration.InsertBatchSize && channel.Reader.TryRead(out var nextMovieData))
                 {
                     batch.Add(nextMovieData);
                 }

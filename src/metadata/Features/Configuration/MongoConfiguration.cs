@@ -8,6 +8,7 @@ public class MongoConfiguration
     private const string DbVariable = "DB";
     private const string UsernameVariable = "USER";
     private const string PasswordVariable = "PASSWORD";
+    
 
     private string Host { get; init; } = Prefix.GetRequiredEnvironmentVariableAsString(HostVariable);
     private int Port { get; init; } = Prefix.GetEnvironmentVariableAsInt(PortVariable, 27017);
