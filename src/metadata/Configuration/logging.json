@@ -1,0 +1,31 @@
+{
+  "Serilog": {
+    "Using": [ "Serilog.Sinks.Console" ],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "System": "Warning",
+        "System.Net.Http.HttpClient.Scraper.LogicalHandler": "Warning",
+        "System.Net.Http.HttpClient.Scraper.ClientHandler": "Warning",
+        "Quartz.Impl.StdSchedulerFactory": "Warning",
+        "Quartz.Core.QuartzScheduler": "Warning",
+        "Quartz.Simpl.RAMJobStore": "Warning",
+        "Quartz.Core.JobRunShell": "Warning",
+        "Quartz.Core.SchedulerSignalerImpl": "Warning"
+      }
+    },
+    "WriteTo": [
+      { 
+        "Name": "Console",
+        "Args": {
+          "outputTemplate": "{Timestamp:HH:mm:ss} [{Level}] [{SourceContext}] {Message}{NewLine}{Exception}"
+        }
+      }      
+    ],
+    "Enrich": [ "FromLogContext", "WithMachineName", "WithThreadId" ],
+    "Properties": {
+      "Application": "Metadata"
+    }
+  }
+}
