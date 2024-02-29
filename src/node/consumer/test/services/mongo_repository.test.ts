@@ -66,7 +66,7 @@ xdescribe('MongoRepository Tests - Manual Tests against real cluster. Skipped by
         expect(result).toBe('tt0084726');
     }, 30000);
 
-    it('should get Wrath of Khan imdbId correctly', async () => {
+    it('should get Wrath of Khan simple imdbId correctly', async () => {
         await mongoRepository.connect();
         const result = await mongoRepository.getImdbId('Wrath of Khan', TorrentType.Movie, 1982);
         expect(result).toBe('tt0084726');
