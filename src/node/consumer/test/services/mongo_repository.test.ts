@@ -1,7 +1,9 @@
 import "reflect-metadata"; // required
 import {TorrentType} from "@enums/torrent_types";
+import {ILoggingService} from "@interfaces/logging_service";
 import {MongoRepository} from "@mongo/mongo_repository";
-import {Container} from "inversify";
+import {IocTypes} from "@setup/ioc_types";
+import {Container, inject} from "inversify";
 
 jest.mock('@services/configuration_service', () => {
     return {
@@ -20,13 +22,24 @@ jest.mock('@services/configuration_service', () => {
     }
 });
 
+jest.mock('@services/logging_service', () => {
+    return {
+        error: jest.fn(),
+        info: jest.fn(),
+        debug: jest.fn(),
+    }
+})
+
 xdescribe('MongoRepository Tests - Manual Tests against real cluster. Skipped by default.', () => {
-    let mongoRepository: MongoRepository;
+    let mongoRepository: MongoRepository,
+        mockLogger: ILoggingService;
         
     beforeEach(() => {
         jest.clearAllMocks();
         process.env.LOG_LEVEL = 'debug';
+        mockLogger = jest.requireMock<ILoggingService>('@services/logging_service');
         const container = new Container();
+        container.bind<ILoggingService>(IocTypes.ILoggingService).toConstantValue(mockLogger);
         container.bind<MongoRepository>(MongoRepository).toSelf();
         mongoRepository = container.get(MongoRepository);
     });

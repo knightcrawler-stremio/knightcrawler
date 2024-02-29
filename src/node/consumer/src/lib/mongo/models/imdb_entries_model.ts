@@ -13,4 +13,6 @@ const ImdbEntriesSchema: Schema = new Schema({
     TitleType: { type: String, default: "" },
 });
 
+ImdbEntriesSchema.index({ PrimaryTitle: 'text', TitleType: 1, StartYear: 1 }, { background: true });
+
 export const ImdbEntryModel = mongoose.model<IImdbEntry>('ImdbEntry', ImdbEntriesSchema, 'imdb-entries');

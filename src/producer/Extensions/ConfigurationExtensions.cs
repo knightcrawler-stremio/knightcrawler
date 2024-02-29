@@ -1,5 +1,3 @@
-using Producer.Models.Configuration;
-
 namespace Producer.Extensions;
 
 public static class ConfigurationExtensions
@@ -13,8 +11,6 @@ public static class ConfigurationExtensions
         
         configuration.AddJsonFile(LoggingConfig, false, true);
         configuration.AddJsonFile(ScrapeConfiguration.Filename, false, true);
-        configuration.AddJsonFile(RabbitMqConfiguration.Filename, false, true);
-        configuration.AddJsonFile(GithubConfiguration.Filename, false, true);
         
         configuration.AddEnvironmentVariables();
 

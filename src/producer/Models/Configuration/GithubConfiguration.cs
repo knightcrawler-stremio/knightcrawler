@@ -2,8 +2,8 @@
 
 public class GithubConfiguration
 {
-    public const string SectionName = "GithubSettings";
-    public const string Filename = "github.json";
+    private const string Prefix = "GITHUB";
+    private const string PatVariable = "PAT";
     
-    public string? PAT { get; set; }
+    public string? PAT { get; init; } =  Prefix.GetOptionalEnvironmentVariableAsString(PatVariable);
 }

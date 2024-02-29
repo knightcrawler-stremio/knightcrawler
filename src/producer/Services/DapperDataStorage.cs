@@ -1,5 +1,3 @@
-using Producer.Models.Configuration;
-
 namespace Producer.Services;
 
 public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConfiguration rabbitConfig, ILogger<DapperDataStorage> logger) : IDataStorage

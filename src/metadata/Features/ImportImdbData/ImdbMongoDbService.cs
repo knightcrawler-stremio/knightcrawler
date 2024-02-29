@@ -42,11 +42,16 @@ public class ImdbMongoDbService
     {
         try
         {
-            
-            // Create index for PrimaryTitle
-            var indexPrimaryTitle = Builders<ImdbEntry>.IndexKeys.Ascending(e => e.PrimaryTitle);
-            var modelPrimaryTitle = new CreateIndexModel<ImdbEntry>(indexPrimaryTitle);
-            _imdbCollection.Indexes.CreateOne(modelPrimaryTitle);
+            // Create compound index for PrimaryTitle, TitleType, and StartYear
+            var indexKeysDefinition = Builders<ImdbEntry>.IndexKeys
+                .Text(e => e.PrimaryTitle)
+                .Ascending(e => e.TitleType)
+                .Ascending(e => e.StartYear);
+
+            var createIndexOptions = new CreateIndexOptions { Background = true };
+            var indexModel = new CreateIndexModel<ImdbEntry>(indexKeysDefinition, createIndexOptions);
+
+            _imdbCollection.Indexes.CreateOne(indexModel);
 
             return true;
         }

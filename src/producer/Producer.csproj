@@ -32,15 +32,6 @@
       <None Include="Configuration\logging.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <Content Remove="Configuration\rabbitmq.json" />
-      <None Include="Configuration\rabbitmq.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <Content Remove="Configuration\github.json" />
-      <None Include="Configuration\github.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <Content Remove="Configuration\postgres.json" />
     </ItemGroup>
 
 </Project>

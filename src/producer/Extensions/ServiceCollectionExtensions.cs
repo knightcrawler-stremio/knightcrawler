@@ -1,5 +1,3 @@
-using Producer.Models.Configuration;
-
 namespace Producer.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -29,13 +27,9 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection RegisterMassTransit(this IServiceCollection services, IConfiguration configuration)
+    internal static IServiceCollection RegisterMassTransit(this IServiceCollection services)
     {
-        var rabbitConfig = configuration.GetSection(RabbitMqConfiguration.SectionName).Get<RabbitMqConfiguration>();
-        
-        ArgumentNullException.ThrowIfNull(rabbitConfig, nameof(rabbitConfig));
-
-        services.AddSingleton(rabbitConfig);
+        var rabbitConfig = services.LoadConfigurationFromEnv<RabbitMqConfiguration>();
         
         services.AddMassTransit(busConfigurator =>
         {
@@ -56,8 +50,8 @@ public static class ServiceCollectionExtensions
     internal static IServiceCollection AddQuartz(this IServiceCollection services, IConfiguration configuration)
     {
         var scrapeConfiguration = services.LoadConfigurationFromConfig<ScrapeConfiguration>(configuration, ScrapeConfiguration.SectionName);
-        var githubConfiguration = services.LoadConfigurationFromConfig<GithubConfiguration>(configuration, GithubConfiguration.SectionName);
-        var rabbitConfig = services.LoadConfigurationFromConfig<RabbitMqConfiguration>(configuration, RabbitMqConfiguration.SectionName);
+        var githubConfiguration = services.LoadConfigurationFromEnv<GithubConfiguration>();
+        var rabbitConfig = services.LoadConfigurationFromEnv<RabbitMqConfiguration>();
 
         services
             .AddTransient<SyncEzTvJob>()
