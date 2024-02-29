@@ -1,5 +1,5 @@
 export interface IMongoMetadataQuery {
-    PrimaryTitle: { $regex: RegExp };
-    TitleType: {$in: string[]};
+    $text: { $search: string },
+    TitleType: string;
     StartYear?: string;
 }

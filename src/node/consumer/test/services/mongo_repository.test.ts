@@ -72,6 +72,12 @@ xdescribe('MongoRepository Tests - Manual Tests against real cluster. Skipped by
         expect(result).toBe('tt0084726');
     }, 30000);
 
+    it('should get Tom and Jerry imdbId correctly', async () => {
+        await mongoRepository.connect();
+        const result = await mongoRepository.getImdbId('Tom and Jerry Tales', TorrentType.Series);
+        expect(result).toBe('tt0780438');
+    }, 30000);
+
     it('should get Return of the Jedi correctly', async () => {
         await mongoRepository.connect();
         const result = await mongoRepository.getImdbId('Star Wars: Episode VI - Return of the Jedi', TorrentType.Movie, 1983);
