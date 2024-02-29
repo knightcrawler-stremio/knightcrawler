@@ -13,7 +13,7 @@ import mongoose from 'mongoose';
 const fuseOptions : IFuseOptions<IImdbEntry> = {
     includeScore: true,
     keys: ['PrimaryTitle', 'OriginalTitle'],
-    threshold: 0.25,
+    threshold: configurationService.metadataConfig.TITLE_MATCH_THRESHOLD,
 };
 
 @injectable()
