@@ -8,6 +8,8 @@ RUN dotnet publish -c Release --no-restore -o out -a $TARGETARCH
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
+ENV ASPNETCORE_URLS=http://+:5050
+
 WORKDIR /App
 COPY --from=build /App/out .
 RUN addgroup -S metadata && adduser -S -G metadata metadata
