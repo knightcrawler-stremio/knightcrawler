@@ -26,20 +26,11 @@ export class MongoRepository implements IMongoRepository {
     }
 
     async getImdbId(title: string, category: string, year?: string | number) : Promise<string | null> {
-        const seriesTypes : string[] = ['tvSeries'];
-        const movieTypes : string[] = ['movie', 'tvMovie'];
+        const titleType: string = category === TorrentType.Series ? 'tvSeries' : 'movie';
 
-        let titleTypes: string[] = [];
-
-        if (category === TorrentType.Series) {
-            titleTypes = seriesTypes;
-        } else if (category === TorrentType.Movie) {
-            titleTypes = movieTypes;
-        }
-                
         const query: IMongoMetadataQuery = {
-            PrimaryTitle: { $regex: new RegExp(title, 'i') },
-            TitleType: {$in: titleTypes}
+            $text: { $search: title },
+            TitleType: titleType,
         };
         
         if (year) {
@@ -47,7 +38,7 @@ export class MongoRepository implements IMongoRepository {
         }
 
         try {
-            const result = await ImdbEntryModel.findOne(query, '_id').maxTimeMS(30000);
+            const result = await ImdbEntryModel.findOne(query, '_id', {score: {$meta: "textScore" }}).sort({score: {$meta: "textScore"}}).limit(10).maxTimeMS(30000);
             return result ? result._id : null;
         } catch (error) {
             this.logger.error('Query exceeded the 30 seconds time limit', error);
