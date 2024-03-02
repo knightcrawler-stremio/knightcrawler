@@ -405,3 +405,5 @@ FodyWeavers.xsd
 
 dist/
 deployment/docker/docker-compose-dev.yaml
+
+src/producer/.run/

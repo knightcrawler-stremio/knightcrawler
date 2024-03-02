@@ -1,9 +1,10 @@
 // Global using directives
 
+global using System.Reflection;
 global using System.Text;
 global using System.Text.Json;
-global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
+global using System.Threading.Channels;
 global using System.Xml.Linq;
 global using Dapper;
 global using LZStringCSharp;
@@ -12,14 +13,15 @@ global using Microsoft.AspNetCore.Builder;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.DependencyInjection.Extensions;
 global using Microsoft.Extensions.Logging;
+global using MongoDB.Bson.Serialization.Attributes;
+global using MongoDB.Driver;
 global using Npgsql;
 global using Quartz;
-global using Producer.Crawlers;
-global using Producer.Crawlers.Sites;
 global using Producer.Extensions;
-global using Producer.Interfaces;
-global using Producer.Jobs;
-global using Producer.Models;
-global using Producer.Models.Configuration;
-global using Producer.Services;
+global using Producer.Features.Amqp;
+global using Producer.Features.Crawlers.Dmm;
+global using Producer.Features.Crawlers.Torrentio;
+global using Producer.Features.CrawlerSupport;
+global using Producer.Features.DataProcessing;
+global using Producer.Features.JobSupport;
 global using Serilog;
