@@ -1,0 +1,14 @@
+{
+  "TorrentioConfiguration": {
+    "Instances": [
+      {
+        "Name": "Official",
+        "Url": "https://torrentio.strem.fun",
+        "RateLimit": {
+          "RequestLimit": 300,
+          "IntervalInSeconds": 3600
+        }
+      }
+    ]
+  }
+}

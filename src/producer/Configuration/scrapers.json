@@ -30,6 +30,11 @@
         "Name": "SyncDmmJob",
         "IntervalSeconds": 1800,
         "Enabled": true
+      },
+      {
+        "Name": "SyncTorrentioJob",
+        "IntervalSeconds": 604800,
+        "Enabled": true
       }
     ]
   }
