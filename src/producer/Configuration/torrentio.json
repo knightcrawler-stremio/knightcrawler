@@ -9,7 +9,7 @@
           "IntervalInSeconds": 3600,
           "MongoBatchSize": 300,
           "ExceptionLimit": 5,
-          "ExceptionIntervalInSeconds": 60
+          "ExceptionIntervalInSeconds": 300
         }
       }
     ]
