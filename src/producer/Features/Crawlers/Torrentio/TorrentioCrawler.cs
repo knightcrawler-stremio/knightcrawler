@@ -44,7 +44,8 @@ public partial class TorrentioCrawler(
                     if (items.Count == 0)
                     {
                         logger.LogInformation("No items to process for {TorrentioInstance}", instance.Name);
-                        break;
+                        await Task.Delay(10000);
+                        continue;
                     }
                     
                     var newTorrents = new List<Torrent>();
