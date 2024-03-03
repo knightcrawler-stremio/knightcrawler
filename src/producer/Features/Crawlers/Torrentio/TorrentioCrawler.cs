@@ -155,8 +155,7 @@ public partial class TorrentioCrawler(
 
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogError("Failed to fetch {Url}", requestUrl);
-            return null;
+            throw new("Failed to fetch " + requestUrl);
         }
         
         var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
