@@ -17,6 +17,11 @@ public class ImdbMongoDbService
     
     public async Task<IReadOnlyList<ImdbEntry>> GetImdbEntriesForRequests(string startYear, int requestLimit, string? startingId = null)
     {
+        _logger.LogInformation("Getting IMDB entries for requests");
+        _logger.LogInformation("Start year: {StartYear}", startYear);
+        _logger.LogInformation("Request limit: {RequestLimit}", requestLimit);
+        _logger.LogInformation("Starting ID: {StartingId}", startingId);
+        
         var sort = Builders<ImdbEntry>.Sort
             .Descending(e => e.StartYear)
             .Descending(e => e.ImdbId);
