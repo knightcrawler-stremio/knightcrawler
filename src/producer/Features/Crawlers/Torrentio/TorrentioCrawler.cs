@@ -144,10 +144,8 @@ public partial class TorrentioCrawler(
         catch (Exception error)
         {
             logger.LogError(error, "page processing error {TorrentioInstance}: {ImdbId}", instance.Name, imdbId);
-            logger.LogWarning("Setting {TorrentioInstance} to possibly rate limited for Five minutes", instance.Name);
-            instance.SetPossiblyRateLimited(_instanceStates);
+            throw;
         }
-        return null;
     }
 
     private async Task<List<Torrent?>?> RunRequest(TorrentioInstance instance, string urlSlug, string imdbId, HttpClient client)
@@ -178,15 +176,10 @@ public partial class TorrentioCrawler(
         
         var torrent = ParseTorrentDetails(title, instance, infoHash, imdId);
         
-        if (torrent is null || string.IsNullOrEmpty(torrent.Name))
-        {
-            return null;
-        }
-        
-        return torrent;
+        return string.IsNullOrEmpty(torrent.Name) ? null : torrent;
     }
 
-    private Torrent? ParseTorrentDetails(string title, TorrentioInstance instance, string infoHash, string imdbId)
+    private Torrent ParseTorrentDetails(string title, TorrentioInstance instance, string infoHash, string imdbId)
     {
         try
         {
@@ -226,7 +219,7 @@ public partial class TorrentioCrawler(
         catch (Exception e)
         {
             logger.LogError(e, "Error parsing torrent details");
-            return null;
+            throw;
         }
     }
 }
