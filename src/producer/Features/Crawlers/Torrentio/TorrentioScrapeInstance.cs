@@ -7,4 +7,5 @@ public class TorrentioScrapeInstance
     public int TotalProcessed { get; set; }
     public string? LastProcessedImdbId { get; set; }
     public IAsyncPolicy? ResiliencyPolicy { get; set; }
+    public IAsyncPolicy? RetryPolicy { get; set; }  
 }
