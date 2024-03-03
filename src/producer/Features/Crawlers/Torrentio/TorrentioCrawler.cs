@@ -11,6 +11,7 @@ public partial class TorrentioCrawler(
 {
     [GeneratedRegex(@"(\d+(\.\d+)?) (GB|MB)")]
     private static partial Regex SizeMatcher();
+    private const int MaximumEmptyItemsCount = 5;
     
     private const string MovieSlug = "movie/{0}.json";
     protected override string Url => "sort=size%7Cqualityfilter=other,scr,cam,unknown/stream/{0}";
@@ -31,20 +32,33 @@ public partial class TorrentioCrawler(
         Task.Run(
             async () =>
             {
-                while (instance.TotalProcessedRequests(_instanceStates) < totalRecordCount)
+                var emptyMongoDbItemsCount = 0;
+                
+                var state = instance.EnsureStateExists(_instanceStates);
+                
+                SetupResiliencyPolicyForInstance(instance, state);
+                
+                while (state.TotalProcessed < totalRecordCount)
                 {
                     logger.LogInformation("Processing {TorrentioInstance}", instance.Name);
-                    logger.LogInformation("Current processed requests: {ProcessedRequests}", instance.TotalProcessedRequests(_instanceStates));
+                    logger.LogInformation("Current processed requests: {ProcessedRequests}", state.TotalProcessed);
                     
                     var items = await imdbDataService.GetImdbEntriesForRequests(
                         DateTime.UtcNow.Year.ToString(),
-                        instance.RateLimit.RequestLimit,
-                        instance.LastProcessedImdbId(_instanceStates));
+                        instance.RateLimit.MongoBatchSize,
+                        state.LastProcessedImdbId);
                     
                     if (items.Count == 0)
                     {
+                        emptyMongoDbItemsCount++;
                         logger.LogInformation("No items to process for {TorrentioInstance}", instance.Name);
                         await Task.Delay(10000);
+                        if (emptyMongoDbItemsCount >= MaximumEmptyItemsCount)
+                        {
+                            logger.LogInformation("Maximum empty document count reached. Cancelling {TorrentioInstance}", instance.Name);
+                            break;
+                        }
+                        
                         continue;
                     }
                     
@@ -55,29 +69,34 @@ public partial class TorrentioCrawler(
                     {
                         processedItemsCount++;
                         
-                        var waitTime = instance.CalculateWaitTime(_instanceStates);
+                        var waitTime = instance.CalculateWaitTime(state);
 
                         if (waitTime > TimeSpan.Zero)
                         {
                             logger.LogInformation("Rate limit reached for {TorrentioInstance}", instance.Name);
-                            logger.LogInformation("Waiting for {TorrentioInstance}: {WaitTime}", instance.Name, waitTime);
+                            logger.LogInformation("Waiting for {TorrentioInstance}: {WaitTime} seconds", instance.Name, waitTime / 1000.0);
                             await Task.Delay(waitTime);
                         }
                         
                         if (processedItemsCount % 2 == 0)
                         {
-                            var randomWait = new Random().Next(1000, 5000);
-                            logger.LogInformation("Waiting for {TorrentioInstance}: {WaitTime}", instance.Name, randomWait);
+                            var randomWait = Random.Shared.Next(1000, 5000);
+                            logger.LogInformation("Waiting for {TorrentioInstance}: {WaitTime} seconds", instance.Name, randomWait / 1000.0);
                             await Task.Delay(randomWait);
                         }
                         
                         try
                         {
-                            var torrentInfo = await ScrapeInstance(instance, item.ImdbId, client);
-                            if (torrentInfo is not null)
-                            {
-                                newTorrents.AddRange(torrentInfo.Where(x => x != null).Select(x => x!));
-                            }
+                            await state.ResiliencyPolicy.ExecuteAsync(
+                                async () =>
+                                {
+                                    var torrentInfo = await ScrapeInstance(instance, item.ImdbId, client);
+
+                                    if (torrentInfo is not null)
+                                    {
+                                        newTorrents.AddRange(torrentInfo.Where(x => x != null).Select(x => x!));
+                                    }
+                                });
                         }
                         catch (Exception error)
                         {
@@ -88,15 +107,30 @@ public partial class TorrentioCrawler(
                     if (newTorrents.Count > 0)
                     {
                         await InsertTorrents(newTorrents);
-                        
-                        var currentState = _instanceStates[instance.Name];
-                        _instanceStates[instance.Name] = currentState with
-                        {
-                            LastProcessedImdbId = items[^1].ImdbId,
-                        };
+
+                        state.LastProcessedImdbId = items[^1].ImdbId;
                     }
                 }
             });
+
+    private void SetupResiliencyPolicyForInstance(TorrentioInstance instance, TorrentioScrapeInstance state)
+    {
+        var policy = Policy
+            .Handle<Exception>()
+            .CircuitBreakerAsync(
+                exceptionsAllowedBeforeBreaking: instance.RateLimit.ExceptionLimit,
+                durationOfBreak: TimeSpan.FromSeconds(instance.RateLimit.ExceptionIntervalInSeconds),
+                onBreak: (ex, breakDelay) =>
+                {
+                    logger.LogWarning(ex, "Breaking circuit for {TorrentioInstance} for {BreakDelay}ms due to {Exception}", instance.Name, breakDelay.TotalMilliseconds, ex.Message);
+                },
+                onReset: () => logger.LogInformation("Circuit closed for {TorrentioInstance}, calls will flow again", instance.Name),
+                onHalfOpen: () => logger.LogInformation("Circuit is half-open for {TorrentioInstance}, next call is a trial if it should close or break again", instance.Name));
+        
+        var policyWrap = Policy.WrapAsync(policy, Policy.TimeoutAsync(TimeSpan.FromSeconds(30)));
+        
+        state.ResiliencyPolicy = policyWrap;
+    }
 
     private async Task<List<Torrent?>?> ScrapeInstance(TorrentioInstance instance, string imdbId, HttpClient client)
     {

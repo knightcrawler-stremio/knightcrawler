@@ -16,6 +16,7 @@ global using Microsoft.Extensions.Logging;
 global using MongoDB.Bson.Serialization.Attributes;
 global using MongoDB.Driver;
 global using Npgsql;
+global using Polly;
 global using Quartz;
 global using Producer.Extensions;
 global using Producer.Features.Amqp;

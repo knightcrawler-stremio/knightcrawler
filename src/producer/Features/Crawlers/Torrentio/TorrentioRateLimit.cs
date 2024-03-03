@@ -4,4 +4,10 @@ public class TorrentioRateLimit
 {
     public int RequestLimit { get; set; }
     public int IntervalInSeconds { get; set; }
+    
+    public int MongoBatchSize { get; set; }
+    
+    public int ExceptionLimit { get; set; }
+    
+    public int ExceptionIntervalInSeconds { get; set; }
 }
