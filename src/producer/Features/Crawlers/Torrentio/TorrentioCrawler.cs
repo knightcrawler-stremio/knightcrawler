@@ -69,46 +69,40 @@ public partial class TorrentioCrawler(
                     {
                         try
                         {
-                            await state.RetryPolicy.ExecuteAsync(
+                            var currentCount = processedItemsCount;
+                            
+                            await state.ResiliencyPolicy.ExecuteAsync(
                                 async () =>
                                 {
-                                    processedItemsCount++;
-
                                     var waitTime = instance.CalculateWaitTime(state);
 
                                     if (waitTime > TimeSpan.Zero)
                                     {
                                         logger.LogInformation("Rate limit reached for {TorrentioInstance}", instance.Name);
-                                        logger.LogInformation(
-                                            "Waiting for {TorrentioInstance}: {WaitTime} seconds", instance.Name, waitTime / 1000.0);
+                                        logger.LogInformation("Waiting for {TorrentioInstance}: {WaitTime} seconds", instance.Name, waitTime / 1000.0);
                                         await Task.Delay(waitTime);
                                     }
 
-                                    if (processedItemsCount % 2 == 0)
+                                    if (currentCount % 2 == 0)
                                     {
                                         var randomWait = Random.Shared.Next(1000, 5000);
-                                        logger.LogInformation(
-                                            "Waiting for {TorrentioInstance}: {WaitTime} seconds", instance.Name, randomWait / 1000.0);
+                                        logger.LogInformation("Waiting for {TorrentioInstance}: {WaitTime} seconds", instance.Name, randomWait / 1000.0);
                                         await Task.Delay(randomWait);
                                     }
 
+                                    var torrentInfo = await ScrapeInstance(instance, item.ImdbId, client);
 
-                                    await state.ResiliencyPolicy.ExecuteAsync(
-                                        async () =>
-                                        {
-                                            var torrentInfo = await ScrapeInstance(instance, item.ImdbId, client);
-
-                                            if (torrentInfo is not null)
-                                            {
-                                                newTorrents.AddRange(torrentInfo.Where(x => x != null).Select(x => x!));
-                                            }
-                                        });
+                                    if (torrentInfo is not null)
+                                    {
+                                        newTorrents.AddRange(torrentInfo.Where(x => x != null).Select(x => x!));
+                                    }
                                 });
+                            
+                            processedItemsCount++;
                         }
-                        catch (Exception error)
+                        catch (Exception)
                         {
-                            logger.LogError(error, "page processing error in TorrentioCrawler");
-                            logger.LogInformation("Setting possibly rate limited for {TorrentioInstance}", instance.Name);
+                            logger.LogWarning("Too many policy failures. Setting possibly rate limited for {TorrentioInstance}", instance.Name);
                             instance.SetPossiblyRateLimited(state);
                         }
                     }
@@ -131,7 +125,7 @@ public partial class TorrentioCrawler(
                 sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                 onRetry: (exception, timeSpan, retryCount, _) =>
                 {
-                    logger.LogWarning($"Retry {retryCount} encountered an exception: {exception.Message}. Pausing for {timeSpan.Seconds} seconds instance {instance.Name}");
+                    logger.LogWarning("Retry {RetryCount} encountered an exception: {Message}. Pausing for {Timespan} seconds instance {TorrentioInstance}", retryCount, exception.Message, timeSpan.Seconds, instance.Name);
                 });
         
         var circuitBreakerPolicy = Policy
@@ -146,10 +140,9 @@ public partial class TorrentioCrawler(
                 onReset: () => logger.LogInformation("Circuit closed for {TorrentioInstance}, calls will flow again", instance.Name),
                 onHalfOpen: () => logger.LogInformation("Circuit is half-open for {TorrentioInstance}, next call is a trial if it should close or break again", instance.Name));
         
-        var policyWrap = Policy.WrapAsync(circuitBreakerPolicy, Policy.TimeoutAsync(TimeSpan.FromSeconds(30)));
+        var policyWrap = Policy.WrapAsync(retryPolicy, circuitBreakerPolicy);
         
         state.ResiliencyPolicy = policyWrap;
-        state.RetryPolicy = retryPolicy;
     }
 
     private async Task<List<Torrent?>?> ScrapeInstance(TorrentioInstance instance, string imdbId, HttpClient client)
