@@ -310,5 +310,4 @@ This command should return: `ALTER DATABASE`. This means your database is now re
 
 ## To-do
 
-- [ ] Add a section on external access
 - [ ] Add a troubleshooting section
