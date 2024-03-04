@@ -127,7 +127,20 @@ services:
     <<: *knightcrawler-app
     networks:
       - knightcrawler-network
-
+    
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+      
 networks:
   knightcrawler-network:
     driver: bridge
@@ -137,3 +150,5 @@ volumes:
   postgres:
   mongo:
   rabbitmq:
+  caddy_data:
+  caddy_config:
