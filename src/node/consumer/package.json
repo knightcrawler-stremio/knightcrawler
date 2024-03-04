@@ -20,7 +20,6 @@
     "bottleneck": "^2.19.5",
     "cache-manager": "^5.4.0",
     "fuse.js": "^7.0.0",
-    "google-sr": "^3.2.1",
     "inversify": "^6.0.2",
     "magnet-uri": "^6.2.0",
     "moment": "^2.30.1",

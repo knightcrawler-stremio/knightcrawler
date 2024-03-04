@@ -4,13 +4,18 @@ public partial class DebridMediaManagerCrawler(
     IHttpClientFactory httpClientFactory,
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
-    GithubConfiguration githubConfiguration) : BaseCrawler(logger, storage)
+    GithubConfiguration githubConfiguration,
+    AdultContentConfiguration adultContentConfiguration,
+    IServiceProvider serviceProvider) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
     
     [GeneratedRegex(@"[sS]([0-9]{1,2})|seasons?[\s-]?([0-9]{1,2})", RegexOptions.IgnoreCase, "en-GB")]
     private static partial Regex SeasonMatcher();
+    
+    [GeneratedRegex(@"[0-9]{4}", RegexOptions.IgnoreCase, "en-GB")]
+    private static partial Regex YearMatcher();
 
     private const string DownloadBaseUrl = "https://raw.githubusercontent.com/debridmediamanager/hashlists/main";
     
@@ -18,8 +23,15 @@ public partial class DebridMediaManagerCrawler(
     protected override string Url => "https://api.github.com/repos/debridmediamanager/hashlists/git/trees/main?recursive=1";
     protected override string Source => "DMM";
 
+    private IFuzzySearcher<string>? _adultContentSearcher;
+
     public override async Task Execute()
     {
+        if (!adultContentConfiguration.Allow)
+        {
+            _adultContentSearcher = serviceProvider.GetRequiredService<IFuzzySearcher<string>>();
+        }
+        
         var client = httpClientFactory.CreateClient("Scraper");
         client.DefaultRequestHeaders.Authorization = new("Bearer", githubConfiguration.PAT);
         client.DefaultRequestHeaders.UserAgent.ParseAdd("curl");
@@ -95,12 +107,20 @@ public partial class DebridMediaManagerCrawler(
 
     private Torrent? ParseTorrent(JsonElement item)
     {
+        
+        if (!item.TryGetProperty("filename", out var filenameElement) ||
+            !item.TryGetProperty("bytes", out var bytesElement) ||
+            !item.TryGetProperty("hash", out var hashElement))
+        {
+            return null;
+        }
+        
         var torrent = new Torrent
         {
             Source = Source,
-            Name = item.GetProperty("filename").GetString(),
-            Size = item.GetProperty("bytes").GetInt64().ToString(),
-            InfoHash = item.GetProperty("hash").ToString(),
+            Name = filenameElement.GetString(),
+            Size = bytesElement.GetInt64().ToString(),
+            InfoHash = hashElement.ToString(),
             Seeders = 0,
             Leechers = 0,
         };
@@ -109,10 +129,40 @@ public partial class DebridMediaManagerCrawler(
         {
             return null;
         }
-        
-        torrent.Category = SeasonMatcher().IsMatch(torrent.Name) ? "tv" : "movies";
 
-        return torrent;
+        torrent.Category = (SeasonMatcher().IsMatch(torrent.Name), YearMatcher().IsMatch(torrent.Name)) switch
+        {
+            (true, _) => "tv",
+            (_, true) => "movies",
+            _ => "unknown",
+        };
+
+        return HandleAdultContent(torrent);
+    }
+
+    private Torrent HandleAdultContent(Torrent torrent)
+    {
+        try
+        {
+            if (!adultContentConfiguration.Allow)
+            {
+                var adultMatch = _adultContentSearcher!.Search(torrent.Name.Replace(".", " "));
+
+                if (adultMatch.Count > 0)
+                {
+                    logger.LogWarning("Adult content found in {Name}. Marking category as 'xxx'", torrent.Name);
+                    logger.LogWarning("Matches: {TopMatch} {TopScore}", adultMatch.First().Value, adultMatch.First().Score);
+                    torrent.Category = "xxx";
+                }
+            }
+
+            return torrent;
+        }
+        catch (Exception e)
+        {
+            logger.LogWarning("Failed to handle adult content for {Name}: [{Error}]. Torrent will not be ingested at this time.", torrent.Name, e.Message);
+            return null;
+        }
     }
 
     private async Task InsertTorrentsForPage(JsonDocument json)
