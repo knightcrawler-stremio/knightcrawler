@@ -1,5 +1,5 @@
 # Knight Crawler
-<img src="https://i.ibb.co/hYJPLdP/logo-only.png" alt="isolated" width="100"/>
+<img src="https://i.ibb.co/fQxLJ1C/kc-final-e.png" alt="isolated" width="100"/>
 
 A self-hosted Stremio addon for streaming torrents via a debrid service.
 

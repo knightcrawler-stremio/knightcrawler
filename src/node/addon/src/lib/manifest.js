@@ -13,8 +13,8 @@ export function manifest(config = {}) {
     catalogs: getCatalogs(config),
     resources: getResources(config),
     types: [Type.MOVIE, Type.SERIES, Type.ANIME, Type.OTHER],
-    background: "https://i.ibb.co/9pXGycn/logo-color.png",
-    logo: "https://i.ibb.co/hYJPLdP/logo-only.png",
+    background: "https://i.ibb.co/PTzsRZ0/kc-final-e2x-bg.png",
+    logo: "https://i.ibb.co/fQxLJ1C/kc-final-e.png",
     behaviorHints: {
       configurable: true,
       configurationRequired: false,
