@@ -20,6 +20,7 @@ Join our [Discord](https://discord.gg/8fQdxay9z2)!
     - [Environment Setup](#environment-setup)
       - [Optional Configuration Changes](#optional-configuration-changes)
     - [DebridMediaManager setup (optional)](#debridmediamanager-setup-optional)
+    - [Configure external access](#configure-external-access)
     - [Run the project](#run-the-project)
     - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
       - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
@@ -94,6 +95,10 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
    ```
    GithubSettings__PAT=<YOUR TOKEN HERE>
    ```
+### Configure external access
+What you will need:
+    1. Domain or subdomain that points toward your ip. You can use [DuckDNS](duckdns.org) for a free subdomain.
+    2. Ports 80 and 443 opened on your router/gateway. Refer to [PortForward.com](https://portforward.com/)
 
 
 ### Run the project
