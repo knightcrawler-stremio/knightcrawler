@@ -96,11 +96,12 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
    GithubSettings__PAT=<YOUR TOKEN HERE>
    ```
 ### Configure external access
-What you will need:
-1. Domain or subdomain that points toward your ip. You can use [DuckDNS](duckdns.org) for a free subdomain.
-2. Ports 80 and 443 opened on your router/gateway. Refer to [PortForward.com](https://portforward.com/)
 
-Replace `subdomain.com` with your domain name in the Caddyfile; `knightcrawler/development/docker/Caddyfile`.
+What you will need:
+1. Domain or subdomain that points toward your ip. You can use [DuckDNS](duckdns.org) for a free subdomain. [Installation instructions](http://www.duckdns.org/install.jsp) are provided to keep your IP updated.
+2. Ports 80 and 443 opened on your router/gateway adn forwarded to your KNightcrawler server. Refer to [PortForward.com](https://portforward.com/).
+
+Replace `your-domain.com` with your domain name in the Caddyfile; `knightcrawler/development/docker/Caddyfile`.
 
 ### Run the project
 
