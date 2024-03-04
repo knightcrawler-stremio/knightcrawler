@@ -97,8 +97,8 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
    ```
 ### Configure external access
 What you will need:
-    1. Domain or subdomain that points toward your ip. You can use [DuckDNS](duckdns.org) for a free subdomain.
-    2. Ports 80 and 443 opened on your router/gateway. Refer to [PortForward.com](https://portforward.com/)
+1. Domain or subdomain that points toward your ip. You can use [DuckDNS](duckdns.org) for a free subdomain.
+2. Ports 80 and 443 opened on your router/gateway. Refer to [PortForward.com](https://portforward.com/)
 
 
 ### Run the project
