@@ -106,6 +106,13 @@ Modify the `docker-compose.yaml` file by uncommenting the `caddy` container sect
 
 ### Run the project
 
+> [!IMPORTANT]
+> If you have configured external access, utilize the following commands:
+> ```sh
+>cd deployment/docker
+>docker-compose -f docker-compose.yaml -f docker-compose-caddy.yaml up -d
+>```
+
 Open a terminal in the project directory and run the command:
 
 ```sh
