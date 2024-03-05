@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://i.ibb.co/fQxLJ1C/kc-final-e.png" alt="isolated" width="100" alt="logo"/>
+  <img src="https://i.ibb.co/fQxLJ1C/kc-final-e.png" alt="isolated logo" width="100"/>
   <p>Knight Crawler</p>
 </h1>
 <p align="center">A self-hosted Stremio addon for streaming torrents via a debrid service.</p>
