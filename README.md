@@ -103,15 +103,14 @@ What you will need:
 
 ### Run the project
 
-> [!IMPORTANT]
-> If you have configured external access, utilize the following commands:
-> ```sh
->cd deployment/docker
->docker-compose -f docker-compose.yaml -f docker-compose-caddy.yaml up -d
->```
 
-Open a terminal in the project directory and run the command:
+ If you have configured external access, utilize the following commands:
+```sh
+cd deployment/docker
+docker-compose -f docker-compose.yaml -f docker-compose-caddy.yaml up -d
+```
 
+ If you have not configured external access, utilize the following commands:
 ```sh
 cd deployment/docker
 docker compose up -d
