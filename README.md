@@ -1,9 +1,9 @@
-# Knight Crawler
-<img src="https://i.ibb.co/fQxLJ1C/kc-final-e.png" alt="isolated" width="100"/>
-
-A self-hosted Stremio addon for streaming torrents via a debrid service.
-
-Join our [Discord](https://discord.gg/8fQdxay9z2)!
+<h1 align="center">
+  <img src="https://i.ibb.co/fQxLJ1C/kc-final-e.png" alt="isolated logo" width="100"/>
+  <p>Knight Crawler</p>
+</h1>
+<p align="center">A self-hosted Stremio addon for streaming torrents via a debrid service.</p>
+<p align="center">Join our <a href="https://discord.gg/8fQdxay9z2" target="_blank">Discord</a> !</p>
 
 ## Contents
 
