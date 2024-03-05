@@ -20,6 +20,7 @@ Join our [Discord](https://discord.gg/8fQdxay9z2)!
     - [Environment Setup](#environment-setup)
       - [Optional Configuration Changes](#optional-configuration-changes)
     - [DebridMediaManager setup (optional)](#debridmediamanager-setup-optional)
+    - [Configure external access](#configure-external-access)
     - [Run the project](#run-the-project)
     - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
       - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
@@ -43,7 +44,7 @@ Stremio is a media player. On it's own it will not allow you to watch anything. 
 
 ## Using
 
-The project is shipped as an all-in-one solution. The initial configuration is designed for hosting only on your local network. If you want it to be accessible from outside of your local network, please see [not yet available]()
+The project is shipped as an all-in-one solution. The initial configuration is designed for hosting only on your local network. If you want it to be accessible from outside of your local network, please see [Configure external access](#configure-external-access).
 
 ### Download Docker and Docker Compose v2
 
@@ -94,12 +95,24 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
    ```
    GithubSettings__PAT=<YOUR TOKEN HERE>
    ```
+### Configure external access
 
+What you will need:
+1. Domain or subdomain that points toward your IP. You can use [DuckDNS](duckdns.org) for a free subdomain. [Installation instructions](http://www.duckdns.org/install.jsp) are provided to keep your IP updated.
+2. Ports 80 and 443 opened on your router/gateway and forwarded to your Knightcrawler server. Refer to [PortForward.com](https://portforward.com/). Please note that this action may pose security vulnerabilities and potential damage for which Knightcrawler and its contributors cannot be held responsible.
+
+Navigate to `knightcrawler/development/docker` and edit the `Caddyfile` to replace `your-domain.com` with your domain name.
 
 ### Run the project
 
-Open a terminal in the project directory and run the command:
 
+ If you have configured external access, utilize the following commands:
+```sh
+cd deployment/docker
+docker-compose -f docker-compose.yaml -f docker-compose-caddy.yaml up -d
+```
+
+ If you have not configured external access, utilize the following commands:
 ```sh
 cd deployment/docker
 docker compose up -d
@@ -303,5 +316,4 @@ This command should return: `ALTER DATABASE`. This means your database is now re
 
 ## To-do
 
-- [ ] Add a section on external access
 - [ ] Add a troubleshooting section
