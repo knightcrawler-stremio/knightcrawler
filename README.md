@@ -109,7 +109,7 @@ Navigate to `knightcrawler/development/docker` and edit the `Caddyfile` to repla
  If you have configured external access, utilize the following commands:
 ```sh
 cd deployment/docker
-docker-compose -f docker-compose.yaml -f docker-compose-caddy.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose-caddy.yaml up -d
 ```
 
  If you have not configured external access, utilize the following commands:
