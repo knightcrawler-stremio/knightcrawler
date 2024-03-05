@@ -101,9 +101,6 @@ What you will need:
 1. Domain or subdomain that points toward your IP. You can use [DuckDNS](duckdns.org) for a free subdomain. [Installation instructions](http://www.duckdns.org/install.jsp) are provided to keep your IP updated.
 2. Ports 80 and 443 opened on your router/gateway and forwarded to your Knightcrawler server. Refer to [PortForward.com](https://portforward.com/). Please note that this action may pose security vulnerabilities and potential damage for which Knightcrawler and its contributors cannot be held responsible.
 
-Navigate to `knightcrawler/development/docker` and edit the `Caddyfile` to replace `your-domain.com` with your domain name.
-Modify the `docker-compose.yaml` file by uncommenting the `caddy` container section to enable Caddy for external access.
-
 ### Run the project
 
 > [!IMPORTANT]
