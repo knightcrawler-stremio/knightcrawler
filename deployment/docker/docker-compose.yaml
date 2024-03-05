@@ -129,6 +129,7 @@ services:
       - knightcrawler-network
 
 # Remove the #'s to activate Caddy for external access. Please note that this action may pose security vulnerabilities and potential damage for which Knightcrawler and its contributors cannot be held responsible.
+
 #  caddy:
 #    image: caddy:latest
 #    restart: unless-stopped
