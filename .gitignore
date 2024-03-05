@@ -407,3 +407,11 @@ dist/
 deployment/docker/docker-compose-dev.yaml
 
 src/producer/.run/
+
+# Git being annoying.
+# Don't ignore the logs folder.
+# Ignore everything inside it.
+# Don't ignore the .gitkeep file
+!deployment/docker/optional_reverse_proxy/logs/
+deployment/docker/optional_reverse_proxy/logs/*
+!deployment/docker/optional_reverse_proxy/logs/.gitkeep

@@ -1,0 +1,39 @@
+name: caddy
+
+networks:
+  caddy:
+    name: caddy
+    external: true
+
+  # cloudflare-tunnel:
+  #   name: cloudflare-tunnel
+  #   external: true
+
+volumes:
+  config:
+  data:
+
+services:
+  # Fast and extensible multi-platform HTTP/1-2-3 web server with automatic HTTPS
+  # https://github.com/caddyserver/caddy
+  caddy:
+    cap_add:
+      - NET_ADMIN
+    container_name: caddy
+    hostname: caddy
+    image: caddy:2.7.6 # May be out of date, but using the `:latest` tag is how you accidentally break your server
+    networks:
+      - caddy
+      # - cloudflare-tunnel
+    ports:
+      - 80:80
+      - 443:443
+      - 443:443/udp
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./configs/:/etc/caddy/ # /etc/caddy/Caddyfile and /etc/caddy/snippets/
+      - ./logs:/var/log/caddy/
+      - config:/config
+      - data:/data

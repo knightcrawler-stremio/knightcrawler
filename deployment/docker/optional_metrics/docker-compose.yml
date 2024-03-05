@@ -1,0 +1,76 @@
+name: knightcrawler-metrics
+
+networks:
+  knightcrawler-network:
+    external: true
+
+volumes:
+  grafana-data:
+  loki-data:
+    
+services:
+  prometheus:
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    image: prom/prometheus:v2.20.1
+    networks:
+      - knightcrawler-network
+    ports:
+      - 9090:9090
+    volumes:
+      - ./config/prometheus/config.yml:/etc/prometheus/prometheus.yml
+
+grafana:
+  depends_on:
+    - prometheus
+  environment:
+    - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    - GF_SECURITY_ADMIN_PASSWORD=admin_password
+    - GF_SECURITY_ADMIN_USER=admin
+  image: grafana/grafana:latest
+  networks:
+    - knightcrawler-network
+  ports:
+    - "3000:3000"
+  volumes:
+    - ./config/grafana/dashboards/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+    - ./config/grafana/dashboards/logs.json:/var/lib/grafana/dashboards/logs.json
+    - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+    - grafana-data:/var/lib/grafana
+
+  postgres-exporter:
+    env_file:
+      - ../.env
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable"
+    image: prometheuscommunity/postgres-exporter
+    networks:
+      - knightcrawler-network
+      
+  promtail:
+    image: grafana/promtail:2.9.4
+    volumes:
+      - ./config/promtail/config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - '-config.file=/etc/promtail/config.yml'
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - knightcrawler-network
+
+      
+  loki:
+    command: '-config.file=/etc/loki/local-config.yml'
+    depends_on:
+      - grafana
+      - prometheus
+    image: grafana/loki:2.9.4
+    networks:
+      - knightcrawler-network
+    volumes:
+      - ./config/loki/config.yml:/etc/loki/local-config.yml
+      - loki-data:/loki
+
