@@ -20,9 +20,9 @@
     - [Optional Configuration Changes](#optional-configuration-changes)
   - [DebridMediaManager setup (optional)](#debridmediamanager-setup-optional)
   - [Configure external access](#configure-external-access)
-  - [I have a public IP address and can open ports](#i-have-a-public-ip-address-and-can-open-ports)
-  - [I will be using a tunnel/vpn (CGNAT, don't want to open ports, etc...)](#i-will-be-using-a-tunnelvpn-cgnat-dont-want-to-open-ports-etc)
-  - [Next steps](#next-steps)
+    - [I have a public IP address and can open ports](#i-have-a-public-ip-address-and-can-open-ports)
+    - [I will be using a tunnel/vpn (CGNAT, don't want to open ports, etc...)](#i-will-be-using-a-tunnelvpn-cgnat-dont-want-to-open-ports-etc)
+    - [Next steps](#next-steps)
   - [Run the project](#run-the-project)
   - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
     - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
@@ -105,7 +105,7 @@ Please choose which applies to you:
 - [I will be using a tunnel/vpn (CGNAT, don't want to open ports, etc...)](#i-will-be-using-a-tunnelvpn-cgnat-dont-want-to-open-ports-etc)
 
 
-### I have a public IP address and can open ports
+#### I have a public IP address and can open ports
 
 You can use either a paid domain `your-domain.com` or a free reverse dns service like [DuckDNS](https://www.duckdns.org/) (you can [automate the update of your IP address](https://www.duckdns.org/install.jsp)).
 
@@ -113,7 +113,7 @@ Before continuing you need to open up port `80` and `443` in your firewall and c
 
 You may find it safer to [use a tunnel/vpn](#i-will-be-using-a-tunnelvpn-cgnat-dont-want-to-open-ports-etc), but this will require the use of a paid domain or will not be accessible without being connected to your vpn.
 
-### I will be using a tunnel/vpn (CGNAT, don't want to open ports, etc...)
+#### I will be using a tunnel/vpn (CGNAT, don't want to open ports, etc...)
 
 For this you can use a VPN like [Tailscale](https://tailscale.com/) which has its own ways of issuing SSL certs, or you can use a tunnel like [Cloudflare](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/).
 
@@ -123,7 +123,7 @@ Theres a sample compose for a Cloudflare tunnel [here](deployment/docker/example
 
 If you are going to go this route, you will want to connect caddy to the cloudflare-tunnel network. It's all in Caddy's [docker-compose.yaml](deployment/docker/optional_reverse_proxy/docker-compose.yaml) you will just need to uncomment it.
 
-### Next steps
+#### Next steps
 
 Regardless of what method you choose, you will need to connect Knight Crawler to Caddy. We only need to expose the addon, the rest of the services can remain internal.
 
