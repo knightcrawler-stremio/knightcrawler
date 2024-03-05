@@ -127,21 +127,6 @@ services:
     <<: *knightcrawler-app
     networks:
       - knightcrawler-network
-
-# Remove the #'s to activate Caddy for external access. Please note that this action may pose security vulnerabilities and potential damage for which Knightcrawler and its contributors cannot be held responsible.
-
-#  caddy:
-#    image: caddy:latest
-#    restart: unless-stopped
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#      - "443:443/udp"
-#    volumes:
-#      - ./Caddyfile:/etc/caddy/Caddyfile
-#      - ./site:/srv
-#      - caddy_data:/data
-#      - caddy_config:/config
       
 networks:
   knightcrawler-network:
@@ -152,5 +137,3 @@ volumes:
   postgres:
   mongo:
   rabbitmq:
-  caddy_data:
-  caddy_config:
