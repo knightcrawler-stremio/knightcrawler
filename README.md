@@ -44,7 +44,7 @@ Stremio is a media player. On it's own it will not allow you to watch anything. 
 
 ## Using
 
-The project is shipped as an all-in-one solution. The initial configuration is designed for hosting only on your local network. If you want it to be accessible from outside of your local network, please see [not yet available]()
+The project is shipped as an all-in-one solution. The initial configuration is designed for hosting only on your local network. If you want it to be accessible from outside of your local network, please see [Configure external access](#configure-external-access).
 
 ### Download Docker and Docker Compose v2
 
