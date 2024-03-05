@@ -407,3 +407,7 @@ dist/
 deployment/docker/docker-compose-dev.yaml
 
 src/producer/.run/
+
+# Caddy logs
+deployment/docker/optional_reverse_proxy/logs/**
+!deployment/docker/optional_reverse_proxy/logs/.gitkeep

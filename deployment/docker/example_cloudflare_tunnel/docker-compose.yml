@@ -1,0 +1,18 @@
+name: cloudflared
+
+networks:
+  cloudflare-tunnel:
+    name: cloudflare-tunnel
+    external: true
+
+services:
+  cloudflared:
+    container_name: cloudflared
+    command: tunnel --no-autoupdate run --token ${TOKEN}
+    hostname: cloudflared
+    image: cloudflare/cloudflared:latest
+    networks:
+      - cloudflare-tunnel
+    restart: always
+    security_opt:
+      - no-new-privileges:true

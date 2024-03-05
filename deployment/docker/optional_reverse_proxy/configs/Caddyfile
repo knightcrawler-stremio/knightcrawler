@@ -1,0 +1,62 @@
+{
+	## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	## Let's Encrpyt staging environment
+	## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	## Once you have confirmed Caddy works you should comment out
+	## the below line:
+	acme_ca https://acme-staging-v02.api.letsencrypt.org/director
+}
+
+(security-headers) {
+	## These are the recommended default settings in Caddy documentation
+	## https://caddyserver.com/docs/caddyfile/directives/header
+	header {
+		## disable FLoC tracking
+		Permissions-Policy "interest-cohort=()"
+
+		## enable HSTS
+		Strict-Transport-Security "max-age=300;" # 5 minutes
+		## NOTE: I have dramatically lowered the above for testing.
+		## Once you have confirmed that everything works, start increasing the number
+		## the goal is to have HSTS set to one year with subdomains and preloading :
+		## 
+		# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
+		## 
+		## Warning: You should ensure that you fully understand the implications
+		## of HSTS preloading before you include the directive in your policy and
+		## before you submit. It means that your entire domain and all subdomains,
+		## including those managed or maintained by third parties, will only work
+		## with HTTPS. Preloading should be viewed as a one way ticket.
+		## Whilst it is possible to be removed, it can take a long time and you
+		## may not be removed from all browsers.
+
+		## disable clients from sniffing the media type
+		X-Content-Type-Options "nosniff"
+
+		## clickjacking protection
+		X-Frame-Options "DENY"
+	}
+}
+
+(cloudflare-tunnel-protection) {
+	import ./snippets/cloudflare-replace-X-Forwarded-For
+	trusted_proxies 172.17.0.0/16 # This needs to be your docker subnet
+	# I beleive this is what is configured by default.
+	# If you can't make it work ask for my help on discord.
+}
+
+knightcrawler.your-domain.com {
+	## Uncomment to enable logging
+	# log {
+	# 	output file /var/log/caddy/knightcrawler.your-domain.com.log {
+	# 		roll_size 10mb
+	# 		roll_keep 5
+	# 		roll_keep_for 720h
+	# 	}
+	# }
+
+	encode gzip
+	## DO NOT ENABLE UNTIL YOU HAVE DISABLED THE TESTING ENVIRONMENT
+	# import security-headers
+	reverse_proxy knightcrawler-addon:7000
+}

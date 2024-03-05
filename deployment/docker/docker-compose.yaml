@@ -116,22 +116,28 @@ services:
     networks:
       - knightcrawler-network
 
-  addon:
-    image: gabisonfire/knightcrawler-addon:latest
-    ports:
-      - "7000:7000"
-    labels:
-      logging: "promtail"
-    env_file:
-      - .env
-    <<: *knightcrawler-app
-    networks:
-      - knightcrawler-network
+addon:
+  <<: *knightcrawler-app
+  env_file:
+    - .env
+  hostname: knightcrawler-addon
+  image: gabisonfire/knightcrawler-addon:latest
+  labels:
+    logging: "promtail"
+  networks:
+    - knightcrawler-network
+  ports:
+    - "7000:7000"
+
       
 networks:
   knightcrawler-network:
     driver: bridge
     name: knightcrawler-network
+
+  caddy:
+    name: caddy
+    external: true
 
 volumes:
   postgres:

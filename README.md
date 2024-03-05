@@ -12,27 +12,29 @@
 
 > [!IMPORTANT]
 > The latest change renames the project and requires a [small migration](#selfhostio-to-knightcrawler-migration).
-- [Knight Crawler](#knight-crawler)
-  - [Contents](#contents)
-  - [Overview](#overview)
-  - [Using](#using)
-    - [Download Docker and Docker Compose v2](#download-docker-and-docker-compose-v2)
-    - [Environment Setup](#environment-setup)
-      - [Optional Configuration Changes](#optional-configuration-changes)
-    - [DebridMediaManager setup (optional)](#debridmediamanager-setup-optional)
-    - [Configure external access](#configure-external-access)
-    - [Run the project](#run-the-project)
-    - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
-      - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
-      - [Using Grafana and Prometheus](#using-grafana-and-prometheus)
-  - [Importing external dumps](#importing-external-dumps)
-    - [Importing data into PostgreSQL](#importing-data-into-postgresql)
-      - [Using pgloader via docker](#using-pgloader-via-docker)
-      - [Using native installation of pgloader](#using-native-installation-of-pgloader)
-    - [Process the data we have imported](#process-the-data-we-have-imported)
-    - [I imported the data without the `LIKE 'movies%%'` queries!](#i-imported-the-data-without-the-like-movies-queries)
-  - [Selfhostio to KnightCrawler Migration](#selfhostio-to-knightcrawler-migration)
-  - [To-do](#to-do)
+- [Contents](#contents)
+- [Overview](#overview)
+- [Using](#using)
+  - [Download Docker and Docker Compose v2](#download-docker-and-docker-compose-v2)
+  - [Environment Setup](#environment-setup)
+    - [Optional Configuration Changes](#optional-configuration-changes)
+  - [DebridMediaManager setup (optional)](#debridmediamanager-setup-optional)
+  - [Configure external access](#configure-external-access)
+    - [I have a public IP address and can open ports](#i-have-a-public-ip-address-and-can-open-ports)
+    - [I will be using a tunnel/vpn (CGNAT, don't want to open ports, etc...)](#i-will-be-using-a-tunnelvpn-cgnat-dont-want-to-open-ports-etc)
+    - [Next steps](#next-steps)
+  - [Run the project](#run-the-project)
+  - [Monitoring with Grafana and Prometheus (Optional)](#monitoring-with-grafana-and-prometheus-optional)
+    - [Accessing RabbitMQ Management](#accessing-rabbitmq-management)
+    - [Using Grafana and Prometheus](#using-grafana-and-prometheus)
+- [Importing external dumps](#importing-external-dumps)
+  - [Importing data into PostgreSQL](#importing-data-into-postgresql)
+    - [Using pgloader via docker](#using-pgloader-via-docker)
+    - [Using native installation of pgloader](#using-native-installation-of-pgloader)
+  - [Process the data we have imported](#process-the-data-we-have-imported)
+  - [I imported the data without the `LIKE 'movies%%'` queries!](#i-imported-the-data-without-the-like-movies-queries)
+- [Selfhostio to KnightCrawler Migration](#selfhostio-to-knightcrawler-migration)
+- [To-do](#to-do)
 
 
 ## Overview
@@ -97,37 +99,93 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
    ```
 ### Configure external access
 
-What you will need:
-1. Domain or subdomain that points toward your IP. You can use [DuckDNS](duckdns.org) for a free subdomain. [Installation instructions](http://www.duckdns.org/install.jsp) are provided to keep your IP updated.
-2. Ports 80 and 443 opened on your router/gateway and forwarded to your Knightcrawler server. Refer to [PortForward.com](https://portforward.com/). Please note that this action may pose security vulnerabilities and potential damage for which Knightcrawler and its contributors cannot be held responsible.
+Please choose which applies to you:
 
-Navigate to `knightcrawler/development/docker` and edit the `Caddyfile` to replace `your-domain.com` with your domain name.
-
-### Run the project
+- [I have a public IP address and can open ports](#i-have-a-public-ip-address-and-can-open-ports)
+- [I will be using a tunnel/vpn (CGNAT, don't want to open ports, etc...)](#i-will-be-using-a-tunnelvpn-cgnat-dont-want-to-open-ports-etc)
 
 
- If you have configured external access, utilize the following commands:
-```sh
-cd deployment/docker
-docker compose -f docker-compose.yaml -f docker-compose-caddy.yaml up -d
+#### I have a public IP address and can open ports
+
+You can use either a paid domain `your-domain.com` or a free reverse dns service like [DuckDNS](https://www.duckdns.org/) (you can [automate the update of your IP address](https://www.duckdns.org/install.jsp)).
+
+Before continuing you need to open up port `80` and `443` in your firewall and configure any [port forwarding](https://portforward.com/) as necessary. You should not do this unless you understand the security implications. Please note that Knightcrawler and its contributors cannot be held responsible for any damage or loss of data from exposing your service publically.
+
+You may find it safer to [use a tunnel/vpn](#i-will-be-using-a-tunnelvpn-cgnat-dont-want-to-open-ports-etc), but this will require the use of a paid domain or will not be accessible without being connected to your vpn.
+
+#### I will be using a tunnel/vpn (CGNAT, don't want to open ports, etc...)
+
+For this you can use a VPN like [Tailscale](https://tailscale.com/) which has its own ways of issuing SSL certs, or you can use a tunnel like [Cloudflare](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/).
+
+To use a Cloudflare tunnel you __will__ need a domain name.
+
+Theres a sample compose for a Cloudflare tunnel [here](deployment/docker/example_cloudflare_tunnel/docker-compose.yml).
+
+If you are going to go this route, you will want to connect caddy to the cloudflare-tunnel network. It's all in Caddy's [docker-compose.yaml](deployment/docker/optional_reverse_proxy/docker-compose.yaml) you will just need to uncomment it.
+
+#### Next steps
+
+Regardless of what method you choose, you will need to connect Knight Crawler to Caddy. We only need to expose the addon, the rest of the services can remain internal.
+
+In our primary [docker-compose.yaml](deployment/docker/docker-compose.yaml) we will add the Caddy network:
+
+```
+networks:
+  knightcrawler-network:
+    driver: bridge
+    name: knightcrawler-network
+
+  caddy:
+    name: caddy
+    external: true
 ```
 
- If you have not configured external access, utilize the following commands:
+Remove or comment out the port for the addon, and connect it to Caddy:
+
+```
+addon:
+  <<: *knightcrawler-app
+  env_file:
+    - .env
+  hostname: knightcrawler-addon
+  image: gabisonfire/knightcrawler-addon:latest
+  labels:
+    logging: "promtail"
+  networks:
+    - knightcrawler-network
+    - caddy         # <~~~~~~~ These lines
+  # ports:          # <~~~~~~~ have been
+  #   - "7000:7000" # <~~~~~~~ changed
+```
+
+If you are using a Cloudflare tunnel, start it before Caddy.
+
+Caddy can be started with:
+
+```sh
+cd deployment/docker/optional_reverse_proxy
+docker compose up -d
+```
+
+It should be started before Knight Crawler.
+
+### Run the project
+To start the project use the following commands:
+
 ```sh
 cd deployment/docker
 docker compose up -d
 ```
 
-It will take a while to find and add the torrents to the database. During initial testing, in one hour it's estimated that around 200,000 torrents were located and added to the queue to be processed. For best results, you should leave everything running for a few hours.
+It will take a while to find and add the torrents to the database. During initial testing, in one hour it's estimated that around 200,000 torrents were located and added to the queue to be processed. The processing takes longer, unfortunately and you may not find the movie/show you want for a while. For best results, you should leave everything running for a few hours.
 
-To add the addon to Stremio, open a web browser and navigate to: [http://127.0.0.1:7000](http://127.0.0.1:7000)
+To add the addon to Stremio, open a web browser and navigate to: [http://127.0.0.1:7000](http://127.0.0.1:7000) or [knightcrawler.your-domain.com](https://knightcrawler.your-domain.com) if you are using Caddy.
 
 ### Monitoring with Grafana and Prometheus (Optional)
 
 To enhance your monitoring capabilities, you can use Grafana and Prometheus in addition to RabbitMQ's built-in management interface. This allows you to visualize and analyze RabbitMQ metrics with more flexibility. With postgres-exporter service, you can also monitor Postgres metrics.
 
 #### Accessing RabbitMQ Management
-
 
 You can still monitor RabbitMQ by accessing its management interface at [http://127.0.0.1:15672/](http://127.0.0.1:15672/). Use the provided credentials to log in and explore RabbitMQ's monitoring features (the default username and password are `guest`).
 
@@ -138,8 +196,8 @@ Here's how to set up and use Grafana and Prometheus for monitoring RabbitMQ:
 1. **Start Grafana and Prometheus**: Run the following command to start both Grafana and Prometheus:
 
    ```sh
-   cd deployment/docker
-   docker compose -f docker-compose-metrics.yml up -d
+   cd deployment/docker/optional_metrics
+   docker compose up -d
    ```
 
    - Grafana will be available at [http://127.0.0.1:3000](http://127.0.0.1:3000).
