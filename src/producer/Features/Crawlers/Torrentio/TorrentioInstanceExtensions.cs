@@ -21,7 +21,7 @@ public static class TorrentioInstancesExtensions
 
         return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
     }
-    
+
     public static void SetPossiblyRateLimited(this TorrentioInstance instance, TorrentioScrapeInstance state, int minutesToWait = 5)
     {
         // Set the start time to 15 minutes in the past so that the next check will result in a rate limit period of 15 minutes
@@ -33,12 +33,12 @@ public static class TorrentioInstancesExtensions
         state.RequestCount = requestCount;
     }
 
-    public static long TotalProcessedRequests(this TorrentioInstance instance, Dictionary<string, TorrentioScrapeInstance> scraperState) => 
+    public static long TotalProcessedRequests(this TorrentioInstance instance, Dictionary<string, TorrentioScrapeInstance> scraperState) =>
         !scraperState.TryGetValue(instance.Name, out var state) ? 0 : state.TotalProcessed;
-    
-    public static string? LastProcessedImdbId(this TorrentioInstance instance, Dictionary<string, TorrentioScrapeInstance> scraperState) => 
+
+    public static string? LastProcessedImdbId(this TorrentioInstance instance, Dictionary<string, TorrentioScrapeInstance> scraperState) =>
         !scraperState.TryGetValue(instance.Name, out var state) ? null : state.LastProcessedImdbId;
-    
+
     public static TorrentioScrapeInstance EnsureStateExists(this TorrentioInstance instance, Dictionary<string, TorrentioScrapeInstance> scraperState)
     {
         if (!scraperState.TryGetValue(instance.Name, out var state))

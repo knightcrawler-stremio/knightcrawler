@@ -5,9 +5,9 @@ public class DeleteDownloadedImdbDataRequestHandler(ILogger<DeleteDownloadedImdb
     public Task Handle(DeleteDownloadedImdbDataRequest request, CancellationToken _)
     {
         logger.LogInformation("Deleting file {FilePath}", request.FilePath);
-        
+
         File.Delete(request.FilePath);
-        
+
         logger.LogInformation("File Deleted");
 
         if (configuration.DownloadImdbOnce)

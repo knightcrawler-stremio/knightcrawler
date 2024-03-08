@@ -11,7 +11,7 @@ public class RabbitMqConfiguration
     private const string MaxQueueSizeVariable = "MAX_QUEUE_SIZE";
     private const string MaxPublishBatchSizeVariable = "MAX_PUBLISH_BATCH_SIZE";
     private const string PublishIntervalInSecondsVariable = "PUBLISH_INTERVAL_IN_SECONDS";
-    
+
     public string? Username { get; init; } = Prefix.GetRequiredEnvironmentVariableAsString(UsernameVariable);
     public string? Host { get; init; } = Prefix.GetRequiredEnvironmentVariableAsString(HostVariable);
     public string? Password { get; init; } = Prefix.GetRequiredEnvironmentVariableAsString(PasswordVariable);
@@ -27,12 +27,12 @@ public class RabbitMqConfiguration
         {
             return;
         }
-        
+
         if (MaxQueueSize < 0)
         {
             throw new InvalidOperationException("MaxQueueSize cannot be less than 0 in RabbitMqConfiguration");
         }
-        
+
         if (MaxPublishBatchSize < 0)
         {
             throw new InvalidOperationException("MaxPublishBatchSize cannot be less than 0 in RabbitMqConfiguration");

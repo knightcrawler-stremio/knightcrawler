@@ -4,8 +4,8 @@ public class EzTvCrawler(IHttpClientFactory httpClientFactory, ILogger<EzTvCrawl
 {
     protected override string Url => "https://eztv1.xyz/ezrss.xml";
     protected override string Source => "EZTV";
-    
-    private static readonly XNamespace XmlNamespace = "http://xmlns.ezrss.it/0.1/"; 
+
+    private static readonly XNamespace XmlNamespace = "http://xmlns.ezrss.it/0.1/";
 
     protected override IReadOnlyDictionary<string, string> Mappings =>
         new Dictionary<string, string>

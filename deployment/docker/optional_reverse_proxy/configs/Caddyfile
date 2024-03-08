@@ -19,9 +19,9 @@
 		## NOTE: I have dramatically lowered the above for testing.
 		## Once you have confirmed that everything works, start increasing the number
 		## the goal is to have HSTS set to one year with subdomains and preloading :
-		## 
+		##
 		# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
-		## 
+		##
 		## Warning: You should ensure that you fully understand the implications
 		## of HSTS preloading before you include the directive in your policy and
 		## before you submit. It means that your entire domain and all subdomains,
@@ -41,7 +41,7 @@
 (cloudflare-tunnel-protection) {
 	import ./snippets/cloudflare-replace-X-Forwarded-For
 	trusted_proxies 172.17.0.0/16 # This needs to be your docker subnet
-	# I beleive this is what is configured by default.
+	# I believe this is what is configured by default.
 	# If you can't make it work ask for my help on discord.
 }
 

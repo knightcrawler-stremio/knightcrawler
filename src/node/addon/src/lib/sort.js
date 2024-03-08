@@ -36,7 +36,7 @@ export default function sortStreams(streams, config) {
 
 function _sortStreams(streams, config) {
   const limit = /^[1-9][0-9]*$/.test(config.limit) && parseInt(config.limit) || undefined;
-    
+
   return sortBySize(streams, limit);
 }
 

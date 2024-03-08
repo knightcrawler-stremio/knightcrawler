@@ -21,16 +21,16 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
             FullMode = BoundedChannelFullMode.Wait,
         });
 
-        
+
         // Skip the header row
         await csv.ReadAsync();
-        
+
         var batchInsertTask = CreateBatchOfEntries(channel, cancellationToken);
 
         await ReadEntries(csv, channel, cancellationToken);
 
         channel.Writer.Complete();
-        
+
         await batchInsertTask;
 
         return new(request.FilePath);
@@ -45,7 +45,7 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
                 {
                     return;
                 }
-                
+
                 var batch = new List<ImdbEntry>
                 {
                     movieData,
@@ -63,7 +63,7 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
                 }
             }
         }, cancellationToken);
-    
+
     private static async Task ReadEntries(CsvReader csv, Channel<ImdbEntry, ImdbEntry> channel, CancellationToken cancellationToken)
     {
         while (await csv.ReadAsync())
@@ -80,12 +80,12 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
                 RuntimeMinutes = csv.GetField(7),
                 Genres = csv.GetField(8),
             };
-            
+
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
-            
+
             await channel.Writer.WriteAsync(movieData, cancellationToken);
         }
     }

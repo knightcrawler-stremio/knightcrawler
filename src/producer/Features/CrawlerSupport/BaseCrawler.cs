@@ -12,13 +12,13 @@ public abstract class BaseCrawler(ILogger<BaseCrawler> logger, IDataStorage stor
     protected async Task<InsertTorrentResult> InsertTorrents(IReadOnlyCollection<Torrent> torrent)
     {
         var result = await storage.InsertTorrents(torrent);
-        
+
         if (!result.Success)
         {
             logger.LogWarning("Ingestion Failed: [{Error}]", result.ErrorMessage);
             return result;
         }
-            
+
         logger.LogInformation("Ingestion Successful - Wrote {Count} new torrents", result.InsertedCount);
         return result;
     }

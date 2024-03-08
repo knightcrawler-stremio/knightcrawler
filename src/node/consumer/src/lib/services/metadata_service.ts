@@ -49,9 +49,9 @@ export class MetadataService implements IMetadataService {
         const query = `${name} ${year || ''} ${info.type} imdb`;
         const fallbackQuery = `${name} ${info.type} imdb`;
         const googleQuery = year ? query : fallbackQuery;
-        
+
         const imdbInMongo = await this.mongoRepository.getImdbId(name, info.type, year);
-        
+
         if (imdbInMongo) {
             return imdbInMongo;
         }

@@ -26,7 +26,7 @@ builder.defineStreamHandler((args) => {
   if (!args.id.match(/tt\d+/i) && !args.id.match(/kitsu:\d+/i)) {
     return Promise.resolve({ streams: [] });
   }
-    
+
   return cacheWrapStream(args.id, () => limiter.schedule(() =>
       streamHandler(args)
       .then(records => records

@@ -22,12 +22,12 @@ builder.defineStreamHandler((args) => {
   if (!args.id.match(/tt\d+/i) && !args.id.match(/kitsu:\d+/i)) {
     return Promise.resolve({ streams: [] });
   }
-  
+
   if (processConfig.DEBUG) {
     console.log(`Incoming stream ${args.id} request`)
     console.log('args', args);
   }
-  
+
   return cacheWrapStream(args.id, () => limiter.schedule(() =>
       streamHandler(args)
       .then(records => records.map(record => toStreamInfo(record, args.type))))

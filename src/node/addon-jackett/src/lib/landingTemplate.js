@@ -180,7 +180,7 @@ a.install-link {
 }
 
 .input:focus, .btn:focus {
-  outline: none; 
+  outline: none;
   box-shadow: 0 0 0 2pt rgb(30, 144, 255, 0.7);
 }
 `;
@@ -210,7 +210,7 @@ export default function landingTemplate(manifest, config = {}) {
   const debridOptionsHTML = Object.values(DebridOptions.options)
       .map(option => `<option value="${option.key}">${option.description}</option>`)
       .join('\n');
-  
+
   return `
    <!DOCTYPE html>
    <html style="background-image: url(${background});">
@@ -239,54 +239,54 @@ export default function landingTemplate(manifest, config = {}) {
          <h2 class="description">${manifest.description || ''}</h2>
 
          <div class="separator"></div>
-                  
+
          <label class="label" id="iLimitLabel" for="iLimit">Max results per quality:</label>
          <input type="text" inputmode="numeric" pattern="[0-9]*" id="iLimit" onchange="generateInstallLink()" class="input" placeholder="All results">
-                  
+
          <label class="label" for="iDebridProviders">Debrid provider:</label>
          <select id="iDebridProviders" class="input" onchange="debridProvidersChange()">
             <option value="none" selected>None</option>
             ${debridProvidersHTML}
          </select>
-         
+
          <div id="dRealDebrid">
            <label class="label" for="iRealDebrid">RealDebrid API Key (Find it <a href='https://real-debrid.com/apitoken' target="_blank">here</a>):</label>
            <input type="text" id="iRealDebrid" onchange="generateInstallLink()" class="input">
          </div>
-         
+
          <div id="dAllDebrid">
            <label class="label" for="iAllDebrid">AllDebrid API Key (Create it <a href='https://alldebrid.com/apikeys' target="_blank">here</a>):</label>
            <input type="text" id="iAllDebrid" onchange="generateInstallLink()" class="input">
          </div>
-         
+
          <div id="dPremiumize">
            <label class="label" for="iPremiumize">Premiumize API Key (Find it <a href='https://www.premiumize.me/account' target="_blank">here</a>):</label>
            <input type="text" id="iPremiumize" onchange="generateInstallLink()" class="input">
          </div>
-         
+
          <div id="dDebridLink">
            <label class="label" for="iDebridLink">DebridLink API Key (Find it <a href='https://debrid-link.fr/webapp/apikey' target="_blank">here</a>):</label>
            <input type="text" id="iDebridLink" onchange="generateInstallLink()" class="input">
          </div>
-         
+
          <div id="dOffcloud">
            <label class="label" for="iOffcloud">Offcloud API Key (Find it <a href='https://offcloud.com/#/account' target="_blank">here</a>):</label>
            <input type="text" id="iOffcloud" onchange="generateInstallLink()" class="input">
          </div>
-         
+
          <div id="dPutio">
            <label class="label" for="iPutio">Put.io ClientId and Token (Create new OAuth App <a href='https://app.put.io/oauth' target="_blank">here</a>):</label>
            <input type="text" id="iPutioClientId" placeholder="ClientId" onchange="generateInstallLink()" class="input">
            <input type="text" id="iPutioToken" placeholder="Token" onchange="generateInstallLink()" class="input">
          </div>
-         
+
          <div id="dDebridOptions">
            <label class="label" for="iDebridOptions">Debrid options:</label>
            <select id="iDebridOptions" class="input" onchange="generateInstallLink()" name="debridOptions[]" multiple="multiple">
               ${debridOptionsHTML}
            </select>
          </div>
-         
+
          <div class="separator"></div>
 
          <a id="installLink" class="install-link" href="#">
@@ -295,7 +295,7 @@ export default function landingTemplate(manifest, config = {}) {
          <div class="contact">
            <p>Or paste into Stremio search bar after clicking install</p>
         </div>
-        
+
         <div class="separator"></div>
       </div>
       <script type="text/javascript">
@@ -304,7 +304,7 @@ export default function landingTemplate(manifest, config = {}) {
               const isTvAgent = /\\b(?:tv|wv)\\b/i.test(navigator.userAgent)
               const isDesktopMedia = window.matchMedia("(pointer:fine)").matches;
               if (isDesktopMedia && !isTvMedia && !isTvAgent) {
-                $('#iDebridOptions').multiselect({ 
+                $('#iDebridOptions').multiselect({
                     nonSelectedText: 'None',
                     buttonTextAlignment: 'left',
                     onChange: () => generateInstallLink()
@@ -325,7 +325,7 @@ export default function landingTemplate(manifest, config = {}) {
               generateInstallLink();
               debridProvidersChange();
           });
-                   
+
           function debridProvidersChange() {
             const provider = $('#iDebridProviders').val()
             $('#dDebridOptions').toggle(provider !== 'none');
@@ -336,10 +336,10 @@ export default function landingTemplate(manifest, config = {}) {
             $('#dOffcloud').toggle(provider === '${MochOptions.offcloud.key}');
             $('#dPutio').toggle(provider === '${MochOptions.putio.key}');
           }
-          
+
           function generateInstallLink() {
               const limitValue = $('#iLimit').val() || '';
-              
+
               const debridOptionsValue = $('#iDebridOptions').val().join(',') || '';
               const realDebridValue = $('#iRealDebrid').val() || '';
               const allDebridValue = $('#iAllDebrid').val() || '';
@@ -348,9 +348,9 @@ export default function landingTemplate(manifest, config = {}) {
               const offcloudValue = $('#iOffcloud').val() || ''
               const putioClientIdValue = $('#iPutioClientId').val() || '';
               const putioTokenValue = $('#iPutioToken').val() || '';
-              
+
               const limit = /^[1-9][0-9]{0,2}$/.test(limitValue) && limitValue;
-              
+
               const debridOptions = debridOptionsValue.length && debridOptionsValue.trim();
               const realDebrid = realDebridValue.length && realDebridValue.trim();
               const premiumize = premiumizeValue.length && premiumizeValue.trim();
@@ -361,7 +361,7 @@ export default function landingTemplate(manifest, config = {}) {
 
               let configurationValue = [
                     ['limit', limit],
-                    ['${DebridOptions.key}', debridOptions], 
+                    ['${DebridOptions.key}', debridOptions],
                     ['${MochOptions.realdebrid.key}', realDebrid],
                     ['${MochOptions.premiumize.key}', premiumize],
                     ['${MochOptions.alldebrid.key}', allDebrid],

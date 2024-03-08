@@ -31,7 +31,7 @@ export function toStreamInfo(record, type) {
   const behaviorHints = bingeGroup ? { bingeGroup } : undefined;
 
   const magnetInfo = decode(record.magneturl)
-  
+
   return cleanOutputObject({
     name: name,
     title: title,
@@ -61,7 +61,7 @@ function formatSize(size) {
 function getBingeGroupParts(record, sameInfo, quality, torrentInfo, fileInfo, type) {
   if (type === Type.MOVIE) {
     return [quality];
-  
+
   } else if (sameInfo) {
     return [quality];
   }

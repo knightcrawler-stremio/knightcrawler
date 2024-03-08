@@ -8,7 +8,7 @@ public class ImdbMongoDbService
     public ImdbMongoDbService(MongoConfiguration configuration, ILogger<ImdbMongoDbService> logger)
     {
         _logger = logger;
-        
+
         var client = new MongoClient(configuration.ConnectionString);
         var database = client.GetDatabase(configuration.DbName);
 
@@ -37,7 +37,7 @@ public class ImdbMongoDbService
 
         await _imdbCollection.BulkWriteAsync(operations);
     }
-    
+
     public bool IsDatabaseInitialized()
     {
         try

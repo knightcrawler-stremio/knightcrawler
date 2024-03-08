@@ -7,7 +7,7 @@ networks:
 volumes:
   grafana-data:
   loki-data:
-    
+
 services:
   prometheus:
     command:
@@ -46,7 +46,7 @@ services:
     image: prometheuscommunity/postgres-exporter
     networks:
       - knightcrawler-network
-      
+
   promtail:
     image: grafana/promtail:2.9.4
     volumes:
@@ -61,7 +61,7 @@ services:
     networks:
       - knightcrawler-network
 
-      
+
   loki:
     command: '-config.file=/etc/loki/local-config.yml'
     depends_on:
@@ -73,4 +73,3 @@ services:
     volumes:
       - ./config/loki/config.yml:/etc/loki/local-config.yml
       - loki-data:/loki
-

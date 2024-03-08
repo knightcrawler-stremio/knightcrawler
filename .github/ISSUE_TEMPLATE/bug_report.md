@@ -17,7 +17,7 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Logs**
-Provide logs for all containers when this issue occurs. 
+Provide logs for all containers when this issue occurs.
 If the logs are short, make sure to triple backtick them, or use https://pastebin.com/
 
 **Hardware:**

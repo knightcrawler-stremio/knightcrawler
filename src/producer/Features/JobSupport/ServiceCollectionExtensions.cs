@@ -7,7 +7,7 @@ internal static class ServiceCollectionExtensions
         var scrapeConfiguration = services.LoadConfigurationFromConfig<ScrapeConfiguration>(configuration, ScrapeConfiguration.SectionName);
         var githubConfiguration = services.LoadConfigurationFromEnv<GithubConfiguration>();
         var rabbitConfiguration = services.LoadConfigurationFromEnv<RabbitMqConfiguration>();
-        
+
         var jobTypes = Assembly.GetAssembly(typeof(BaseJob))
             .GetTypes()
             .Where(t => t is {IsClass: true, IsAbstract: false} && typeof(IJob).IsAssignableFrom(t) &&
@@ -23,7 +23,7 @@ internal static class ServiceCollectionExtensions
         {
             services.AddTransient<SyncDmmJob>();
         }
-        
+
         var openMethod = typeof(ServiceCollectionExtensions).GetMethod(nameof(AddJobWithTrigger), BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
 
         services.AddQuartz(
@@ -51,18 +51,18 @@ internal static class ServiceCollectionExtensions
         {
             var key = jobType.GetField("Key")?.GetValue(jobType);
             var trigger = jobType.GetField("Trigger")?.GetValue(jobType);
-                    
+
             if (key is null || trigger is null)
             {
                 Console.WriteLine($"Job {jobType.Name} does not have a JobKey or TriggerKey property");
                 continue;
             }
-            
+
             var method = openMethod.MakeGenericMethod(jobType);
             method.Invoke(null, [quartz, key, trigger, scrapeConfiguration]);
         }
     }
-    
+
     private static void RegisterDmmJob(GithubConfiguration githubConfiguration, IServiceCollectionQuartzConfigurator quartz, ScrapeConfiguration scrapeConfiguration)
     {
         if (!string.IsNullOrEmpty(githubConfiguration.PAT))
@@ -70,7 +70,7 @@ internal static class ServiceCollectionExtensions
             AddJobWithTrigger<SyncDmmJob>(quartz, SyncDmmJob.Key, SyncDmmJob.Trigger, scrapeConfiguration);
         }
     }
-    
+
     private static void RegisterTorrentioJob(
         IServiceCollection services,
         IServiceCollectionQuartzConfigurator quartz,
@@ -78,14 +78,14 @@ internal static class ServiceCollectionExtensions
         ScrapeConfiguration scrapeConfiguration)
     {
        var torrentioConfiguration = services.LoadConfigurationFromConfig<TorrentioConfiguration>(configuration, TorrentioConfiguration.SectionName);
-       
+
        if (torrentioConfiguration.Instances.Count != 0)
        {
            AddJobWithTrigger<SyncTorrentioJob>(quartz, SyncTorrentioJob.Key, SyncTorrentioJob.Trigger, scrapeConfiguration);
        }
     }
 
-    private static void RegisterPublisher(IServiceCollectionQuartzConfigurator quartz, RabbitMqConfiguration rabbitConfig) => 
+    private static void RegisterPublisher(IServiceCollectionQuartzConfigurator quartz, RabbitMqConfiguration rabbitConfig) =>
         AddJobWithTriggerAndInterval<PublisherJob>(quartz, PublisherJob.Key, PublisherJob.Trigger, rabbitConfig.PublishIntervalInSeconds);
 
     private static void AddJobWithTrigger<TJobType>(
@@ -95,14 +95,14 @@ internal static class ServiceCollectionExtensions
         ScrapeConfiguration scrapeConfiguration) where TJobType : IJob
     {
         var scraper = scrapeConfiguration.Scrapers
-            .FirstOrDefault(x => x.Name != null && 
+            .FirstOrDefault(x => x.Name != null &&
                                  x.Name.Equals(typeof(TJobType).Name, StringComparison.OrdinalIgnoreCase));
 
         if (scraper is null || !scraper.Enabled)
         {
             return;
         }
-        
+
         quartz.AddJob<TJobType>(opts => opts.WithIdentity(key).StoreDurably());
 
         quartz.AddTrigger(
@@ -112,7 +112,7 @@ internal static class ServiceCollectionExtensions
                 .StartAt(DateTimeOffset.Now.AddSeconds(20))
                 .WithSimpleSchedule(x => x.WithInterval(TimeSpan.FromSeconds(scraper.IntervalSeconds)).RepeatForever()));
     }
-    
+
     private static void AddJobWithTriggerAndInterval<TJobType>(
         IServiceCollectionQuartzConfigurator quartz,
         JobKey key,
@@ -120,7 +120,7 @@ internal static class ServiceCollectionExtensions
         int interval) where TJobType : IJob
     {
         quartz.AddJob<TJobType>(opts => opts.WithIdentity(key).StoreDurably());
-    
+
         quartz.AddTrigger(
             opts => opts
                 .ForJob(key)

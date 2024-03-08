@@ -8,15 +8,15 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     internal static IServiceCollection AddMongoDb(this IServiceCollection services)
     {
         services.LoadConfigurationFromEnv<MongoConfiguration>();
         services.AddTransient<ImdbMongoDbService>();
-        
+
         return services;
     }
-    
+
     internal static IServiceCollection AddJobSupport(this IServiceCollection services)
     {
         services.LoadConfigurationFromEnv<JobConfiguration>();
@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions
         services.AddScheduler()
             .AddTransient<DownloadImdbDataJob>()
             .AddHostedService<JobScheduler>();
-        
+
         return services;
     }
 }

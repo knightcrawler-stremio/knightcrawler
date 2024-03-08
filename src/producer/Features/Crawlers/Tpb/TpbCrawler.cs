@@ -5,7 +5,7 @@ public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler
     protected override string Url => "https://apibay.org/precompiled/data_top100_recent.json";
 
     protected override string Source => "TPB";
-    
+
     // ReSharper disable once UnusedMember.Local
     private readonly Dictionary<string, Dictionary<string, int>> TpbCategories = new()
     {
@@ -33,12 +33,12 @@ public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler
             {"OTHER", 599},
         }},
     };
-    
+
     private static readonly HashSet<int> TvSeriesCategories = [ 205, 208 ];
     private static readonly HashSet<int> MovieCategories = [ 201, 202, 207, 209 ];
     private static readonly HashSet<int> PornCategories = [ 500, 501, 502, 505, 506 ];
     private static readonly HashSet<int> AllowedCategories = [ ..MovieCategories, ..TvSeriesCategories ];
-    
+
     protected override IReadOnlyDictionary<string, string> Mappings
         => new Dictionary<string, string>
         {
@@ -54,12 +54,12 @@ public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler
     protected override Torrent? ParseTorrent(JsonElement item)
     {
         var incomingCategory = item.GetProperty(Mappings["Category"]).GetInt32();
-        
+
         if (!AllowedCategories.Contains(incomingCategory))
         {
             return null;
         }
-        
+
         var torrent = new Torrent
         {
             Source = Source,
@@ -69,11 +69,11 @@ public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler
             Leechers = item.GetProperty(Mappings["Leechers"]).GetInt32(),
             Imdb = item.GetProperty(Mappings["Imdb"]).GetString(),
         };
-        
+
         HandleInfoHash(item, torrent, "InfoHash");
-        
+
         torrent.Category = HandleCategory(incomingCategory);
-        
+
         return torrent;
     }
 
@@ -81,7 +81,7 @@ public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler
         MovieCategories.Contains(category) switch
         {
             true => "movies",
-            _ => TvSeriesCategories.Contains(category) switch 
+            _ => TvSeriesCategories.Contains(category) switch
             {
                 true => "tv",
                 _ => "xxx",

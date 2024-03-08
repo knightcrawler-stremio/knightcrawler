@@ -7,7 +7,7 @@
 
 ## Contents
 
-> [!CAUTION] 
+> [!CAUTION]
 > Until we reach `v1.0.0`, please consider releases as alpha.
 
 > [!IMPORTANT]
@@ -75,9 +75,9 @@ You can also increase `JOB_CONCURRENCY` from `5` to `10`.
 
 ### DebridMediaManager setup (optional)
 
-There are some optional steps you should take to maximise the number of movies/tv shows we can find. 
+There are some optional steps you should take to maximise the number of movies/tv shows we can find.
 
-We can search DebridMediaManager hash lists which are hosted on GitHub. This allows us to add hundreds of thousands of movies and tv shows, but it requires a Personal Access Token to be generated. The software only needs read access and only for public respositories. To generate one, please follow these steps:
+We can search DebridMediaManager hash lists which are hosted on GitHub. This allows us to add hundreds of thousands of movies and tv shows, but it requires a Personal Access Token to be generated. The software only needs read access and only for public repositories. To generate one, please follow these steps:
 
 1. Navigate to GitHub settings -> Developer Settings -> Personal access tokens -> Fine-grained tokens (click [here](https://github.com/settings/tokens?type=beta) for a direct link)
 2. Press `Generate new token`
@@ -89,8 +89,8 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
         90 days
     Description:
         <blank>
-    Respository access
-        (checked) Public Repositories (read-only) 
+    Repository access
+        (checked) Public Repositories (read-only)
    ```
 4. Click `Generate token`
 5. Take the new token and add it to the bottom of the [.env](deployment/docker/.env) file
@@ -109,7 +109,7 @@ Please choose which applies to you:
 
 You can use either a paid domain `your-domain.com` or a free reverse dns service like [DuckDNS](https://www.duckdns.org/) (you can [automate the update of your IP address](https://www.duckdns.org/install.jsp)).
 
-Before continuing you need to open up port `80` and `443` in your firewall and configure any [port forwarding](https://portforward.com/) as necessary. You should not do this unless you understand the security implications. Please note that Knightcrawler and its contributors cannot be held responsible for any damage or loss of data from exposing your service publically.
+Before continuing you need to open up port `80` and `443` in your firewall and configure any [port forwarding](https://portforward.com/) as necessary. You should not do this unless you understand the security implications. Please note that Knightcrawler and its contributors cannot be held responsible for any damage or loss of data from exposing your service publicly.
 
 You may find it safer to [use a tunnel/vpn](#i-will-be-using-a-tunnelvpn-cgnat-dont-want-to-open-ports-etc), but this will require the use of a paid domain or will not be accessible without being connected to your vpn.
 
@@ -119,7 +119,7 @@ For this you can use a VPN like [Tailscale](https://tailscale.com/) which has it
 
 To use a Cloudflare tunnel you __will__ need a domain name.
 
-Theres a sample compose for a Cloudflare tunnel [here](deployment/docker/example_cloudflare_tunnel/docker-compose.yml).
+There's a sample compose for a Cloudflare tunnel [here](deployment/docker/example_cloudflare_tunnel/docker-compose.yml).
 
 If you are going to go this route, you will want to connect caddy to the cloudflare-tunnel network. It's all in Caddy's [docker-compose.yaml](deployment/docker/optional_reverse_proxy/docker-compose.yaml) you will just need to uncomment it.
 
@@ -209,7 +209,7 @@ Here's how to set up and use Grafana and Prometheus for monitoring RabbitMQ:
 
    - You can use the following dashboard from Grafana's official library: [RabbitMQ Overview Dashboard](https://grafana.com/grafana/dashboards/10991-rabbitmq-overview/).
 
-   - You can alse use the following dashboard [PostgreSQL Database](https://grafana.com/grafana/dashboards/9628-postgresql-database/) to monitor Postgres metrics.
+   - You can also use the following dashboard [PostgreSQL Database](https://grafana.com/grafana/dashboards/9628-postgresql-database/) to monitor Postgres metrics.
 
    The Prometheus data source is already configured in Grafana, you just have to select it when importing the dashboard.
 
@@ -252,7 +252,7 @@ with include drop, create tables, create indexes, reset sequences
 
 > [!NOTE]
 > If you have changed the default password for PostgreSQL (RECOMMENDED) please change it above accordingly
-> 
+>
 > `postgresql://postgres:<password here>@postgres:5432/knightcrawler`
 
 Then run the following docker run command to import the database:
@@ -295,7 +295,7 @@ with include drop, create tables, create indexes, reset sequences
 
 > [!NOTE]
 > If you have changed the default password for PostgreSQL (RECOMMENDED) please change it above accordingly
-> 
+>
 > `postgresql://postgres:<password here>@<docker-ip>/knightcrawler`
 
 > [!TIP]
@@ -308,7 +308,7 @@ Then run `pgloader db.load`.
 
 ### Process the data we have imported
 
-The data we have imported is not usable immediately. It is loaded into a new table called `items`. We need to move this data into the `ingested_torrents` table to be processed. The producer and atleast one consumer need to be running to process this data.
+The data we have imported is not usable immediately. It is loaded into a new table called `items`. We need to move this data into the `ingested_torrents` table to be processed. The producer and at least one consumer need to be running to process this data.
 
 We are going to concatenate all of the different movie categories into one e.g. movies_uhd, movies_hd, movies_sd -> `movies`. This will give us a lot more data to work with.
 
@@ -364,8 +364,8 @@ With the renaming of the project, you will have to change your database name in 
 **With your existing stack still running**, run:
 ```
 docker exec -it torrentio-selfhostio-postgres-1 psql -c "
-SELECT pg_terminate_backend(pid) FROM pg_stat_activity 
-WHERE pid <> pg_backend_pid() AND datname = 'selfhostio'; 
+SELECT pg_terminate_backend(pid) FROM pg_stat_activity
+WHERE pid <> pg_backend_pid() AND datname = 'selfhostio';
 ALTER DATABASE selfhostio RENAME TO knightcrawler;"
 ```
 Make sure your postgres container is named `torrentio-selfhostio-postgres-1`, otherwise, adjust accordingly.
