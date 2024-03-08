@@ -126,6 +126,7 @@ services:
       logging: "promtail"
     networks:
       - knightcrawler-network
+      # - caddy
     ports:
       - "7000:7000"
 
@@ -135,9 +136,9 @@ networks:
     driver: bridge
     name: knightcrawler-network
 
-  caddy:
-    name: caddy
-    external: true
+  # caddy:
+  #   name: caddy
+  #   external: true
 
 volumes:
   postgres:
