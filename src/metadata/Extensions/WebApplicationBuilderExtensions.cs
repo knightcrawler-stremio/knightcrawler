@@ -13,7 +13,7 @@ internal static class WebApplicationBuilderExtensions
             {
                 options.DefaultExecutionTimeout = 6.Hours();
             });
-        
+
         return builder;
     }
 }

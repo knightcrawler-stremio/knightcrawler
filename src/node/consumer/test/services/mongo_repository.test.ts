@@ -33,7 +33,7 @@ jest.mock('@services/logging_service', () => {
 xdescribe('MongoRepository Tests - Manual Tests against real cluster. Skipped by default.', () => {
     let mongoRepository: MongoRepository,
         mockLogger: ILoggingService;
-        
+
     beforeEach(() => {
         jest.clearAllMocks();
         process.env.LOG_LEVEL = 'debug';

@@ -12,7 +12,7 @@ public partial class TorrentioCrawler(
     [GeneratedRegex(@"(\d+(\.\d+)?) (GB|MB)")]
     private static partial Regex SizeMatcher();
     private const int MaximumEmptyItemsCount = 5;
-    
+
     private const string MovieSlug = "movie/{0}.json";
     protected override string Url => "sort=size%7Cqualityfilter=other,scr,cam,unknown/stream/{0}";
     protected override IReadOnlyDictionary<string, string> Mappings { get; } = new Dictionary<string, string>();
@@ -33,21 +33,21 @@ public partial class TorrentioCrawler(
             async () =>
             {
                 var emptyMongoDbItemsCount = 0;
-                
+
                 var state = instance.EnsureStateExists(_instanceStates);
-                
+
                 SetupResiliencyPolicyForInstance(instance, state);
-                
+
                 while (state.TotalProcessed < totalRecordCount)
                 {
                     logger.LogInformation("Processing {TorrentioInstance}", instance.Name);
                     logger.LogInformation("Current processed requests: {ProcessedRequests}", state.TotalProcessed);
-                    
+
                     var items = await imdbDataService.GetImdbEntriesForRequests(
                         DateTime.UtcNow.Year.ToString(),
                         instance.RateLimit.MongoBatchSize,
                         state.LastProcessedImdbId);
-                    
+
                     if (items.Count == 0)
                     {
                         emptyMongoDbItemsCount++;
@@ -58,10 +58,10 @@ public partial class TorrentioCrawler(
                             logger.LogInformation("Maximum empty document count reached. Cancelling {TorrentioInstance}", instance.Name);
                             break;
                         }
-                        
+
                         continue;
                     }
-                    
+
                     var newTorrents = new List<Torrent>();
                     var processedItemsCount = 0;
 
@@ -70,7 +70,7 @@ public partial class TorrentioCrawler(
                         try
                         {
                             var currentCount = processedItemsCount;
-                            
+
                             await state.ResiliencyPolicy.ExecuteAsync(
                                 async () =>
                                 {
@@ -97,7 +97,7 @@ public partial class TorrentioCrawler(
                                         newTorrents.AddRange(torrentInfo.Where(x => x != null).Select(x => x!));
                                     }
                                 });
-                            
+
                             processedItemsCount++;
                         }
                         catch (Exception)
@@ -127,7 +127,7 @@ public partial class TorrentioCrawler(
                 {
                     logger.LogWarning("Retry {RetryCount} encountered an exception: {Message}. Pausing for {Timespan} seconds instance {TorrentioInstance}", retryCount, exception.Message, timeSpan.Seconds, instance.Name);
                 });
-        
+
         var circuitBreakerPolicy = Policy
             .Handle<Exception>()
             .CircuitBreakerAsync(
@@ -139,9 +139,9 @@ public partial class TorrentioCrawler(
                 },
                 onReset: () => logger.LogInformation("Circuit closed for {TorrentioInstance}, calls will flow again", instance.Name),
                 onHalfOpen: () => logger.LogInformation("Circuit is half-open for {TorrentioInstance}, next call is a trial if it should close or break again", instance.Name));
-        
+
         var policyWrap = Policy.WrapAsync(retryPolicy, circuitBreakerPolicy);
-        
+
         state.ResiliencyPolicy = policyWrap;
     }
 
@@ -162,24 +162,24 @@ public partial class TorrentioCrawler(
         {
             throw new("Failed to fetch " + requestUrl);
         }
-        
+
         var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var streams = json.RootElement.GetProperty("streams").EnumerateArray();
         return streams.Select(x => ParseTorrent(instance, x, imdbId)).Where(x => x != null).ToList();
     }
-    
+
     private Torrent? ParseTorrent(TorrentioInstance instance, JsonElement item, string imdId)
     {
         var title = item.GetProperty("title").GetString();
         var infoHash = item.GetProperty("infoHash").GetString();
-        
+
         if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(infoHash))
         {
             return null;
         }
-        
+
         var torrent = ParseTorrentDetails(title, instance, infoHash, imdId);
-        
+
         return string.IsNullOrEmpty(torrent.Name) ? null : torrent;
     }
 

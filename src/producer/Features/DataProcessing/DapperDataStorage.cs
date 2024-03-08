@@ -8,16 +8,16 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
         VALUES (@Name, @Source, @Category, @InfoHash, @Size, @Seeders, @Leechers, @Imdb, @Processed, @CreatedAt, @UpdatedAt)
         ON CONFLICT (source, info_hash) DO NOTHING
         """;
-    
+
     private const string InsertIngestedPageSql =
         """
         INSERT INTO ingested_pages (url, "createdAt", "updatedAt")
         VALUES (@Url, @CreatedAt, @UpdatedAt)
         """;
-    
+
     private const string GetMovieAndSeriesTorrentsNotProcessedSql =
         """
-        SELECT 
+        SELECT
             id as "Id",
             name as "Name",
             source as "Source",
@@ -29,20 +29,20 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
             imdb as "Imdb",
             processed as "Processed",
             "createdAt" as "CreatedAt",
-            "updatedAt" as "UpdatedAt" 
+            "updatedAt" as "UpdatedAt"
         FROM ingested_torrents
         WHERE processed = false AND category != 'xxx'
         """;
-    
+
     private const string UpdateProcessedSql =
         """
         UPDATE ingested_torrents
-        Set 
-            processed = true, 
+        Set
+            processed = true,
             "updatedAt" = @UpdatedAt
         WHERE id = @Id
         """;
-    
+
     public async Task<InsertTorrentResult> InsertTorrents(IReadOnlyCollection<Torrent> torrents, CancellationToken cancellationToken = default)
     {
         try
@@ -73,19 +73,19 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
             return new List<Torrent>();
         }
     }
-    
+
     public async Task<UpdatedTorrentResult> SetTorrentsProcessed(IReadOnlyCollection<Torrent> torrents, CancellationToken cancellationToken = default)
     {
         try
         {
             await using var connection = new NpgsqlConnection(configuration.StorageConnectionString);
             await connection.OpenAsync(cancellationToken);
-            
+
             foreach (var torrent in torrents)
             {
                 torrent.UpdatedAt = DateTime.UtcNow;
             }
-            
+
             var updated = await connection.ExecuteAsync(UpdateProcessedSql, torrents);
             return new(true, updated);
         }
@@ -99,11 +99,11 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
     {
         await using var connection = new NpgsqlConnection(configuration.StorageConnectionString);
         await connection.OpenAsync(cancellationToken);
-        
+
         const string query = "SELECT EXISTS (SELECT 1 FROM ingested_pages WHERE url = @Url)";
-        
+
         var result = await connection.ExecuteScalarAsync<bool>(query, new { Url = pageId });
-        
+
         return result;
     }
 
@@ -115,14 +115,14 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
         try
         {
             var date = DateTime.UtcNow;
-            
+
             await connection.ExecuteAsync(InsertIngestedPageSql, new
             {
                 Url = pageId,
                 CreatedAt = date,
                 UpdatedAt = date,
             });
-            
+
             return new(true, "Page successfully marked as ingested");
         }
         catch (Exception e)

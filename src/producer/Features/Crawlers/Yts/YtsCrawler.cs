@@ -26,16 +26,16 @@ public class YtsCrawler(IHttpClientFactory httpClientFactory, ILogger<YtsCrawler
             Seeders = 0,
             Leechers = 0,
         };
-        
+
         HandleInfoHash(itemNode, torrent, "InfoHash");
-        
+
         return torrent;
     }
 
     protected override void HandleInfoHash(XElement itemNode, Torrent torrent, string infoHashKey)
     {
         var infoHash = itemNode.Element(Mappings[infoHashKey])?.Attribute("url")?.Value.Split("/download/").ElementAtOrDefault(1);
-        
+
         if (infoHash is not null)
         {
             torrent.InfoHash = infoHash;

@@ -5,22 +5,22 @@ public abstract class BaseXmlCrawler(IHttpClientFactory httpClientFactory, ILogg
     public override async Task Execute()
     {
         logger.LogInformation("Starting {Source} crawl", Source);
-        
+
         using var client = httpClientFactory.CreateClient(Literals.CrawlerClient);
         var xml = await client.GetStringAsync(Url);
         var xmlRoot = XElement.Parse(xml);
-        
+
         var torrents = xmlRoot.Descendants("item")
             .Select(ParseTorrent)
             .Where(x => x is not null)
             .ToList();
-        
+
         if (torrents.Count == 0)
         {
             logger.LogWarning("No torrents found in {Source} response", Source);
             return;
         }
-        
+
         await InsertTorrents(torrents!);
     }
 

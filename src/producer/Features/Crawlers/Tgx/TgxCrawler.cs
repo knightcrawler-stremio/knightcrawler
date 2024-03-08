@@ -6,7 +6,7 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
     private static partial Regex SizeStringExtractor();
     [GeneratedRegex(@"(?i)\b(\d+(\.\d+)?)\s*([KMGT]?B)\b", RegexOptions.None, "en-GB")]
     private static partial Regex SizeStringParser();
-    
+
     protected override string Url => "https://tgx.rs/rss";
 
     protected override string Source => "TorrentGalaxy";
@@ -18,8 +18,8 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
             [nameof(Torrent.InfoHash)] = "guid",
             [nameof(Torrent.Category)] = "category",
         };
-    
-    private static readonly HashSet<string> AllowedCategories = 
+
+    private static readonly HashSet<string> AllowedCategories =
     [
         "movies",
         "tv",
@@ -28,18 +28,18 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
     protected override Torrent? ParseTorrent(XElement itemNode)
     {
         var category = itemNode.Element(Mappings["Category"])?.Value.ToLowerInvariant();
-        
+
         if (category is null)
         {
             return null;
         }
-        
+
         if (!IsAllowedCategory(category))
         {
             return null;
         }
-        
-        
+
+
         var torrent = new Torrent
         {
             Source = Source,
@@ -49,11 +49,11 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
             Seeders = 0,
             Leechers = 0,
         };
-        
+
         HandleSize(itemNode, torrent, "Size");
 
         torrent.Category = SetCategory(category);
-        
+
         return torrent;
     }
 
@@ -88,12 +88,12 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
     private long? ExtractSizeFromDescription(string input)
     {
         var sizeMatch = SizeStringExtractor().Match(input);
-    
+
         if (!sizeMatch.Success)
         {
             throw new FormatException("Unable to parse size from the input.");
         }
-    
+
         var sizeString = sizeMatch.Groups[1].Value;
 
         var units = new Dictionary<string, long>
@@ -106,7 +106,7 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
         };
 
         var match = SizeStringParser().Match(sizeString);
-    
+
         if (match.Success)
         {
             var val = double.Parse(match.Groups[1].Value);
@@ -137,7 +137,7 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
     private static bool IsAllowedCategory(string category)
     {
         var parsedCategory = category.Split(':').ElementAtOrDefault(0)?.Trim().ToLower();
-        
+
         return parsedCategory is not null && AllowedCategories.Contains(parsedCategory);
     }
 }

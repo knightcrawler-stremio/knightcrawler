@@ -20,7 +20,7 @@ const fuseOptions : IFuseOptions<IImdbEntry> = {
 export class MongoRepository implements IMongoRepository {
     @inject(IocTypes.ILoggingService) private logger: ILoggingService;
     private db: typeof mongoose = mongoose;
-    
+
     async connect() : Promise<void> {
         try {
             await this.db.connect(configurationService.cacheConfig.MONGO_URI, {directConnection: true});

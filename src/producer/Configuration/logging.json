@@ -16,12 +16,12 @@
       }
     },
     "WriteTo": [
-      { 
+      {
         "Name": "Console",
         "Args": {
           "outputTemplate": "{Timestamp:HH:mm:ss} [{Level}] [{SourceContext}] {Message}{NewLine}{Exception}"
         }
-      }      
+      }
     ],
     "Enrich": [ "FromLogContext", "WithMachineName", "WithThreadId" ],
     "Properties": {

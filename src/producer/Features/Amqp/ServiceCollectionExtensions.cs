@@ -5,7 +5,7 @@ internal static class ServiceCollectionExtensions
     internal static IServiceCollection RegisterMassTransit(this IServiceCollection services)
     {
         var rabbitConfig = services.LoadConfigurationFromEnv<RabbitMqConfiguration>();
-        
+
         services.AddMassTransit(busConfigurator =>
         {
             busConfigurator.SetKebabCaseEndpointNameFormatter();

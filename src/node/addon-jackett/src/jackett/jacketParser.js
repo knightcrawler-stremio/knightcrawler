@@ -111,7 +111,7 @@ export const transformData = async (data, query) => {
     console.log("Transforming data for query " + data);
 
     let results = [];
-    
+
     const parsedData = await parseString(data);
 
     if (!parsedData.rss.channel[0]?.item) {
@@ -126,7 +126,7 @@ export const transformData = async (data, query) => {
                 [torznabDataItem.$.name]: torznabDataItem.$.value,
             })
         );
-        
+
         if (torznabData.infohash) {
 
             const [title, pubDate, category, size] = [rssItem.title[0], rssItem.pubDate[0], rssItem.category[0], rssItem.size[0]];

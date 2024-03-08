@@ -8,7 +8,7 @@ describe('PromiseHelpers', () => {
     afterAll(() => {
         jest.useRealTimers();
     });
-    
+
     describe('sequence', () => {
         it('should resolve promises in sequence', async () => {
             const promises = [() => Promise.resolve(1), () => Promise.resolve(2), () => Promise.resolve(3)];

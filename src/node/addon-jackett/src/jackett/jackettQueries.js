@@ -18,7 +18,7 @@ const getMovieSearchQueries = (cleanName, year) => {
 const getSeriesSearchQueries = (cleanName, year, season, episode) => {
     return {
         seriesByEpisode: seriesByEpisode(cleanName, season, episode),
-    };    
+    };
 }
 
 export const jackettSearchQueries = (cleanName, type, year, season, episode) => {
@@ -27,7 +27,7 @@ export const jackettSearchQueries = (cleanName, type, year, season, episode) => 
             return getMovieSearchQueries(cleanName, year);
         case Type.SERIES:
             return getSeriesSearchQueries(cleanName, year, season, episode);
-            
+
         default:
             return { };
     }

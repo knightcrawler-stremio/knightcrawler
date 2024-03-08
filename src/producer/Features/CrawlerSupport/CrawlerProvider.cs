@@ -4,8 +4,8 @@ public class CrawlerProvider(IServiceProvider serviceProvider) : ICrawlerProvide
 {
     public IEnumerable<ICrawler> GetAll() =>
         serviceProvider.GetServices<ICrawler>();
-    
-    public ICrawler Get(string name) => 
+
+    public ICrawler Get(string name) =>
         serviceProvider.GetRequiredKeyedService<ICrawler>(name);
 
 }
