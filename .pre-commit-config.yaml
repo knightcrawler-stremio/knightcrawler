@@ -9,7 +9,8 @@ repos:
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
-
+      - id: mixed-line-ending
+        args: [--fix=lf]
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:
