@@ -27,7 +27,7 @@ jobs:
         ports:
           - 5000:5000
 
-    name: Build - ${{ env.IMAGE_NAME }}
+    name: Build Service Image
 
     steps:
       - name: Checkout repository
@@ -60,7 +60,7 @@ jobs:
             type=sha,commit=${{ github.sha }}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build image for scanning ${{ env.IMAGE_NAME }}
+      - name: Build image for scanning
         uses: docker/build-push-action@v5
         with:
           context: ${{ env.CONTEXT }}
@@ -115,7 +115,7 @@ jobs:
         with:
           sarif_file: 'trivy-results-os.sarif'
 
-      - name: Push ${{ env.IMAGE_NAME }} to repo
+      - name: Push Service Image to repo
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
