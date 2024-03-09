@@ -52,8 +52,7 @@ services:
 
   mongodb:
     image: mongo:latest
-    env_file:
-      - .env
+    env_file: .env
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER:?Variable MONGODB_USER not set}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:?Variable MONGODB_PASSWORD not set}
@@ -96,8 +95,7 @@ services:
 
   consumer:
     image: gabisonfire/knightcrawler-consumer:latest
-    env_file:
-      - .env
+    env_file: .env
     labels:
       logging: "promtail"
     deploy:
@@ -108,8 +106,7 @@ services:
 
   metadata:
     image: gabisonfire/knightcrawler-metadata:latest
-    env_file:
-      - .env
+    env_file: .env
     labels:
       logging: "promtail"
     restart: no
@@ -118,8 +115,7 @@ services:
 
   addon:
     <<: *knightcrawler-app
-    env_file:
-      - .env
+    env_file: .env
     hostname: knightcrawler-addon
     image: gabisonfire/knightcrawler-addon:latest
     labels:
