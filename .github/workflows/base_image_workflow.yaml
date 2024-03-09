@@ -10,6 +10,11 @@ on:
         required: true
         type: string
 
+# matrix cannot read from workflow_call inputs, so load them into the global env scope
+env:
+  CONTEXT: ${{ github.event.inputs.CONTEXT }}
+  IMAGE_NAME: ${{ github.event.inputs.IMAGE_NAME }}
+
 jobs:
   build-and-push-images:
     runs-on: ubuntu-latest
@@ -24,8 +29,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - context: ${{ github.event.inputs.CONTEXT }}
-            image_name: ${{ github.event.inputs.IMAGE_NAME }}
+          - context: ${{ env.CONTEXT }}
+            image_name: ${{ env.IMAGE_NAME }}
             platforms: linux/amd64,linux/arm64
 
     name: Build - ${{ matrix.image_name }}
