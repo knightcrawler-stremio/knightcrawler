@@ -39,8 +39,7 @@ services:
       - grafana-data:/var/lib/grafana
 
   postgres-exporter:
-    env_file:
-      - ../.env
+    env_file: ${PWD}/../../env
     environment:
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable"
     image: prometheuscommunity/postgres-exporter
