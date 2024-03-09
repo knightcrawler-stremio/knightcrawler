@@ -10,10 +10,10 @@ on:
         required: true
         type: string
 
-# matrix cannot read from workflow_call inputs, so load them into the global env scope
 env:
   CONTEXT: ${{ github.event.inputs.CONTEXT }}
   IMAGE_NAME: ${{ github.event.inputs.IMAGE_NAME }}
+  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   build-and-push-images:
@@ -26,14 +26,8 @@ jobs:
         image: registry:2
         ports:
           - 5000:5000
-    strategy:
-      matrix:
-        include:
-          - context: ${{ env.CONTEXT }}
-            image_name: ${{ env.IMAGE_NAME }}
-            platforms: linux/amd64,linux/arm64
 
-    name: Build - ${{ matrix.image_name }}
+    name: Build - ${{ env.IMAGE_NAME }}
 
     steps:
       - name: Checkout repository
@@ -58,7 +52,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
           flavor: |
             latest=auto
           tags: |
@@ -66,14 +60,14 @@ jobs:
             type=sha,commit=${{ github.sha }}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build image for scanning ${{ matrix.image_name }}
+      - name: Build image for scanning ${{ env.IMAGE_NAME }}
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.context }}
+          context: ${{ env.CONTEXT }}
           push: true
           provenance: false
           tags: localhost:5000/dockle-examine-image:test
-          platforms: ${{ matrix.platforms }}
+          platforms: ${{ env.PLATFORMS }}
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,mode=max,scope=${{ github.workflow }}
 
@@ -121,15 +115,15 @@ jobs:
         with:
           sarif_file: 'trivy-results-os.sarif'
 
-      - name: Push ${{ matrix.image_name }} to repo
+      - name: Push ${{ env.IMAGE_NAME }} to repo
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.context }}
+          context: ${{ env.CONTEXT }}
           push: true
           provenance: false
           tags: ${{ steps.docker-metadata.outputs.tags }}
           labels: ${{ steps.docker-metadata.outputs.labels }}
-          platforms: ${{ matrix.platforms }}
+          platforms: ${{ env.PLATFORMS }}
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,mode=max,scope=${{ github.workflow }}
