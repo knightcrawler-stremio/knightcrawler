@@ -1,0 +1,14 @@
+name: Build and Push Addon Image
+
+on:
+  push:
+    paths:
+      - 'src/node/consumer/**'
+
+jobs:
+  process:
+    uses: ./.github/workflows/base_image_workflow.yaml
+    secrets: inherit
+    with:
+      CONTEXT: ./src/node/consumer/
+      IMAGE_NAME: knightcrawler-consumer

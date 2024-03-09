@@ -1,0 +1,14 @@
+name: Build and Push Addon Image
+
+on:
+  push:
+    paths:
+      - 'src/producer/**'
+
+jobs:
+  process:
+    uses: ./.github/workflows/base_image_workflow.yaml
+    secrets: inherit
+    with:
+      CONTEXT: ./src/producer/
+      IMAGE_NAME: knightcrawler-producer
