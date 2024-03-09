@@ -16,7 +16,13 @@ export class TrackerService implements ITrackerService {
     }
 
     private downloadTrackers = async (): Promise<string[]> => {
-        const response: AxiosResponse<string> = await axios.get(configurationService.trackerConfig.TRACKERS_URL);
+        const headers = {};
+
+        if (configurationService.trackerConfig.GITHUB_PAT) {
+            headers['Authorization'] = `Basic ${configurationService.trackerConfig.GITHUB_PAT}`;
+        }
+
+        const response: AxiosResponse<string> = await axios.get(configurationService.trackerConfig.TRACKERS_URL, { headers });
         const trackersListText: string = response.data;
         // Trackers are separated by a newline character
         let urlTrackers = trackersListText.split("\n");

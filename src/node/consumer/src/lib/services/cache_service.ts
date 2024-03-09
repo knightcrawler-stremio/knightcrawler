@@ -51,7 +51,7 @@ export class CacheService implements ICacheService {
     }
 
     cacheTrackers(method: CacheMethod): Promise<CacheMethod> {
-        return this.cacheWrap(CacheType.Memory, `${TRACKERS_KEY_PREFIX}`, method, {ttl: TRACKERS_TTL});
+        return this.cacheWrap(CacheType.MongoDb, `${TRACKERS_KEY_PREFIX}`, method, {ttl: TRACKERS_TTL});
     }
 
     private initiateMemoryCache = (): MemoryCache =>
@@ -102,10 +102,15 @@ export class CacheService implements ICacheService {
             return method();
         }
 
+        const expirationTime = new Date(Date.now() + options.ttl * 1000);
+
         this.logger.debug(`Cache type: ${cacheType}`);
         this.logger.debug(`Cache key: ${key}`);
         this.logger.debug(`Cache options: ${JSON.stringify(options)}`);
+        this.logger.debug(`Cache item will expire at: ${expirationTime.toISOString()}`);
 
-        return cache.wrap(key, method, options.ttl);
+        // Memory Cache is Milliseconds, Mongo Cache converts to Seconds internally.
+        const ttl : number = cacheType === CacheType.Memory ? options.ttl * 1000 : options.ttl;
+        return cache.wrap(key, method, ttl);
     };
 }
