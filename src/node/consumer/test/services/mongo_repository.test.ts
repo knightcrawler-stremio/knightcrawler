@@ -5,20 +5,28 @@ import {MongoRepository} from "@mongo/mongo_repository";
 import {IocTypes} from "@setup/ioc_types";
 import {Container, inject} from "inversify";
 
-jest.mock('@services/configuration_service', () => {
+const metadataConfig = {
+    TITLE_MATCH_THRESHOLD: 0.25,
+}
+
+const cacheConfig  = {
+    MONGODB_HOST: 'localhost',
+    MONGODB_PORT: '27017',
+    MONGODB_DB: 'knightcrawler',
+    MONGODB_USER: 'mongo',
+    MONGODB_PASSWORD: 'mongo',
+    get MONGO_URI(): string {
+        return `mongodb://${this.MONGODB_USER}:${this.MONGODB_PASSWORD}@${this.MONGODB_HOST}:${this.MONGODB_PORT}/${this.MONGODB_DB}?authSource=admin`;
+    },
+};
+
+jest.doMock('@services/configuration_service', () => {
     return {
         configurationService: {
-            cacheConfig: {
-                MONGODB_HOST: 'localhost',
-                MONGODB_PORT: '27017',
-                MONGODB_DB: 'knightcrawler',
-                MONGODB_USER: 'mongo',
-                MONGODB_PASSWORD: 'mongo',
-                get MONGO_URI(): string {
-                    return `mongodb://${this.MONGODB_USER}:${this.MONGODB_PASSWORD}@${this.MONGODB_HOST}:${this.MONGODB_PORT}/${this.MONGODB_DB}?authSource=admin`;
-                }
-            },
-        }
+            cacheConfig: cacheConfig,
+            metadataConfig: metadataConfig,
+        },
+       
     }
 });
 

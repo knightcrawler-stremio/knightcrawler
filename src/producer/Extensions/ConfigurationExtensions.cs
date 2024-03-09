@@ -12,7 +12,8 @@ public static class ConfigurationExtensions
         configuration.AddJsonFile(LoggingConfig, false, true);
         configuration.AddJsonFile(ScrapeConfiguration.Filename, false, true);
         configuration.AddJsonFile(TorrentioConfiguration.Filename, false, true);
-
+        configuration.AddJsonFile(AdultContentConfiguration.Filename, false, true);
+        
         configuration.AddEnvironmentVariables();
 
         configuration.AddUserSecrets<Program>();

@@ -103,10 +103,12 @@ describe('Configuration Tests', () => {
     it('should populate metadataConfig correctly', async() => {
         process.env.IMDB_CONCURRENT = '1';
         process.env.IMDB_INTERVAL_MS = '1000';
+        process.env.TITLE_MATCH_THRESHOLD = '0.1';
         const {configurationService} = await import("@services/configuration_service");
         const {metadataConfig} = configurationService;
         expect(metadataConfig.IMDB_CONCURRENT).toBe(1);
         expect(metadataConfig.IMDB_INTERVAL_MS).toBe(1000);
+        expect(metadataConfig.TITLE_MATCH_THRESHOLD).toBe(0.1);
     });
 
     it('should populate rabbitConfig correctly', async () => {
