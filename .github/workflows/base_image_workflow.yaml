@@ -10,13 +10,19 @@ on:
         required: true
         type: string
 
-env:
-  CONTEXT: ${{ github.event.inputs.CONTEXT }}
-  IMAGE_NAME: ${{ github.event.inputs.IMAGE_NAME }}
-  PLATFORMS: linux/amd64,linux/arm64
-
 jobs:
+  set-vars:
+    runs-on: ubuntu-latest
+    outputs:
+      CONTEXT: ${{ github.event.inputs.CONTEXT }}
+      IMAGE_NAME: ${{ github.event.inputs.IMAGE_NAME }}
+      PLATFORMS: 'linux/amd64,linux/arm64'
+    steps:
+      - name: Set vars
+        run: echo "Setting vars..."
+
   build-and-push-images:
+    needs: set-vars
     runs-on: ubuntu-latest
     permissions:
       contents: read # for actions/checkout to fetch code
@@ -52,7 +58,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ needs.set-vars.outputs.IMAGE_NAME }}
           flavor: |
             latest=auto
           tags: |
@@ -63,11 +69,11 @@ jobs:
       - name: Build image for scanning
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.CONTEXT }}
+          context: ${{ needs.set-vars.outputs.CONTEXT }}
           push: true
           provenance: false
           tags: localhost:5000/dockle-examine-image:test
-          platforms: ${{ env.PLATFORMS }}
+          platforms: ${{ needs.set-vars.outputs.PLATFORMS }}
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,mode=max,scope=${{ github.workflow }}
 
@@ -119,11 +125,11 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.CONTEXT }}
+          context: ${{ needs.set-vars.outputs.CONTEXT }}
           push: true
           provenance: false
           tags: ${{ steps.docker-metadata.outputs.tags }}
           labels: ${{ steps.docker-metadata.outputs.labels }}
-          platforms: ${{ env.PLATFORMS }}
+          platforms: ${{ needs.set-vars.outputs.PLATFORMS }}
           cache-from: type=gha,scope=${{ github.workflow }}
           cache-to: type=gha,mode=max,scope=${{ github.workflow }}
