@@ -1,12 +1,17 @@
 // Global using directives
 
+global using System.Globalization;
 global using System.Reflection;
 global using System.Text;
 global using System.Text.Json;
 global using System.Text.RegularExpressions;
 global using System.Threading.Channels;
 global using System.Xml.Linq;
+global using Ardalis.SmartEnum;
 global using Dapper;
+global using FuzzySharp;
+global using FuzzySharp.Extractor;
+global using FuzzySharp.PreProcess;
 global using LZStringCSharp;
 global using MassTransit;
 global using Microsoft.AspNetCore.Builder;
@@ -25,4 +30,6 @@ global using Producer.Features.Crawlers.Torrentio;
 global using Producer.Features.CrawlerSupport;
 global using Producer.Features.DataProcessing;
 global using Producer.Features.JobSupport;
+global using Producer.Features.ParseTorrentTitle;
+global using Producer.Features.Text;
 global using Serilog;

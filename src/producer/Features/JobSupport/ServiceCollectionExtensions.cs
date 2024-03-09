@@ -29,10 +29,10 @@ internal static class ServiceCollectionExtensions
         services.AddQuartz(
             quartz =>
             {
-                RegisterAutomaticRegistrationJobs(jobTypes, openMethod, quartz, scrapeConfiguration);
+                //RegisterAutomaticRegistrationJobs(jobTypes, openMethod, quartz, scrapeConfiguration);
                 RegisterDmmJob(githubConfiguration, quartz, scrapeConfiguration);
-                RegisterTorrentioJob(services, quartz, configuration, scrapeConfiguration);
-                RegisterPublisher(quartz, rabbitConfiguration);
+                //RegisterTorrentioJob(services, quartz, configuration, scrapeConfiguration);
+                //RegisterPublisher(quartz, rabbitConfiguration);
             });
 
         services.AddQuartzHostedService(
