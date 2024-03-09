@@ -13,17 +13,9 @@ on:
 jobs:
   set-vars:
     runs-on: ubuntu-latest
-    steps:
-      - name: Set vars
-        id: vars
-        run: |
-          echo "CONTEXT=${{ github.event.inputs.CONTEXT }}" >> $GITHUB_ENV
-          echo "IMAGE_NAME=${{ github.event.inputs.IMAGE_NAME }}" >> $GITHUB_ENV
-          echo "::set-output name=CONTEXT::${{ github.event.inputs.CONTEXT }}"
-          echo "::set-output name=IMAGE_NAME::${{ github.event.inputs.IMAGE_NAME }}"
     outputs:
-      CONTEXT: ${{ steps.vars.outputs.CONTEXT }}
-      IMAGE_NAME: ${{ steps.vars.outputs.IMAGE_NAME }}
+      CONTEXT: ${{ inputs.CONTEXT }}
+      IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
       PLATFORMS: 'linux/amd64,linux/arm64'
 
   build-and-push-images:
