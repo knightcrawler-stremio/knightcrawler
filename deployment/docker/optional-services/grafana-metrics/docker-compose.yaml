@@ -47,18 +47,18 @@ services:
       - knightcrawler-network
 
   promtail:
-    image: grafana/promtail:2.9.4
-    volumes:
-      - ./config/promtail/config.yml:/etc/promtail/config.yml
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
     command:
       - '-config.file=/etc/promtail/config.yml'
     depends_on:
       - prometheus
       - loki
+    image: grafana/promtail:2.9.4
     networks:
       - knightcrawler-network
+    volumes:
+      - ./config/promtail/config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
   loki:
