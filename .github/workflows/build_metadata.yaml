@@ -1,0 +1,14 @@
+name: Build and Push Addon Image
+
+on:
+  push:
+    paths:
+      - 'src/metadata/**'
+
+jobs:
+  process:
+    uses: ./.github/workflows/base_image_workflow.yaml
+    secrets: inherit
+    with:
+      CONTEXT: ./src/metadata/
+      IMAGE_NAME: knightcrawler-metadata

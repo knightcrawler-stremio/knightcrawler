@@ -1,7 +1,14 @@
-name: Build and Push Docker Images
+name: Build and Push Docker Images Base Workflow
 
 on:
-  push:
+  workflow_call:
+    inputs:
+      CONTEXT:
+        required: true
+        type: string
+      IMAGE_NAME:
+        required: true
+        type: string
 
 jobs:
   build-and-push-images:
@@ -17,20 +24,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - context: ./src/node/addon/
-            image_name: knightcrawler-addon
-            platforms: linux/amd64,linux/arm64
-          - context: ./src/node/addon-jackett/
-            image_name: knightcrawler-addon-jackett
-            platforms: linux/amd64,linux/arm64
-          - context: ./src/node/consumer/
-            image_name: knightcrawler-consumer
-            platforms: linux/amd64,linux/arm64
-          - context: ./src/producer/
-            image_name: knightcrawler-producer
-            platforms: linux/amd64,linux/arm64
-          - context: ./src/metadata/
-            image_name: knightcrawler-metadata
+          - context: ${{ github.event.inputs.CONTEXT }}
+            image_name: ${{ github.event.inputs.IMAGE_NAME }}
             platforms: linux/amd64,linux/arm64
 
     name: Build - ${{ matrix.image_name }}
