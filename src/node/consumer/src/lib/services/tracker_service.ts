@@ -19,7 +19,7 @@ export class TrackerService implements ITrackerService {
         const headers = {};
 
         if (configurationService.trackerConfig.GITHUB_PAT) {
-            headers['Authorization'] = `Basic ${configurationService.trackerConfig.GITHUB_PAT}`;
+            headers['Authorization'] = `Bearer ${configurationService.trackerConfig.GITHUB_PAT}`;
         }
 
         const response: AxiosResponse<string> = await axios.get(configurationService.trackerConfig.TRACKERS_URL, { headers });
