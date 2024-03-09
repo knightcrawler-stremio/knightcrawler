@@ -10,13 +10,24 @@ on:
         required: true
         type: string
 
+env:
+  CONTEXT: ${{ inputs.CONTEXT }}
+  IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
+  PLATFORMS: linux/amd64,linux/arm64
+
 jobs:
   set-vars:
     runs-on: ubuntu-latest
+    steps:
+      - name: Setting variables
+        run: |
+          echo "CONTEXT=${{ env.CONTEXT }}
+          echo "IMAGE_NAME=${{ env.IMAGE_NAME }}
+          echo "PLATFORMS=${{ env.PLATFORMS }}"
     outputs:
-      CONTEXT: ${{ inputs.CONTEXT }}
-      IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
-      PLATFORMS: 'linux/amd64,linux/arm64'
+      CONTEXT: ${{ env.CONTEXT }}
+      IMAGE_NAME: ${{ env.IMAGE_NAME }}
+      PLATFORMS: ${{ env.PLATFORMS }}
 
   build-and-push-images:
     needs: set-vars
