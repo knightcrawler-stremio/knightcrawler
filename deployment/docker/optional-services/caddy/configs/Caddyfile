@@ -4,7 +4,7 @@
 	## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	## Once you have confirmed Caddy works you should comment out
 	## the below line:
-	acme_ca https://acme-staging-v02.api.letsencrypt.org/director
+	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 }
 
 (security-headers) {
