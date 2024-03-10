@@ -20,11 +20,6 @@ A basic installation requires only two files:
 - <path>deployment/docker/.env.example</path>
 - <path>deployment/docker/docker-compose.yaml</path>.
 
-
-> Knight Crawler will only be accessible on the machine you run it on, to make it accessible from other machines navigate to [External access](External-access.md).
->
-{style="note"}
-
 For this guide I will be placing them in a directory on my home drive <path>~/knightcrawler</path>.
 
 Rename the <path>.env.example</path> file to be <path>.env</path>
@@ -114,7 +109,9 @@ then try increasing it by 10 at a time.
 {style="warning"}
 
 `CONSUMER_REPLICAS` is how many consumers should be initially started. This is best kept below 10 as GitHub rate limit
-how fast we can access a list of torrent trackers. You can increase or decrease the number of consumers whilst the service is running by running the command `docker compose up --scale consumer=<number>`. This value is best increased by 5 at a time. Repeat this process until you have reached the desired level of consumers.
+how fast we can access a list of torrent trackers. You can increase or decrease the number of consumers whilst the
+service is running by running the command `docker compose up -d --scale consumer=<number>`. This value is best increased by 5 at a time.
+Repeat this process until you have reached the desired level of consumers.
 
 ### GitHub personal access token
 
@@ -168,9 +165,25 @@ Then we can follow the logs to watch it start:
 docker compose logs -f --since 1m
 ```
 
+> Knight Crawler will only be accessible on the machine you run it on, to make it accessible from other machines navigate to [External access](External-access.md).
+>
+{style="note"}
+
 To stop following the logs press <shortcut>Ctrl+C</shortcut> at any time.
 
 The Knight Crawler configuration page should now be accessible in your web browser at [http://localhost:7000](http://localhost:7000)
+
+## Start more consumers
+
+If you wish to speed up the processing of the films and tv shows that Knight Crawler finds, then you'll likely want to 
+increase the number of consumers.
+
+The below command can be used to both increase or decrease the number of running consumers. Gradually increase the number
+until you encounter any issues and then decrease until stable.
+
+```Bash
+docker compose up -d --scale consumer=<number>
+```
 
 ## Stop Knight Crawler
 
