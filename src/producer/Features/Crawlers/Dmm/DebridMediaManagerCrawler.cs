@@ -101,12 +101,14 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        var parsedTorrent = parsingService.Parse(filenameElement.GetString());
+        var torrentTitle = filenameElement.GetString();
 
-        if (parsedTorrent.IsInvalid)
+        if (torrentTitle.IsNullOrEmpty())
         {
             return null;
         }
+
+        var torrentType = parsingService.GetTypeByName(torrentTitle);
 
         var torrent = new Torrent
         {
@@ -117,47 +119,51 @@ public partial class DebridMediaManagerCrawler(
             Leechers = 0,
         };
 
-        return parsedTorrent.Type switch
+        return torrentType switch
         {
-            TorrentType.Movie => HandleMovieType(torrent, parsedTorrent),
-            TorrentType.Tv => HandleTvType(torrent, parsedTorrent),
+            TorrentType.Movie => HandleMovieType(torrent, torrentTitle),
+            TorrentType.Tv => HandleTvType(torrent, torrentTitle),
             _ => null,
         };
     }
 
-    private Torrent HandleMovieType(Torrent torrent, ParsedFilename parsedTorrent)
+    private Torrent HandleMovieType(Torrent torrent, string title)
     {
-        if (parsedTorrent.Movie.ReleaseTitle.IsNullOrEmpty())
+        if (title.IsNullOrEmpty())
         {
             return null;
         }
 
-        if (!parsingService.HasNoBannedTerms(parsedTorrent.Movie.ReleaseTitle))
+        if (!parsingService.HasNoBannedTerms(title))
         {
+            LogBannedTermsFound(torrent);
             return null;
         }
 
         torrent.Category = "movies";
-        torrent.Name = parsedTorrent.Movie.ReleaseTitle;
+        torrent.Name = title;
         return torrent;
     }
 
-    private Torrent HandleTvType(Torrent torrent, ParsedFilename parsedTorrent)
+    private Torrent HandleTvType(Torrent torrent, string title)
     {
-        if (parsedTorrent.Show.ReleaseTitle.IsNullOrEmpty())
+        if (title.IsNullOrEmpty())
         {
             return null;
         }
 
-        if (!parsingService.HasNoBannedTerms(parsedTorrent.Show.ReleaseTitle))
+        if (!parsingService.HasNoBannedTerms(title))
         {
+            LogBannedTermsFound(torrent);
             return null;
         }
 
         torrent.Category = "tv";
-        torrent.Name = parsedTorrent.Show.ReleaseTitle;
+        torrent.Name = title;
         return torrent;
     }
+
+    private void LogBannedTermsFound(Torrent torrent) => logger.LogWarning("Banned terms found in torrent title for ingested infoHash: {InfoHash}. Skipping", torrent.InfoHash);
 
     private async Task InsertTorrentsForPage(JsonDocument json)
     {

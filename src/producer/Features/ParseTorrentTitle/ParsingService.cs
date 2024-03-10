@@ -347,4 +347,6 @@ public partial class ParsingService(IWordCollections wordCollections, ITorrentTi
     }
 
     public ParsedFilename Parse(string name) => torrentTitleParser.Parse(name);
+
+    public TorrentType GetTypeByName(string name) => torrentTitleParser.GetTypeByName(name);
 }

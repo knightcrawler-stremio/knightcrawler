@@ -2,6 +2,7 @@ namespace Producer.Features.ParseTorrentTitle;
 
 public interface IParsingService
 {
+    TorrentType GetTypeByName(string name);
     ParsedFilename Parse(string name);
     string Naked(string title);
     List<string> GrabYears(string str);
