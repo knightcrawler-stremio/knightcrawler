@@ -141,9 +141,9 @@ export class MetadataService implements IMetadataService {
                 ? body.meta.videos.map(video => ({
                     name: video.name,
                     season: video.season,
-                    episode: video.episode,
+                    episode: video.number,
                     imdbSeason: video.season,
-                    imdbEpisode: video.episode,
+                    imdbEpisode: video.number,
                 }))
                 : [],
             episodeCount: body.meta?.videos
@@ -204,13 +204,13 @@ export class MetadataService implements IMetadataService {
 
     private getIMDbIdFromNameToImdb = (name: string, info: IMetaDataQuery): Promise<string | Error> => {
         const {year} = info;
-        const {type} = info;
+        const type = info.type === TorrentType.Movie ? 'movie' : 'series';
         return new Promise((resolve, reject) => {
-            nameToImdb({name, year, type}, function (err: Error, res: string) {
+            nameToImdb({name, year, type}, function (err: Error | null, res: string) {
                 if (res) {
                     resolve(res);
                 } else {
-                    reject(err || new Error('Failed IMDbId search'));
+                    reject(err || new Error('Failed to get IMDb id from name-to-imdb'));
                 }
             });
         });
