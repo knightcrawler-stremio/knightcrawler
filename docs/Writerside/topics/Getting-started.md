@@ -108,10 +108,8 @@ then try increasing it by 10 at a time.
 >
 {style="warning"}
 
-`CONSUMER_REPLICAS` is how many consumers should be initially started. This is best kept below 10 as GitHub rate limit
-how fast we can access a list of torrent trackers. You can increase or decrease the number of consumers whilst the
-service is running by running the command `docker compose up -d --scale consumer=<number>`. This value is best increased by 5 at a time.
-Repeat this process until you have reached the desired level of consumers.
+`CONSUMER_REPLICAS` is how many consumers should be initially started. You can increase or decrease the number of consumers whilst the
+service is running by running the command `docker compose up -d --scale consumer=<number>`.
 
 ### GitHub personal access token
 
