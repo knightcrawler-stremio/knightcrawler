@@ -4,7 +4,7 @@ name: Build documentation
 
 on:
   push:
-    branches: ["master"]
+    # branches: ["master"]
     paths:
       - 'docs/**'
   # Specify to run a workflow manually from the Actions tab on GitHub
@@ -22,7 +22,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
           instance: ${{ env.INSTANCE }}
           artifact: ${{ env.ARTIFACT }}
           location: ${{ env.DOCS_FOLDER }}
-        
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
