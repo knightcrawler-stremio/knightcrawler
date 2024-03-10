@@ -1,6 +1,6 @@
 namespace Producer.Features.ParseTorrentTitle;
 
-public static partial class TorrentTitleParser
+public partial class TorrentTitleParser : ITorrentTitleParser
 {
     [GeneratedRegex(@"(season|episode)s?.?\d?", RegexOptions.IgnoreCase, "en-GB")]
     private static partial Regex SeasonEpisode();
@@ -15,7 +15,7 @@ public static partial class TorrentTitleParser
     [GeneratedRegex(@"\d{2,4}\s?\-\s?\d{2,4}\b", RegexOptions.IgnoreCase, "en-GB")]
     private static partial Regex SeasonTwo();
 
-    public static ParsedFilename Parse(string name)
+    public ParsedFilename Parse(string name)
     {
         VideoCodecsParser.Parse(name, out var videoCodec, out _);
         AudioCodecsParser.Parse(name, out var audioCodec, out _);
@@ -83,6 +83,7 @@ public static partial class TorrentTitleParser
                Multi = baseParsed.Multi,
                Revision = baseParsed.Revision,
             },
+            Type = TorrentType.Tv,
         };
     }
 
@@ -97,6 +98,7 @@ public static partial class TorrentTitleParser
        {
            Movie = new()
            {
+               ReleaseTitle = name,
                Title = baseParsed.Title,
                Year = baseParsed.Year,
                Edition = baseParsed.Edition,
@@ -111,6 +113,7 @@ public static partial class TorrentTitleParser
                Multi = baseParsed.Multi,
                Revision = baseParsed.Revision,
            },
+           Type = TorrentType.Movie,
        };
     }
 

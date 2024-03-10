@@ -4,8 +4,7 @@ public class ParsedFilename
 {
     public ParsedMovie? Movie { get; set; }
     public ParsedTv? Show { get; set; }
-    public bool IsMovie => Movie is not null;
-    public bool IsShow => Show is not null;
+    public TorrentType? Type { get; set; }
 
-    public bool IsInvalid => (!IsMovie && !IsShow) || (IsMovie && IsShow);
+    public bool IsInvalid => Movie is null && Show is null;
 }

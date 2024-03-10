@@ -4,7 +4,8 @@ public partial class DebridMediaManagerCrawler(
     IHttpClientFactory httpClientFactory,
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
-    GithubConfiguration githubConfiguration) : BaseCrawler(logger, storage)
+    GithubConfiguration githubConfiguration,
+    IParsingService parsingService) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
@@ -100,45 +101,64 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        var torrent = new Torrent
-        {
-            Source = Source,
-            Name = filenameElement.GetString(),
-            Size = bytesElement.GetInt64().ToString(),
-            InfoHash = hashElement.ToString(),
-            Seeders = 0,
-            Leechers = 0,
-        };
-
-        if (string.IsNullOrEmpty(torrent.Name))
-        {
-            return null;
-        }
-
-        var parsedTorrent = TorrentTitleParser.Parse(torrent.Name);
+        var parsedTorrent = parsingService.Parse(filenameElement.GetString());
 
         if (parsedTorrent.IsInvalid)
         {
             return null;
         }
 
-        if (parsedTorrent.IsMovie)
+        var torrent = new Torrent
         {
-            torrent.Category = "movies";
-            torrent.Name = parsedTorrent.Movie.Title;
+            Source = Source,
+            Size = bytesElement.GetInt64().ToString(),
+            InfoHash = hashElement.ToString(),
+            Seeders = 0,
+            Leechers = 0,
+        };
 
-            return torrent;
+        return parsedTorrent.Type switch
+        {
+            TorrentType.Movie => HandleMovieType(torrent, parsedTorrent),
+            TorrentType.Tv => HandleTvType(torrent, parsedTorrent),
+            _ => null,
+        };
+    }
+
+    private Torrent HandleMovieType(Torrent torrent, ParsedFilename parsedTorrent)
+    {
+        if (parsedTorrent.Movie.ReleaseTitle.IsNullOrEmpty())
+        {
+            return null;
         }
 
-        if (parsedTorrent.IsShow)
+        if (!parsingService.HasNoBannedTerms(parsedTorrent.Movie.ReleaseTitle))
         {
-            torrent.Category = "tv";
-            torrent.Name = parsedTorrent.Show.Title;
-
-            return torrent;
+            logger.LogWarning("Banned terms found in {Title}", parsedTorrent.Movie.ReleaseTitle);
+            return null;
         }
 
-        return null;
+        torrent.Category = "movies";
+        torrent.Name = parsedTorrent.Movie.ReleaseTitle;
+        return torrent;
+    }
+
+    private Torrent HandleTvType(Torrent torrent, ParsedFilename parsedTorrent)
+    {
+        if (parsedTorrent.Show.ReleaseTitle.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        if (!parsingService.HasNoBannedTerms(parsedTorrent.Show.ReleaseTitle))
+        {
+            logger.LogWarning("Banned terms found in {Title}", parsedTorrent.Show.ReleaseTitle);
+            return null;
+        }
+
+        torrent.Category = "tv";
+        torrent.Name = parsedTorrent.Show.ReleaseTitle;
+        return torrent;
     }
 
     private async Task InsertTorrentsForPage(JsonDocument json)

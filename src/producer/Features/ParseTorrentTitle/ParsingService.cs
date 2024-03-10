@@ -1,6 +1,6 @@
-namespace Producer.Features.Crawlers.Dmm;
+namespace Producer.Features.ParseTorrentTitle;
 
-public partial class ParsingService(IWordCollections wordCollections)
+public partial class ParsingService(IWordCollections wordCollections, ITorrentTitleParser torrentTitleParser) : IParsingService
 {
     private static readonly char[] WhitespaceSeparator = [' '];
 
@@ -198,8 +198,8 @@ public partial class ParsingService(IWordCollections wordCollections)
 
     public bool FlexEq(string test, string target, List<string> years)
     {
-        var movieTitle = TorrentTitleParser.Parse(test).Movie.Title.ToLower();
-        var tvTitle = TorrentTitleParser.Parse(test).Show.Title.ToLower();
+        var movieTitle = torrentTitleParser.Parse(test).Movie.Title.ToLower();
+        var tvTitle = torrentTitleParser.Parse(test).Show.Title.ToLower();
 
         var target2 = WhitespaceMatcher().Replace(target, "");
         var test2 = WhitespaceMatcher().Replace(test, "");
@@ -302,9 +302,36 @@ public partial class ParsingService(IWordCollections wordCollections)
 
         var titleWithoutSymbols = string.Join(' ', WordMatcher().Split(testTitle.ToLower()));
 
+        var hasJavWords = wordCollections.Jav.Any(jav => !targetTitle.Contains(jav) && titleWithoutSymbols.Contains(jav));
+
+        var hasAdultStars = wordCollections.AdultStars.Any(star => !targetTitle.Contains(star) && titleWithoutSymbols.Contains(star));
+
         var hasBannedCompoundWords = wordCollections.AdultCompoundPhrases.Any(compoundWord => !targetTitle.Contains(compoundWord) && titleWithoutSymbols.Contains(compoundWord));
 
-        return !hasBannedWords && !hasBannedCompoundWords;
+        return !hasBannedWords &&
+               !hasJavWords &&
+               !hasAdultStars &&
+               !hasBannedCompoundWords;
+    }
+
+    public bool HasNoBannedTerms(string targetTitle)
+    {
+        var words = WordMatcher().Split(targetTitle.ToLower()).ToList();
+
+        var hasBannedWords = words.Any(word => wordCollections.AdultWords.Contains(word));
+
+        var inputWithoutSymbols = string.Join(' ', WordMatcher().Split(targetTitle.ToLower()));
+
+        var hasJavWords = wordCollections.Jav.Any(jav => inputWithoutSymbols.Contains(jav, StringComparison.OrdinalIgnoreCase));
+
+        var hasAdultStars = wordCollections.AdultStars.Any(star => inputWithoutSymbols.Contains(star, StringComparison.OrdinalIgnoreCase));
+
+        var hasBannedCompoundWords = wordCollections.AdultCompoundPhrases.Any(compoundWord => inputWithoutSymbols.Contains(compoundWord, StringComparison.OrdinalIgnoreCase));
+
+        return !hasBannedWords &&
+               !hasJavWords &&
+               !hasAdultStars &&
+               !hasBannedCompoundWords;
     }
 
     public bool MeetsTitleConditions(string targetTitle, List<string> years, string testTitle) => MatchesTitle(targetTitle, years, testTitle) && HasNoBannedTerms(targetTitle, testTitle);
@@ -318,4 +345,6 @@ public partial class ParsingService(IWordCollections wordCollections)
 
         return processedTitle.Count(word => !wordCollections.CommonWords.Contains(word));
     }
+
+    public ParsedFilename Parse(string name) => torrentTitleParser.Parse(name);
 }

@@ -11,6 +11,8 @@ public class PopulationService(IWordCollections wordCollections, ILogger<Populat
         logger.LogInformation("Common Words Count: {Count}", wordCollections.CommonWords.Count);
         logger.LogInformation("Adult Words Count: {Count}", wordCollections.AdultWords.Count);
         logger.LogInformation("Adult Compound Phrases Count: {Count}", wordCollections.AdultCompoundPhrases.Count);
+        logger.LogInformation("Jav Count: {Count}", wordCollections.Jav.Count);
+        logger.LogInformation("Adult Stars Count: {Count}", wordCollections.AdultStars.Count);
 
         logger.LogInformation("Word collections loaded.");
     }

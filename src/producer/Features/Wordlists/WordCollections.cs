@@ -4,10 +4,17 @@ public class WordCollections : IWordCollections
 {
     private const string AdultWordsFile = "adult-words.txt";
     private const string AdultCompoundPhrasesFile = "adult-compound-words.txt";
+    private const string AdultStarsFile = "adult-stars.txt";
+    private const string JavFile = "jav.txt";
     private const string CommonWordsFile = "common-words.txt";
 
     public HashSet<string> AdultWords { get; private set; } = [];
     public HashSet<string> AdultCompoundPhrases { get; private set; } = [];
+
+    public HashSet<string> AdultStars { get; private set; } = [];
+
+    public HashSet<string> Jav { get; private set; } = [];
+
     public HashSet<string> CommonWords { get; private set; } = [];
 
     public async Task LoadAsync()
@@ -16,7 +23,9 @@ public class WordCollections : IWordCollections
         {
             LoadAdultWords(),
             LoadAdultCompounds(),
-            LoadCommonWords()
+            LoadCommonWords(),
+            LoadJav(),
+            LoadAdultStars(),
         };
 
         await Task.WhenAll(loaderTasks);
@@ -38,6 +47,18 @@ public class WordCollections : IWordCollections
     {
         var adultWords = await File.ReadAllLinesAsync(GetPath(AdultWordsFile));
         AdultWords = [..adultWords];
+    }
+
+    private async Task LoadJav()
+    {
+        var jav = await File.ReadAllLinesAsync(GetPath(JavFile));
+        Jav = [..jav];
+    }
+
+    private async Task LoadAdultStars()
+    {
+        var adultStars = await File.ReadAllLinesAsync(GetPath(AdultStarsFile));
+        AdultStars = [..adultStars];
     }
 
     private static string GetPath(string fileName) => Path.Combine(AppContext.BaseDirectory, "Data", fileName);

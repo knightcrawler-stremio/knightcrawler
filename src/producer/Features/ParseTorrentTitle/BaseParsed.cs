@@ -2,6 +2,7 @@ namespace Producer.Features.ParseTorrentTitle;
 
 public class BaseParsed
 {
+    public string? ReleaseTitle { get; set; }
     public string? Title { get; set; }
     public string? Year { get; set; }
     public Edition? Edition { get; set; }

@@ -8,5 +8,9 @@ public interface IWordCollections
 
     HashSet<string> CommonWords { get; }
 
+    HashSet<string> Jav { get; }
+
+    HashSet<string> AdultStars { get; }
+
     Task LoadAsync();
 }

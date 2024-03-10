@@ -2,7 +2,6 @@ namespace Producer.Features.ParseTorrentTitle;
 
 public class ParsedTv : BaseParsed
 {
-    public string? ReleaseTitle { get; set; }
     public string? SeriesTitle { get; set; }
     public List<int> Seasons { get; set; } = [];
     public List<int> EpisodeNumbers { get; set; } = [];
