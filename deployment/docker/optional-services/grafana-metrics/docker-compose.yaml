@@ -39,8 +39,7 @@ services:
       - grafana-data:/var/lib/grafana
 
   postgres-exporter:
-    env_file:
-      - ../.env
+    env_file: ${PWD}/../../env
     environment:
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable"
     image: prometheuscommunity/postgres-exporter
@@ -48,18 +47,18 @@ services:
       - knightcrawler-network
 
   promtail:
-    image: grafana/promtail:2.9.4
-    volumes:
-      - ./config/promtail/config.yml:/etc/promtail/config.yml
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
     command:
       - '-config.file=/etc/promtail/config.yml'
     depends_on:
       - prometheus
       - loki
+    image: grafana/promtail:2.9.4
     networks:
       - knightcrawler-network
+    volumes:
+      - ./config/promtail/config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
 
 
   loki:
