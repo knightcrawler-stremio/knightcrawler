@@ -3,6 +3,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
+        args: ['--maxkb=2048']
       - id: check-json
       - id: check-toml
       - id: check-xml
@@ -15,5 +16,6 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        exclude: ^src/node/consumer/test/
+        exclude: |
+            (?x)^(src/node/consumer/test/.*|src/producer/Data/.*)$
         args: ["-L", "strem,chage"]
