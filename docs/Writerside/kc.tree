@@ -6,7 +6,8 @@
                   start-page="Overview.md">
 
     <toc-element topic="Overview.md"/>
-    <toc-element topic="How-to.md">
+    <toc-element topic="Getting-started.md">
+        <toc-element topic="Run-Knight-Crawler.md"/>
     </toc-element>
     <toc-element topic="Supported-Debrid-services.md"/>
 </instance-profile>
