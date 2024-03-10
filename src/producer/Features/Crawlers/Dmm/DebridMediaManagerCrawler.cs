@@ -134,7 +134,6 @@ public partial class DebridMediaManagerCrawler(
 
         if (!parsingService.HasNoBannedTerms(parsedTorrent.Movie.ReleaseTitle))
         {
-            logger.LogWarning("Banned terms found in {Title}", parsedTorrent.Movie.ReleaseTitle);
             return null;
         }
 
