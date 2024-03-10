@@ -4,18 +4,10 @@ public partial class DebridMediaManagerCrawler(
     IHttpClientFactory httpClientFactory,
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
-    GithubConfiguration githubConfiguration,
-    AdultContentConfiguration adultContentConfiguration,
-    IServiceProvider serviceProvider) : BaseCrawler(logger, storage)
+    GithubConfiguration githubConfiguration) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
-
-    [GeneratedRegex(@"[sS]([0-9]{1,2})|seasons?[\s-]?([0-9]{1,2})", RegexOptions.IgnoreCase, "en-GB")]
-    private static partial Regex SeasonMatcher();
-    
-    [GeneratedRegex(@"[0-9]{4}", RegexOptions.IgnoreCase, "en-GB")]
-    private static partial Regex YearMatcher();
 
     private const string DownloadBaseUrl = "https://raw.githubusercontent.com/debridmediamanager/hashlists/main";
 
@@ -23,15 +15,8 @@ public partial class DebridMediaManagerCrawler(
     protected override string Url => "https://api.github.com/repos/debridmediamanager/hashlists/git/trees/main?recursive=1";
     protected override string Source => "DMM";
 
-    private IFuzzySearcher<string>? _adultContentSearcher;
-
     public override async Task Execute()
     {
-        if (!adultContentConfiguration.Allow)
-        {
-            _adultContentSearcher = serviceProvider.GetRequiredService<IFuzzySearcher<string>>();
-        }
-        
         var client = httpClientFactory.CreateClient("Scraper");
         client.DefaultRequestHeaders.Authorization = new("Bearer", githubConfiguration.PAT);
         client.DefaultRequestHeaders.UserAgent.ParseAdd("curl");
@@ -107,14 +92,14 @@ public partial class DebridMediaManagerCrawler(
 
     private Torrent? ParseTorrent(JsonElement item)
     {
-        
+
         if (!item.TryGetProperty("filename", out var filenameElement) ||
             !item.TryGetProperty("bytes", out var bytesElement) ||
             !item.TryGetProperty("hash", out var hashElement))
         {
             return null;
         }
-        
+
         var torrent = new Torrent
         {
             Source = Source,
@@ -130,45 +115,37 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        torrent.Category = (SeasonMatcher().IsMatch(torrent.Name), YearMatcher().IsMatch(torrent.Name)) switch
+        var parsedTorrent = TorrentTitleParser.Parse(torrent.Name);
+
+        if (parsedTorrent.IsInvalid)
         {
-            (true, _) => "tv",
-            (_, true) => "movies",
-            _ => "unknown",
-        };
+            return null;
+        }
 
-        return HandleAdultContent(torrent);
-    }
-
-    private Torrent HandleAdultContent(Torrent torrent)
-    {
-        try
+        if (parsedTorrent.IsMovie)
         {
-            if (!adultContentConfiguration.Allow)
-            {
-                var adultMatch = _adultContentSearcher!.Search(torrent.Name.Replace(".", " "));
-
-                if (adultMatch.Count > 0)
-                {
-                    logger.LogWarning("Adult content found in {Name}. Marking category as 'xxx'", torrent.Name);
-                    logger.LogWarning("Matches: {TopMatch} {TopScore}", adultMatch.First().Value, adultMatch.First().Score);
-                    torrent.Category = "xxx";
-                }
-            }
+            torrent.Category = "movies";
+            torrent.Name = parsedTorrent.Movie.Title;
 
             return torrent;
         }
-        catch (Exception e)
+
+        if (parsedTorrent.IsShow)
         {
-            logger.LogWarning("Failed to handle adult content for {Name}: [{Error}]. Torrent will not be ingested at this time.", torrent.Name, e.Message);
-            return null;
+            torrent.Category = "tv";
+            torrent.Name = parsedTorrent.Show.Title;
+
+            return torrent;
         }
+
+        return null;
     }
 
     private async Task InsertTorrentsForPage(JsonDocument json)
     {
         var torrents = json.RootElement.EnumerateArray()
             .Select(ParseTorrent)
+            .Where(t => t is not null)
             .ToList();
 
         if (torrents.Count == 0)

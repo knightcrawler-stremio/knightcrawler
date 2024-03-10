@@ -88,16 +88,16 @@ public static partial class TitleParser
         VideoCodecsParser.Parse(title, out var videoCodec, out _);
         AudioChannelsParser.Parse(title, out var channels, out _);
         AudioCodecsParser.Parse(title, out var audioCodec, out _);
-        var resolutionPosition = title.IndexOf(resolution.Value ?? string.Empty, StringComparison.Ordinal);
-        var videoCodecPosition = title.IndexOf(videoCodec.Value ?? string.Empty, StringComparison.Ordinal);
-        var channelsPosition = title.IndexOf(channels.Value ?? string.Empty, StringComparison.Ordinal);
-        var audioCodecPosition = title.IndexOf(audioCodec.Value ?? string.Empty, StringComparison.Ordinal);
+        var resolutionPosition = title.IndexOf(resolution?.Value ?? string.Empty, StringComparison.Ordinal);
+        var videoCodecPosition = title.IndexOf(videoCodec?.Value ?? string.Empty, StringComparison.Ordinal);
+        var channelsPosition = title.IndexOf(channels?.Value ?? string.Empty, StringComparison.Ordinal);
+        var audioCodecPosition = title.IndexOf(audioCodec?.Value ?? string.Empty, StringComparison.Ordinal);
         var positions = new List<int> {resolutionPosition, audioCodecPosition, channelsPosition, videoCodecPosition}.Where(x => x > 0).ToList();
 
         if (positions.Count != 0)
         {
             var firstPosition = positions.Min();
-            parsedTitle = ReleaseTitleCleaner(title[..firstPosition]) ?? string.Empty;
+            parsedTitle = ReleaseTitleCleaner(title[..firstPosition]);
             year = null;
             return;
         }
@@ -149,10 +149,7 @@ public static partial class TitleParser
         trimmedTitle = trimmedTitle.Replace(LanguageExp().ToString(), "").Trim();
         trimmedTitle = trimmedTitle.Replace(SceneGarbageExp().ToString(), "").Trim();
 
-        foreach (var lang in Enum.GetValues(typeof(Language)).Cast<Language>())
-        {
-            trimmedTitle = trimmedTitle.Replace($@"\b{lang.ToString().ToUpper()}", "").Trim();
-        }
+        trimmedTitle = Language.List.Aggregate(trimmedTitle, (current, lang) => current.Replace($@"\b{lang.Value.ToUpper()}", "").Trim());
 
         // Look for gap formed by removing items
         trimmedTitle = trimmedTitle.Split("  ")[0];
@@ -168,7 +165,7 @@ public static partial class TitleParser
         {
             if (parts.Length >= n + 2)
             {
-                nextPart = parts[n + 1] ?? "";
+                nextPart = parts[n + 1];
             }
 
             if (part.Length == 1 && part.ToLower() != "a" && !int.TryParse(part, out _))

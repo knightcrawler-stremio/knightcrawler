@@ -8,7 +8,7 @@ public static partial class SeasonParser
     [GeneratedRegex(@"(?<=[_.-])(?<airdate>(?<!\d)(?<airyear>[1-9]\d{1})(?<airmonth>[0-1][0-9])(?<airday>[0-3][0-9]))(?=[_.-])", RegexOptions.IgnoreCase)]
     private static partial Regex SixDigitAirDateMatchExp();
 
-    public static Season Parse(string title)
+    public static Season? Parse(string title)
     {
         if (!PreValidation(title))
         {
@@ -30,7 +30,10 @@ public static partial class SeasonParser
             {
                 var fixedDate = $"20{airYear}.{airMonth}.{airDay}";
 
-                simpleTitle = simpleTitle.Replace(sixDigitAirDateMatch.Groups["airdate"]?.Value ?? "", fixedDate);
+                if (!string.IsNullOrEmpty(sixDigitAirDateMatch.Groups["airdate"].Value))
+                {
+                    simpleTitle = simpleTitle.Replace(sixDigitAirDateMatch.Groups["airdate"].Value, fixedDate);
+                }
             }
         }
 
@@ -38,32 +41,33 @@ public static partial class SeasonParser
         {
             var match = exp().Match(simpleTitle);
 
-            if (match.Groups.Count > 0)
+            if (match.Groups.Count <= 0 || !match.Success)
             {
-                var result = ParseMatchCollection(match, simpleTitle);
-
-                if (result.FullSeason && result.ReleaseTokens != null && result.ReleaseTokens.Contains("Special", StringComparison.OrdinalIgnoreCase))
-                {
-                    result.FullSeason = false;
-                    result.IsSpecial = true;
-                }
-
-                return new()
-                {
-                    ReleaseTitle = title,
-                    SeriesTitle = result.SeriesName,
-                    // SeriesTitleInfo = 0,
-                    Seasons = result.SeasonNumbers ?? [],
-                    EpisodeNumbers = result.EpisodeNumbers ?? [],
-                    AirDate = result.AirDate,
-                    FullSeason = result.FullSeason,
-                    IsPartialSeason = result.IsPartialSeason ?? false,
-                    IsMultiSeason = result.IsMultiSeason ?? false,
-                    IsSeasonExtra = result.IsSeasonExtra ?? false,
-                    IsSpecial = result.IsSpecial ?? false,
-                    SeasonPart = result.SeasonPart ?? 0,
-                };
+                continue;
             }
+
+            var result = ParseMatchCollection(match, simpleTitle);
+
+            if (result.FullSeason && result.ReleaseTokens != null && result.ReleaseTokens.Contains("Special", StringComparison.OrdinalIgnoreCase))
+            {
+                result.FullSeason = false;
+                result.IsSpecial = true;
+            }
+
+            return new()
+            {
+                ReleaseTitle = title,
+                SeriesTitle = result.SeriesName,
+                Seasons = result.SeasonNumbers ?? [],
+                EpisodeNumbers = result.EpisodeNumbers ?? [],
+                AirDate = result.AirDate,
+                FullSeason = result.FullSeason,
+                IsPartialSeason = result.IsPartialSeason ?? false,
+                IsMultiSeason = result.IsMultiSeason ?? false,
+                IsSeasonExtra = result.IsSeasonExtra ?? false,
+                IsSpecial = result.IsSpecial ?? false,
+                SeasonPart = result.SeasonPart ?? 0,
+            };
         }
 
         return null;
@@ -78,7 +82,7 @@ public static partial class SeasonParser
             throw new("No match");
         }
 
-        var seriesName = (groups["title"]?.Value ?? "")
+        var seriesName = groups["title"].Value
             .Replace(".", " ")
             .Replace("_", " ")
             .Replace(RequestInfoExp().ToString(), "")
@@ -89,9 +93,9 @@ public static partial class SeasonParser
             SeriesName = seriesName,
         };
 
-        var lastSeasonEpisodeStringIndex = IndexOfEnd(simpleTitle, groups["title"]?.Value ?? "");
+        var lastSeasonEpisodeStringIndex = IndexOfEnd(simpleTitle, groups["title"].Value);
 
-        if (int.TryParse(groups["airyear"]?.Value, out var airYear) && airYear >= 1900)
+        if (int.TryParse(groups["airyear"].Value, out var airYear) && airYear >= 1900)
         {
             var seasons = new List<string> {groups["season"]?.Value, groups["season1"]?.Value}
                 .Where(x => !string.IsNullOrEmpty(x))

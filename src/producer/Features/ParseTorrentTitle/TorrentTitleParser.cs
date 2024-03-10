@@ -1,8 +1,21 @@
 namespace Producer.Features.ParseTorrentTitle;
 
-public static class TorrentTitleParser
+public static partial class TorrentTitleParser
 {
-    public static ParsedFilename Parse(string name, bool isTv = false)
+    [GeneratedRegex(@"(season|episode)s?.?\d?", RegexOptions.IgnoreCase, "en-GB")]
+    private static partial Regex SeasonEpisode();
+    [GeneratedRegex(@"[se]\d\d", RegexOptions.IgnoreCase, "en-GB")]
+    private static partial Regex SeasonShort();
+    [GeneratedRegex(@"\b(tv|complete)\b", RegexOptions.IgnoreCase, "en-GB")]
+    private static partial Regex TvOrComplete();
+    [GeneratedRegex(@"\b(saison|stage).?\d", RegexOptions.IgnoreCase, "en-GB")]
+    private static partial Regex SeasonStage();
+    [GeneratedRegex(@"[a-z]\s?\-\s?\d{2,4}\b", RegexOptions.IgnoreCase, "en-GB")]
+    private static partial Regex Season();
+    [GeneratedRegex(@"\d{2,4}\s?\-\s?\d{2,4}\b", RegexOptions.IgnoreCase, "en-GB")]
+    private static partial Regex SeasonTwo();
+
+    public static ParsedFilename Parse(string name)
     {
         VideoCodecsParser.Parse(name, out var videoCodec, out _);
         AudioCodecsParser.Parse(name, out var audioCodec, out _);
@@ -28,14 +41,21 @@ public static class TorrentTitleParser
             Multi = multi,
             Complete = complete,
         };
-        
+
+        var isTv = GetTypeByName(name) == TorrentType.Tv;
+
         return !isTv ? ParseMovie(name, baseParsed) : ParseSeason(name, baseParsed);
     }
 
     private static ParsedFilename ParseSeason(string name, BaseParsed baseParsed)
     {
         var season = SeasonParser.Parse(name);
-        
+
+        if (season == null)
+        {
+            return new();
+        }
+
         return new()
         {
             Show = new()
@@ -69,7 +89,7 @@ public static class TorrentTitleParser
     private static ParsedFilename ParseMovie(string name, BaseParsed baseParsed)
     {
        TitleParser.Parse(name, out var title, out var year);
-       
+
        baseParsed.Title = title;
        baseParsed.Year = year;
 
@@ -92,5 +112,28 @@ public static class TorrentTitleParser
                Revision = baseParsed.Revision,
            },
        };
+    }
+
+    private static TorrentType GetTypeByName(string name)
+    {
+        var tvRegexes = new[]
+        {
+            SeasonEpisode,
+            SeasonShort,
+            TvOrComplete,
+            SeasonStage,
+            Season,
+            SeasonTwo
+        };
+
+        foreach (var regex in tvRegexes)
+        {
+            if (regex().IsMatch(name))
+            {
+                return TorrentType.Tv;
+            }
+        }
+
+        return TorrentType.Movie;
     }
 }

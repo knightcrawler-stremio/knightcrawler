@@ -21,7 +21,7 @@ public partial class ResolutionParser
     private static partial Regex R480Exp();
 
     private static readonly Regex ResolutionExp = new(string.Join("|", R2160pExp(), R1080pExp(), R720pExp(), R576pExp(), R540pExp(), R480Exp()), RegexOptions.IgnoreCase);
-    
+
     public static void Parse(string title, out Resolution? resolution, out string? source)
     {
         resolution = null;
@@ -31,14 +31,16 @@ public partial class ResolutionParser
 
         if (result.Success)
         {
-            foreach (var key in Enum.GetNames(typeof(Resolution)))
+            foreach (var resolutionEnum in Resolution.List)
             {
-                if (result.Groups[key].Success)
+                if (!result.Groups[resolutionEnum.Name].Success)
                 {
-                    resolution = Resolution.FromName(key);
-                    source = result.Groups[key].Value;
-                    return;
+                    continue;
                 }
+
+                resolution = resolutionEnum;
+                source = result.Groups[resolutionEnum.Name].Value;
+                return;
             }
         }
 

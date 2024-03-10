@@ -31,5 +31,5 @@ global using Producer.Features.CrawlerSupport;
 global using Producer.Features.DataProcessing;
 global using Producer.Features.JobSupport;
 global using Producer.Features.ParseTorrentTitle;
-global using Producer.Features.Text;
+global using Producer.Features.Wordlists;
 global using Serilog;

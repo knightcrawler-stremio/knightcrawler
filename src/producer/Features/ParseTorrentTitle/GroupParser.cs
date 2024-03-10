@@ -22,12 +22,14 @@ public static partial class GroupParser
         var nowebsiteTitle = WebsitePrefixExp().Replace(title, "");
         TitleParser.Parse(nowebsiteTitle, out var releaseTitle, out _);
         releaseTitle = releaseTitle.Replace(" ", ".");
-        
-        var trimmed = nowebsiteTitle
-            .Replace(" ", ".")
-            .Replace(releaseTitle == nowebsiteTitle ? "" : releaseTitle, "")
-            .Replace(".-.", ".");
-        
+
+        var trimmed = nowebsiteTitle.Replace(" ", ".");
+        if (releaseTitle != nowebsiteTitle)
+        {
+            trimmed = trimmed.Replace(releaseTitle, "");
+        }
+        trimmed = trimmed.Replace(".-.", ".");
+
         trimmed = TitleParser.SimplifyTitle(FileExtensionParser.RemoveFileExtension(trimmed.Trim()));
 
         if (trimmed.Length == 0)

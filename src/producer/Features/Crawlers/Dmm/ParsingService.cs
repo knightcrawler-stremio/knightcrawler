@@ -1,16 +1,13 @@
 namespace Producer.Features.Crawlers.Dmm;
 
-public partial class ParsingService(AdultContentConfiguration adultContentConfiguration)
+public partial class ParsingService(IWordCollections wordCollections)
 {
     private static readonly char[] WhitespaceSeparator = [' '];
-    
-    //todo: Populate dictionary
-    private static readonly HashSet<string> Dictionary = new HashSet<string>();
-    
-    public static string Naked(string title) => 
+
+    public string Naked(string title) =>
         NakedMatcher().Replace(title.ToLower(), "");
 
-    public static List<string> GrabYears(string str)
+    public List<string> GrabYears(string str)
     {
         var matches = GrabYearsMatcher().Matches(str);
         return matches
@@ -19,7 +16,7 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
             .ToList();
     }
 
-    public static List<int> GrabPossibleSeasonNums(string str)
+    public List<int> GrabPossibleSeasonNums(string str)
     {
         var matches = GrabPossibleSeasonNumsMatcher().Matches(str);
         return matches
@@ -28,7 +25,7 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
             .ToList();
     }
 
-    public static bool HasYear(string test, List<string> years, bool strictCheck = false) =>
+    public bool HasYear(string test, List<string> years, bool strictCheck = false) =>
         strictCheck
             ? years.Any(test.Contains)
             : years.Any(year =>
@@ -39,7 +36,7 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
                        test.Contains($"{intYear - 1}");
             });
 
-    public static string RemoveDiacritics(string str)
+    public string RemoveDiacritics(string str)
     {
         var normalizedString = str.Normalize(NormalizationForm.FormD);
         var stringBuilder = new StringBuilder();
@@ -56,9 +53,9 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
         return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
     }
 
-    public static string RemoveRepeats(string str) => RemoveRepeatsMatcher().Replace(str, "$1");
+    public string RemoveRepeats(string str) => RemoveRepeatsMatcher().Replace(str, "$1");
 
-    public static int RomanToDecimal(string roman)
+    public int RomanToDecimal(string roman)
     {
         var romanNumerals = new Dictionary<char, int>
         {
@@ -84,9 +81,9 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
         return total;
     }
 
-    public static string ReplaceRomanWithDecimal(string input) => ReplaceRomanWithDecimalMatcher().Replace(input, match => RomanToDecimal(match.Value).ToString());
-    
-    public static bool StrictEqual(string title1, string title2)
+    public string ReplaceRomanWithDecimal(string input) => ReplaceRomanWithDecimalMatcher().Replace(input, match => RomanToDecimal(match.Value).ToString());
+
+    public bool StrictEqual(string title1, string title2)
     {
         title1 = WhitespaceMatcher().Replace(title1, "");
         title2 = WhitespaceMatcher().Replace(title2, "");
@@ -96,8 +93,8 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
                (RemoveRepeats(title1).Length > 0 && RemoveRepeats(title1) == RemoveRepeats(title2)) ||
                (RemoveDiacritics(title1).Length > 0 && RemoveDiacritics(title1) == RemoveDiacritics(title2));
     }
-    
-    public static int CountTestTermsInTarget(string test, string target, bool shouldBeInSequence = false)
+
+    public int CountTestTermsInTarget(string test, string target, bool shouldBeInSequence = false)
     {
         var replaceCount = 0;
         var prevReplaceCount = 0;
@@ -134,7 +131,7 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
         {
             var prefix = first ? @"\b" : "";
             var suffix = last ? @"\b" : "";
-            testStr = Regex.Replace(testStr.Substring(prevOffset + prevLength), $"{prefix}{newTerm}{suffix}", replacer);
+            testStr = Regex.Replace(testStr[(prevOffset + prevLength)..], $"{prefix}{newTerm}{suffix}", replacer);
         };
 
         var actual = wordsInTitle.Where((term, idx) =>
@@ -198,11 +195,11 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
         }
         return actual.Count;
     }
-    
-    public static bool FlexEq(string test, string target, List<string> years)
+
+    public bool FlexEq(string test, string target, List<string> years)
     {
         var movieTitle = TorrentTitleParser.Parse(test).Movie.Title.ToLower();
-        var tvTitle = TorrentTitleParser.Parse(test, true).Show.Title.ToLower();
+        var tvTitle = TorrentTitleParser.Parse(test).Show.Title.ToLower();
 
         var target2 = WhitespaceMatcher().Replace(target, "");
         var test2 = WhitespaceMatcher().Replace(test, "");
@@ -230,7 +227,7 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
         return StrictEqual(target, movieTitle) || StrictEqual(target, tvTitle);
     }
 
-    public static bool MatchesTitle(string target, List<string> years, string test)
+    public bool MatchesTitle(string target, List<string> years, string test)
     {
         target = target.ToLower();
         test = test.ToLower();
@@ -250,7 +247,7 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
             return false;
         }
 
-        var keyTerms = splits.Where(s => (s.Length > 1 && !Dictionary.Contains(s)) || s.Length > 5).ToList();
+        var keyTerms = splits.Where(s => (s.Length > 1 && !wordCollections.CommonWords.Contains(s)) || s.Length > 5).ToList();
         keyTerms.AddRange(target.Split(WhitespaceSeparator, StringSplitOptions.RemoveEmptyEntries).Where(e => e.Length > 2));
         var keySet = new HashSet<string>(keyTerms);
         var commonTerms = splits.Where(s => !keySet.Contains(s)).ToList();
@@ -269,8 +266,8 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
 
         return Math.Floor(score / 0.85) >= totalScore;
     }
-    
-    public static bool IncludesMustHaveTerms(List<string> mustHaveTerms, string testTitle) =>
+
+    public bool IncludesMustHaveTerms(List<string> mustHaveTerms, string testTitle) =>
         mustHaveTerms.All(term =>
         {
             var newTitle = testTitle.Replace(term, "");
@@ -301,24 +298,24 @@ public partial class ParsingService(AdultContentConfiguration adultContentConfig
     {
         var words = WordMatcher().Split(testTitle.ToLower()).Where(word => word.Length > 3).ToList();
 
-        var hasBannedWords = words.Any(word => !targetTitle.Contains(word) && adultContentConfiguration.Keywords.Contains(word));
+        var hasBannedWords = words.Any(word => !targetTitle.Contains(word) && wordCollections.AdultWords.Contains(word));
 
         var titleWithoutSymbols = string.Join(' ', WordMatcher().Split(testTitle.ToLower()));
 
-        var hasBannedCompoundWords = adultContentConfiguration.CompoundKeywords.Any(compoundWord => !targetTitle.Contains(compoundWord) && titleWithoutSymbols.Contains(compoundWord));
+        var hasBannedCompoundWords = wordCollections.AdultCompoundPhrases.Any(compoundWord => !targetTitle.Contains(compoundWord) && titleWithoutSymbols.Contains(compoundWord));
 
         return !hasBannedWords && !hasBannedCompoundWords;
     }
 
     public bool MeetsTitleConditions(string targetTitle, List<string> years, string testTitle) => MatchesTitle(targetTitle, years, testTitle) && HasNoBannedTerms(targetTitle, testTitle);
 
-    public static int CountUncommonWords(string title)
+    public int CountUncommonWords(string title)
     {
         var processedTitle = WhitespaceMatcher().Split(title)
             .Select(word => WordProcessingMatcher().Replace(word.ToLower(), ""))
             .Where(word => word.Length > 3)
             .ToList();
 
-        return processedTitle.Count(word => !Dictionary.Contains(word));
+        return processedTitle.Count(word => !wordCollections.CommonWords.Contains(word));
     }
 }

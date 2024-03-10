@@ -34,4 +34,11 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+        <Content Remove="Data\**" />
+        <None Include="Data\**">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
 </Project>
