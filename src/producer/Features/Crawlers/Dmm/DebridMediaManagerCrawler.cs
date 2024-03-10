@@ -4,13 +4,11 @@ public partial class DebridMediaManagerCrawler(
     IHttpClientFactory httpClientFactory,
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
-    GithubConfiguration githubConfiguration) : BaseCrawler(logger, storage)
+    GithubConfiguration githubConfiguration,
+    IParsingService parsingService) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
-
-    [GeneratedRegex(@"[sS]([0-9]{1,2})|seasons?[\s-]?([0-9]{1,2})", RegexOptions.IgnoreCase, "en-GB")]
-    private static partial Regex SeasonMatcher();
 
     private const string DownloadBaseUrl = "https://raw.githubusercontent.com/debridmediamanager/hashlists/main";
 
@@ -95,23 +93,70 @@ public partial class DebridMediaManagerCrawler(
 
     private Torrent? ParseTorrent(JsonElement item)
     {
-        var torrent = new Torrent
-        {
-            Source = Source,
-            Name = item.GetProperty("filename").GetString(),
-            Size = item.GetProperty("bytes").GetInt64().ToString(),
-            InfoHash = item.GetProperty("hash").ToString(),
-            Seeders = 0,
-            Leechers = 0,
-        };
 
-        if (string.IsNullOrEmpty(torrent.Name))
+        if (!item.TryGetProperty("filename", out var filenameElement) ||
+            !item.TryGetProperty("bytes", out var bytesElement) ||
+            !item.TryGetProperty("hash", out var hashElement))
         {
             return null;
         }
 
-        torrent.Category = SeasonMatcher().IsMatch(torrent.Name) ? "tv" : "movies";
+        var parsedTorrent = parsingService.Parse(filenameElement.GetString());
 
+        if (parsedTorrent.IsInvalid)
+        {
+            return null;
+        }
+
+        var torrent = new Torrent
+        {
+            Source = Source,
+            Size = bytesElement.GetInt64().ToString(),
+            InfoHash = hashElement.ToString(),
+            Seeders = 0,
+            Leechers = 0,
+        };
+
+        return parsedTorrent.Type switch
+        {
+            TorrentType.Movie => HandleMovieType(torrent, parsedTorrent),
+            TorrentType.Tv => HandleTvType(torrent, parsedTorrent),
+            _ => null,
+        };
+    }
+
+    private Torrent HandleMovieType(Torrent torrent, ParsedFilename parsedTorrent)
+    {
+        if (parsedTorrent.Movie.ReleaseTitle.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        if (!parsingService.HasNoBannedTerms(parsedTorrent.Movie.ReleaseTitle))
+        {
+            logger.LogWarning("Banned terms found in {Title}", parsedTorrent.Movie.ReleaseTitle);
+            return null;
+        }
+
+        torrent.Category = "movies";
+        torrent.Name = parsedTorrent.Movie.ReleaseTitle;
+        return torrent;
+    }
+
+    private Torrent HandleTvType(Torrent torrent, ParsedFilename parsedTorrent)
+    {
+        if (parsedTorrent.Show.ReleaseTitle.IsNullOrEmpty())
+        {
+            return null;
+        }
+
+        if (!parsingService.HasNoBannedTerms(parsedTorrent.Show.ReleaseTitle))
+        {
+            return null;
+        }
+
+        torrent.Category = "tv";
+        torrent.Name = parsedTorrent.Show.ReleaseTitle;
         return torrent;
     }
 
@@ -119,6 +164,7 @@ public partial class DebridMediaManagerCrawler(
     {
         var torrents = json.RootElement.EnumerateArray()
             .Select(ParseTorrent)
+            .Where(t => t is not null)
             .ToList();
 
         if (torrents.Count == 0)

@@ -10,7 +10,6 @@ import {IMetadataService} from "@interfaces/metadata_service";
 import {IMongoRepository} from "@mongo/interfaces/mongo_repository";
 import {IocTypes} from "@setup/ioc_types";
 import axios from 'axios';
-import {ResultTypes, search} from 'google-sr';
 import {inject, injectable} from "inversify";
 import nameToImdb from 'name-to-imdb';
 
@@ -46,10 +45,7 @@ export class MetadataService implements IMetadataService {
         const name = this.escapeTitle(info.title!);
         const year = info.year || (info.date && info.date.slice(0, 4));
         const key = `${name}_${year || 'NA'}_${info.type}`;
-        const query = `${name} ${year || ''} ${info.type} imdb`;
-        const fallbackQuery = `${name} ${info.type} imdb`;
-        const googleQuery = year ? query : fallbackQuery;
-
+        
         const imdbInMongo = await this.mongoRepository.getImdbId(name, info.type, year);
 
         if (imdbInMongo) {
@@ -62,8 +58,7 @@ export class MetadataService implements IMetadataService {
             );
             return imdbId && 'tt' + imdbId.replace(/tt0*([1-9][0-9]*)$/, '$1').padStart(7, '0');
         } catch (error) {
-            const imdbIdFallback = await this.getIMDbIdFromGoogle(googleQuery);
-            return imdbIdFallback && 'tt' + imdbIdFallback.toString().replace(/tt0*([1-9][0-9]*)$/, '$1').padStart(7, '0');
+            return undefined;
         }
     }
 
@@ -219,24 +214,5 @@ export class MetadataService implements IMetadataService {
                 }
             });
         });
-    };
-
-    private getIMDbIdFromGoogle = async (query: string): Promise<string | undefined> => {
-        try {
-            const searchResults = await search({query: query});
-            for (const result of searchResults) {
-                if (result.type === ResultTypes.SearchResult) {
-                    if (result.link.includes('imdb.com/title/')) {
-                        const match = result.link.match(/imdb\.com\/title\/(tt\d+)/);
-                        if (match) {
-                            return match[1];
-                        }
-                    }
-                }
-            }
-            return undefined;
-        } catch (error) {
-            throw new Error('Failed to find IMDb ID from Google search');
-        }
     };
 }

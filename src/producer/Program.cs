@@ -10,6 +10,8 @@ builder.Services
     .RegisterMassTransit()
     .AddDataStorage()
     .AddCrawlers()
+    .RegisterWordCollections()
+    .RegisterParseTorrentTitle()
     .AddQuartz(builder.Configuration);
 
 var host = builder.Build();

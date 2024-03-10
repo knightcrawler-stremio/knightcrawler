@@ -190,7 +190,6 @@ public partial class TorrentioCrawler(
             Source = $"{Source}_{instance.Name}",
             InfoHash = infoHash,
             Category = "movies", // we only handle movies for now...
-            Imdb = imdbId,
         };
 
         var span = title.AsSpan();
