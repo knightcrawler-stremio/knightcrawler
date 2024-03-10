@@ -139,8 +139,8 @@ repositories you have.
        90 days
    Description:
        <blank>
-   Respository access:
-       (checked) Public Repositories (read-only) 
+   Repository access:
+       (checked) Public Repositories (read-only)
    ```
 
 4. Click `Generate token`.
@@ -175,7 +175,7 @@ The Knight Crawler configuration page should now be accessible in your web brows
 
 ## Start more consumers
 
-If you wish to speed up the processing of the films and tv shows that Knight Crawler finds, then you'll likely want to 
+If you wish to speed up the processing of the films and tv shows that Knight Crawler finds, then you'll likely want to
 increase the number of consumers.
 
 The below command can be used to both increase or decrease the number of running consumers. Gradually increase the number
