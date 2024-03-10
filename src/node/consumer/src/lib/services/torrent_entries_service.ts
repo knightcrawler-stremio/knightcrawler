@@ -96,6 +96,9 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                     newVideo.kitsuId = 0;
                     newVideo.kitsuEpisode = 0;
                 }
+                if (newVideo.imdbEpisode && !newVideo.imdbSeason) {
+                    newVideo.imdbSeason = 1;
+                }
                 return this.repository.createFile(newVideo)
             })))
             .then(() => this.logger.info(`Created ${torrent.provider} entry for [${torrent.infoHash}] ${torrent.title}`));
