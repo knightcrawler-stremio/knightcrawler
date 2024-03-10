@@ -17,7 +17,7 @@ To enable external access for Knight Crawler, whether it's within your home netw
 need to follow these initial setup steps:
 
 - Set up Caddy, a powerful and easy-to-use web server.
-- Disable the open port in the Knight Crawler <path>docker-compose.yaml<path> file.
+- Disable the open port in the Knight Crawler <path>docker-compose.yaml</path> file.
 
 
 ### Caddy
