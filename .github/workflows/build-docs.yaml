@@ -1,5 +1,7 @@
 name: Build documentation
 
+# TODO: Only run on ./docs folder change
+
 on:
   push:
     branches: ["master"]
