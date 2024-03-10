@@ -117,7 +117,7 @@ public partial class TorrentTitleParser : ITorrentTitleParser
        };
     }
 
-    private static TorrentType GetTypeByName(string name)
+    public TorrentType GetTypeByName(string name)
     {
         var tvRegexes = new[]
         {
