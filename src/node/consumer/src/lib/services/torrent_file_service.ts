@@ -57,11 +57,6 @@ export class TorrentFileService implements ITorrentFileService {
             return Promise.reject(new Error('Failed to retrieve metadata'));
         }
 
-        if (torrent.type !== TorrentType.Anime && metadata && metadata.type && metadata.type !== torrent.type) {
-            // it's actually a movie/series
-            torrent.type = metadata.type;
-        }
-
         if (torrent.type === TorrentType.Movie && (!parsedTorrentName.seasons ||
             parsedTorrentName.season === 5 && [1, 5].includes(parsedTorrentName.episode || 0))) {
             return this.parseMovieFiles(torrent, metadata);

@@ -86,6 +86,8 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             contents: fileCollection.contents,
             subtitles: fileCollection.subtitles
         });
+        
+        newTorrent.type = newTorrent.type.toLowerCase();
 
         return this.repository.createTorrent(newTorrent)
             .then(() => PromiseHelpers.sequence(fileCollection.videos!.map(video => () => {
