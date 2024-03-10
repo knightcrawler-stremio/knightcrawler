@@ -195,6 +195,10 @@ export class TorrentFileService implements ITorrentFileService {
                     title: file.path || file.title,
                     size: file.size,
                     imdbId: torrent?.imdbId?.toString() || file?.imdbId?.toString() || '',
+                    kitsuId: torrent?.kitsuId || file.kitsuId || 0,
+                    imdbSeason: file.imdbSeason,
+                    imdbEpisode: file.imdbEpisode,
+                    kitsuEpisode: file.kitsuEpisode,
                 }]);
             }
             return Promise.resolve([]);
@@ -206,11 +210,11 @@ export class TorrentFileService implements ITorrentFileService {
             title: file.path || file.title,
             size: file.size,
             imdbId: file?.imdbId?.toString() || torrent?.imdbId?.toString() || '',
-            imdbSeason: file.season,
+            imdbSeason: file.imdbSeason,
             season: file.season,
             imdbEpisode: file.episodes && file.episodes[index],
             episode: file.episodes && file.episodes[index],
-            kitsuEpisode: file.episodes && file.episodes[index],
+            kitsuEpisode: file.kitsuId && file.kitsuId !== 0 && file.episodes && file.episodes[index],
             episodes: file.episodes,
             kitsuId: parseInt(file.kitsuId?.toString() || torrent.kitsuId?.toString() || '0') || 0,
         })))
@@ -493,13 +497,21 @@ export class TorrentFileService implements ITorrentFileService {
                     const episodeMapping = seasonMapping && file && file.episodes && file.episodes[0] && seasonMapping[file.episodes[0]] || null;
 
                     if (episodeMapping && Number.isInteger(episodeMapping.season)) {
-                        file.imdbId = metadata.imdbId?.toString();
+                        file.imdbId = metadata.imdbId?.toString() !== "NaN" ? metadata.imdbId?.toString() : file.imdbId;
                         file.season = episodeMapping.season;
                         file.episodes = file.episodes && file.episodes.map(ep => (seasonMapping && seasonMapping[ep]) ? Number(seasonMapping[ep].episode) : 0);
                     } else {
-                        file.season = undefined;
                         file.episodes = undefined;
                     }
+
+                    if (file.imdbId && file.season && file.episodes?.length > 0 && file.imdbEpisode === undefined && file.episode === undefined) {
+                        file.imdbEpisode = file.episodes[0];
+                        file.episode = file.episodes[0];
+                        file.imdbSeason = file.season;
+                    }
+
+                    this.patchMissingImdbValues(file);
+                    this.patchMissingKitsuValues(file);
                 });
         } else if (metadata.videos.some(video => video.episode)) {
             // imdb episode info is base
@@ -512,7 +524,7 @@ export class TorrentFileService implements ITorrentFileService {
                     if (seriesMapping[file.season]) {
 
                         const seasonMapping = seriesMapping[file.season];
-                        file.imdbId = metadata.imdbId?.toString();
+                        file.imdbId = metadata.imdbId?.toString() !== "NaN" ? metadata.imdbId?.toString() : file.imdbId;
                         file.kitsuId = seasonMapping[file.episodes[0]] && parseInt(seasonMapping[file.episodes[0]].id || '0') || 0;
                         file.episodes = file.episodes.map(ep => seasonMapping[ep]?.episode)
                             .filter((ep): ep is number => ep !== undefined);
@@ -532,7 +544,7 @@ export class TorrentFileService implements ITorrentFileService {
                         if (differentTitlesCount >= 1 && (isAbsoluteOrder || isNormalOrder)) {
                             const {season} = file;
                             const [episode] = file.episodes;
-                            file.imdbId = metadata.imdbId?.toString();
+                            file.imdbId = metadata.imdbId?.toString() !== "NaN" ? metadata.imdbId?.toString() : file.imdbId;
                             file.season = file.season - 1;
                             file.episodes = file.episodes.map(ep => isAbsoluteOrder ? ep : ep + skippedCount);
                             const currentEpisode = seriesMapping[season][episode];
@@ -549,15 +561,33 @@ export class TorrentFileService implements ITorrentFileService {
                         // sometimes series might be named with sequel season but it's not a season on imdb and a new title
                         // eslint-disable-next-line prefer-destructuring
                         const seasonMapping = seriesMapping[1];
-                        file.imdbId = metadata.imdbId?.toString();
+                        file.imdbId = metadata.imdbId?.toString() !== "NaN" ? metadata.imdbId?.toString() : file.imdbId;
                         file.season = 1;
                         file.kitsuId = parseInt(seasonMapping[file.episodes[0]].id || '0') || 0;
                         file.episodes = file.episodes.map(ep => seasonMapping[ep] && seasonMapping[ep].episode)
                             .filter((ep): ep is number => ep !== undefined);
                     }
+
+                    this.patchMissingImdbValues(file);
+                    this.patchMissingKitsuValues(file);
                 });
         }
         return files;
+    };
+
+    private patchMissingKitsuValues = (file: IFileAttributes) : void => {
+        if (file.kitsuId !== 0 && file.kitsuId !== undefined && file.season && file.episodes?.length > 0 && file.imdbEpisode === undefined && file.episode === undefined) {
+            file.kitsuEpisode = file.episodes[0];
+            file.episode = file.episodes[0];
+        }
+    };
+
+    private patchMissingImdbValues = (file: IFileAttributes) : void => {
+        if (file.imdbId && file.season && file.episodes?.length > 0 && file.imdbEpisode === undefined && file.episode === undefined) {
+            file.imdbEpisode = file.episodes[0];
+            file.episode = file.episodes[0];
+            file.imdbSeason = file.season;
+        }
     };
 
     private needsCinemetaMetadataForAnime = (files: IFileAttributes[], metadata: IMetadataResponse): boolean => {
@@ -649,7 +679,7 @@ export class TorrentFileService implements ITorrentFileService {
     private isFeaturette = (video: IFileAttributes): boolean => /featurettes?\/|extras-grym/i.test(video.path!);
 
     private parseSeriesVideo = (video: IFileAttributes): IFileAttributes => {
-        const videoInfo = parse(video.title);
+        const videoInfo = parse(video.path);
         // the episode may be in a folder containing season number
         if (!Number.isInteger(videoInfo.season) && video.path?.includes('/')) {
             const folders = video.path?.split('/');
@@ -691,7 +721,17 @@ export class TorrentFileService implements ITorrentFileService {
             videoInfo.episode = videoInfo.episodes && videoInfo.episodes[0];
         }
 
-        return {...video, ...videoInfo};
+        let response : IFileAttributes = {...video, ...videoInfo};
+        
+        if (video.imdbId && video.imdbId !== "0") {
+            response = {...response, imdbEpisode: videoInfo.episode, imdbSeason: videoInfo.season};
+        }
+
+        if (video.kitsuId && video.kitsuId !== 0) {
+            response = {...response, kitsuEpisode: videoInfo.episode};
+        }
+        
+        return response;
     };
 
     private isMovieVideo = (torrent: IParsedTorrent, video: IFileAttributes, otherVideos: IFileAttributes[], hasMovies: boolean): boolean => {

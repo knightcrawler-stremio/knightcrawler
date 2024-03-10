@@ -41,7 +41,7 @@ export class TorrentSubtitleService implements ITorrentSubtitleService {
         return Object.assign(video, {
             fileName: fileName,
             folderName: folderName,
-            ...this.parseFilename(video.title.toString() || '')
+            ...this.parseFilename(video.path || '')
         });
     }
 

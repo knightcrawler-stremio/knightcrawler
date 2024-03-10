@@ -92,6 +92,7 @@ export class TorrentEntriesService implements ITorrentEntriesService {
                 const newVideo: IFileCreationAttributes = {...video, infoHash: video.infoHash, title: video.title};
                 if (!newVideo.kitsuId) {
                     newVideo.kitsuId = 0;
+                    newVideo.kitsuEpisode = 0;
                 }
                 return this.repository.createFile(newVideo)
             })))
