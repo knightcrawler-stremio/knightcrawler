@@ -1,0 +1,14 @@
+name: Build and Push Migrator Service
+
+on:
+  push:
+    paths:
+      - 'src/migrator/**'
+
+jobs:
+  process:
+    uses: ./.github/workflows/base_image_workflow.yaml
+    secrets: inherit
+    with:
+      CONTEXT: ./src/migrator/
+      IMAGE_NAME: knightcrawler-migrator

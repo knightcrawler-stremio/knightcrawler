@@ -1,0 +1,4 @@
+migrations: "./migrations"
+schema:
+  name: "public"
+  file: "./schema.sql"
