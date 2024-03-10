@@ -5,7 +5,7 @@
     <variables>
         <header-logo>knight-crawler-logo.png</header-logo>
     </variables>
-    <build-profile instance="hi">
+    <build-profile instance="kc">
         <variables>
             <noindex-content>true</noindex-content>
         </variables>

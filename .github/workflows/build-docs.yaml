@@ -11,8 +11,8 @@ permissions:
   pages: write
 
 env:
-  INSTANCE: Writerside/hi
-  ARTIFACT: webHelpHI2-all.zip
+  INSTANCE: Writerside/kc
+  ARTIFACT: webHelpKC2-all.zip
   DOCS_FOLDER: ./docs
 
 jobs:
