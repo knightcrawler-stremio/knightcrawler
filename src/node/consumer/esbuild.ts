@@ -6,13 +6,15 @@ async function build(): Promise<void> {
         bundle: true,
         format: 'cjs',
         platform: 'node',
-        // minify: true,
         logLevel: 'silent',
-        outdir: tsconfig.compilerOptions.outDir,
+        outfile: 'dist/main.cjs',
         entryPoints: [`src/main.ts`],
         target: [tsconfig.compilerOptions.target],
         external: ['webtorrent'],
         keepNames: true,
     })
 }
+
 build()
+    .then(() => console.log('Build complete'))
+    .catch(() => process.exit(1));
