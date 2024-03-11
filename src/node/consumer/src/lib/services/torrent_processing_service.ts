@@ -28,11 +28,6 @@ export class TorrentProcessingService implements ITorrentProcessingService {
         return this.torrentEntriesService.createTorrentEntry(torrentInfo, false);
     }
 
-    private assignTorrentTrackers = async (): Promise<string> => {
-        const trackers = await this.trackerService.getTrackers();
-        return trackers.join(',');
-    }
-
     private parseTorrent = async (torrent: IIngestedTorrentAttributes, category: string): Promise<IParsedTorrent> => {
         const infoHash = torrent.info_hash?.trim().toLowerCase()
         return {
@@ -45,7 +40,6 @@ export class TorrentProcessingService implements ITorrentProcessingService {
             imdbId: this.parseImdbId(torrent),
             type: category,
             provider: torrent.source,
-            trackers: await this.assignTorrentTrackers(),
         }
     };
 

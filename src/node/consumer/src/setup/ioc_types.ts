@@ -11,6 +11,7 @@ export const IocTypes = {
     ITorrentProcessingService: Symbol.for("ITorrentProcessingService"),
     ITorrentSubtitleService: Symbol.for("ITorrentSubtitleService"),
     ITrackerService: Symbol.for("ITrackerService"),
+    IWebTorrentService: Symbol.for("IWebTorrentService"),
     // DAL
     IDatabaseRepository: Symbol.for("IDatabaseRepository"),
     IMongoRepository: Symbol.for("IMongoRepository"),

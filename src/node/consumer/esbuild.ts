@@ -1,47 +1,18 @@
-import { build } from "esbuild";
-import { readFileSync, rmSync } from "fs";
+import * as esbuild from 'esbuild'
+import tsconfig from './tsconfig.json'
 
-const start = Date.now();
-
-try {
-    const outdir = "dist";
-
-    rmSync(outdir, { recursive: true, force: true });
-
-    build({
+async function build(): Promise<void> {
+    await esbuild.build({
         bundle: true,
-        entryPoints: [
-            "./src/main.ts",
-        ],
+        format: 'cjs',
+        platform: 'node',
+        // minify: true,
+        logLevel: 'silent',
+        outdir: tsconfig.compilerOptions.outDir,
+        entryPoints: [`src/main.ts`],
+        target: [tsconfig.compilerOptions.target],
+        external: ['webtorrent'],
         keepNames: true,
-        minify: true,
-        outbase: "./src",
-        outdir,
-        outExtension: {
-            ".js": ".cjs",
-        },
-        platform: "node",
-        plugins: [
-            {
-                name: "populate-import-meta",
-                setup: ({ onLoad }) => {
-                    onLoad({ filter: new RegExp(`${import.meta.dirname}/src/.*.(js|ts)$`) }, args => {
-                        const contents = readFileSync(args.path, "utf8");
-
-                        const transformedContents = contents
-                            .replace(/import\.meta/g, `{dirname:__dirname,filename:__filename}`)
-                            .replace(/import\.meta\.filename/g, "__filename")
-                            .replace(/import\.meta\.dirname/g, "__dirname");
-
-                        return { contents: transformedContents, loader: "default" };
-                    });
-                },
-            }
-        ],
-    }).then(() => {
-        console.log("⚡ " + "\x1b[32m" + `Done in ${Date.now() - start}ms`);
-    });
-} catch (e) {
-    console.log(e);
-    process.exit(1);
+    })
 }
+build()

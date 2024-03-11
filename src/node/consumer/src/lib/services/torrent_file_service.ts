@@ -25,25 +25,31 @@ export class TorrentFileService implements ITorrentFileService {
     @inject(IocTypes.ILoggingService) logger: ILoggingService;
 
     async parseTorrentFiles(torrent: IParsedTorrent): Promise<ITorrentFileCollection> {
-        if (!torrent.title) {
-            return Promise.reject(new Error('Torrent title is missing'));
-        }
+       try {
+           if (!torrent.title) {
+               return Promise.reject(new Error('Torrent title is missing'));
+           }
 
-        if (!torrent.infoHash) {
-            return Promise.reject(new Error('Torrent infoHash is missing'));
-        }
+           if (!torrent.infoHash) {
+               return Promise.reject(new Error('Torrent infoHash is missing'));
+           }
 
-        let fileCollection: ITorrentFileCollection;
+           let fileCollection: ITorrentFileCollection;
 
-        const isSeries = parse(torrent.title).seasons || this.isSeries(torrent.title);
+           const isSeries = parse(torrent.title).seasons || this.isSeries(torrent.title);
 
-        if (!isSeries){
-            fileCollection = await this.parseMovieFiles(torrent);
-        } else {
-            fileCollection = await this.parseSeriesFiles(torrent);
-        }
+           if (!isSeries){
+               fileCollection = await this.parseMovieFiles(torrent);
+           } else {
+               fileCollection = await this.parseSeriesFiles(torrent);
+           }
 
-        return fileCollection;
+           return fileCollection;
+       }
+         catch (error) {
+              this.logger.error('Error while parsing torrent files', error);
+              return Promise.reject(error);
+         }
     }
 
     isPackTorrent(torrent: IParsedTorrent): boolean {
@@ -77,54 +83,66 @@ export class TorrentFileService implements ITorrentFileService {
     };
 
     private parseMovieFiles = async (torrent: IParsedTorrent): Promise<ITorrentFileCollection> => {
-        const fileCollection: ITorrentFileCollection = await this.getMoviesTorrentContent(torrent);
-        if (fileCollection.videos === undefined || fileCollection.videos.length === 0) {
-            return {...fileCollection, videos: this.getDefaultFileEntries(torrent)};
-        }
+       try {
+           const fileCollection: ITorrentFileCollection = await this.getMoviesTorrentContent(torrent);
+           if (fileCollection.videos === undefined || fileCollection.videos.length === 0) {
+               return {...fileCollection, videos: this.getDefaultFileEntries(torrent)};
+           }
 
-        const filteredVideos = fileCollection.videos
-            .filter(video => video.size! > MIN_SIZE)
-            .filter(video => !this.isFeaturette(video));
-        if (this.isSingleMovie(filteredVideos)) {
-            const parsedVideos = filteredVideos.map(video => ({
-                infoHash: torrent.infoHash,
-                fileIndex: video.fileIndex,
-                title: video.title || video.path || video.fileName || '',
-                size: video.size || torrent.size,
-                imdbId: torrent.imdbId?.toString(),
-                kitsuId: parseInt(torrent.kitsuId?.toString() || '0')
-            }));
-            return {...fileCollection, videos: parsedVideos};
-        }
+           const filteredVideos = fileCollection.videos
+               .filter(video => video.size! > MIN_SIZE)
+               .filter(video => !this.isFeaturette(video));
+           if (this.isSingleMovie(filteredVideos)) {
+               const parsedVideos = filteredVideos.map(video => ({
+                   infoHash: torrent.infoHash,
+                   fileIndex: video.fileIndex,
+                   title: video.title || video.path || video.fileName || '',
+                   size: video.size || torrent.size,
+                   imdbId: torrent.imdbId?.toString(),
+                   kitsuId: parseInt(torrent.kitsuId?.toString() || '0')
+               }));
+               return {...fileCollection, videos: parsedVideos};
+           }
 
-        const parsedVideos = filteredVideos.map(video => ({
-            infoHash: torrent.infoHash,
-            fileIndex: video.fileIndex,
-            title: video.title || video.path,
-            size: video.size,
-            imdbId: torrent.imdbId.toString() || ''
-        }));
+           const parsedVideos = filteredVideos.map(video => ({
+               infoHash: torrent.infoHash,
+               fileIndex: video.fileIndex,
+               title: video.title || video.path,
+               size: video.size,
+               imdbId: torrent.imdbId.toString() || ''
+           }));
 
-        return {...fileCollection, videos: parsedVideos};
+           return {...fileCollection, videos: parsedVideos};
+       }
+         catch (error) {
+              this.logger.error('Error while parsing movie files', error);
+              return Promise.reject(error);
+         }
     };
 
     private parseSeriesFiles = async (torrent: IParsedTorrent): Promise<ITorrentFileCollection> => {
-        const fileCollection: ITorrentFileCollection = await this.getSeriesTorrentContent(torrent);
-        if (fileCollection.videos === undefined || fileCollection.videos.length === 0) {
-            return {...fileCollection, videos: this.getDefaultFileEntries(torrent)};
-        }
+        try {
+            const fileCollection: ITorrentFileCollection = await this.getSeriesTorrentContent(torrent);
+            if (fileCollection.videos === undefined || fileCollection.videos.length === 0) {
+                return {...fileCollection, videos: this.getDefaultFileEntries(torrent)};
+            }
 
-        const parsedVideos: IFileAttributes[] = await Promise.resolve(fileCollection.videos)
-            .then(videos => videos.filter(video => videos?.length === 1 || video.size! > MIN_SIZE))
-            .then(videos => this.parseSeriesVideos(torrent, videos))
-            .then(videos => videos
-                .reduce((a, b) => a.concat(b), [])
-                .map(video => this.isFeaturette(video) ? this.clearInfoFields(video) : video))
+            const parsedVideos: IFileAttributes[] = await Promise.resolve(fileCollection.videos)
+                .then(videos => videos.filter(video => videos?.length === 1 || video.size! > MIN_SIZE))
+                .then(videos => this.parseSeriesVideos(torrent, videos))
+                .then(videos => videos
+                    .reduce((a, b) => a.concat(b), [])
+                    .map(video => this.isFeaturette(video) ? this.clearInfoFields(video) : video))
                 .then(videos => Promise.all(videos.flatMap(video => this.mapSeriesEpisode(torrent, video, videos))))
                 .then(videos => videos.flat());
 
 
-        return {...torrent.fileCollection, videos: parsedVideos};
+            return {...torrent.fileCollection, videos: parsedVideos};
+        }
+        catch (error) {
+            this.logger.error('Error while parsing series files', error);
+            return Promise.reject(error);
+        }
     };
 
     private getMoviesTorrentContent = async (torrent: IParsedTorrent): Promise<ITorrentFileCollection> => {

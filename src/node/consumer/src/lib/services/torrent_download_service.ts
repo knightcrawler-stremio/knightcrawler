@@ -6,79 +6,53 @@ import {ITorrentFileCollection} from "@interfaces/torrent_file_collection";
 import {IContentAttributes} from "@repository/interfaces/content_attributes";
 import {IFileAttributes} from "@repository/interfaces/file_attributes";
 import {ISubtitleAttributes} from "@repository/interfaces/subtitle_attributes";
-import {configurationService} from '@services/configuration_service';
 import {IocTypes} from "@setup/ioc_types";
 import {inject, injectable} from "inversify";
 import {encode} from 'magnet-uri';
 import {parse} from "parse-torrent-title";
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as torrentStream from "torrent-stream";
-import TorrentEngine = TorrentStream.TorrentEngine;
-import TorrentEngineOptions = TorrentStream.TorrentEngineOptions;
+import {IWebTorrentService} from "@interfaces/webtorrent_service";
+import {ITorrentFile} from "@interfaces/torrent_file";
 
-interface ITorrentFile {
-    name: string;
-    path: string;
-    length: number;
-    fileIndex: number;
-}
 
 @injectable()
 export class TorrentDownloadService implements ITorrentDownloadService {
     @inject(IocTypes.ILoggingService) private logger: ILoggingService;
-
-    private engineOptions: TorrentEngineOptions = {
-        connections: configurationService.torrentConfig.MAX_CONNECTIONS_PER_TORRENT,
-        uploads: 0,
-        verify: false,
-        dht: false,
-        tracker: true,
-    };
+    @inject(IocTypes.IWebTorrentService) private webTorrentService: IWebTorrentService;
 
     async getTorrentFiles(torrent: IParsedTorrent, timeout: number = 30000): Promise<ITorrentFileCollection> {
-        const torrentFiles: ITorrentFile[] = await this.filesFromTorrentStream(torrent, timeout);
+        try {
+            const torrentFiles: ITorrentFile[] = await this.filesFromWebTorrent(torrent, timeout);
 
-        const videos = this.filterVideos(torrent, torrentFiles);
-        const subtitles = this.filterSubtitles(torrent, torrentFiles);
-        const contents = this.createContent(torrent, torrentFiles);
+            const videos = this.filterVideos(torrent, torrentFiles);
+            const subtitles = this.filterSubtitles(torrent, torrentFiles);
+            const contents = this.createContent(torrent, torrentFiles);
 
-        return {
-            contents: contents,
-            videos: videos,
-            subtitles: subtitles,
-        };
+            return {
+                contents: contents,
+                videos: videos,
+                subtitles: subtitles,
+            };
+        } catch (error) {
+            this.logger.error(`Error while getting torrent files for ${torrent.infoHash}: ${error}`);
+            return Promise.reject(error);
+        }
     }
 
-    private filesFromTorrentStream = async (torrent: IParsedTorrent, timeout: number): Promise<ITorrentFile[]> => {
+    private filesFromWebTorrent = async (torrent: IParsedTorrent, timeout: number): Promise<ITorrentFile[]> => {
         if (!torrent.infoHash) {
             return Promise.reject(new Error("No infoHash..."));
         }
-        const magnet = encode({infoHash: torrent.infoHash, announce: torrent.trackers!.split(',')});
+
+        const magnet = encode({infoHash: torrent.infoHash});
 
         return new Promise((resolve, reject) => {
-            this.logger.debug(`Adding torrent with infoHash ${torrent.infoHash} to torrent engine...`);
-
-            const timeoutId = setTimeout(() => {
-                engine.destroy(() => {
+            this.webTorrentService.getTorrentContents(magnet, timeout)
+                .then(files => {
+                    resolve(files);
+                })
+                .catch(error => {
+                    reject(error);
                 });
-                reject(new Error('No available connections for torrent!'));
-            }, timeout);
-
-            const engine: TorrentEngine = torrentStream.default(magnet, this.engineOptions);
-
-            engine.on("ready", () => {
-                const files: ITorrentFile[] = engine.files.map((file, fileId) => ({
-                    fileIndex: fileId,
-                    length: file.length,
-                    name: file.name,
-                    path: file.path,
-                }));
-
-                resolve(files);
-                clearTimeout(timeoutId);
-                engine.destroy(() => {
-                });
-            });
         });
     };
 

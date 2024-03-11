@@ -25,6 +25,8 @@ import {TrackerService} from "@services/tracker_service";
 import {ICompositionalRoot, CompositionalRoot} from "@setup/composition_root";
 import {IocTypes} from "@setup/ioc_types";
 import {Container} from "inversify";
+import {WebTorrentService} from "@services/webtorrent_service";
+import {IWebTorrentService} from "@interfaces/webtorrent_service";
 
 const serviceContainer = new Container();
 
@@ -41,5 +43,6 @@ serviceContainer.bind<IMetadataService>(IocTypes.IMetadataService).to(MetadataSe
 serviceContainer.bind<IDatabaseRepository>(IocTypes.IDatabaseRepository).to(DatabaseRepository);
 serviceContainer.bind<IMongoRepository>(IocTypes.IMongoRepository).to(MongoRepository);
 serviceContainer.bind<IProcessTorrentsJob>(IocTypes.IProcessTorrentsJob).to(ProcessTorrentsJob);
+serviceContainer.bind<IWebTorrentService>(IocTypes.IWebTorrentService).to(WebTorrentService).inSingletonScope();
 
 export {serviceContainer};
