@@ -27,6 +27,6 @@ public class NyaaCrawler(IHttpClientFactory httpClientFactory, ILogger<NyaaCrawl
             Seeders = int.Parse(itemNode.Element(XmlNamespace + Mappings[nameof(Torrent.Seeders)])?.Value ?? "0"),
             Leechers = int.Parse(itemNode.Element(XmlNamespace + Mappings[nameof(Torrent.Leechers)])?.Value ?? "0"),
             InfoHash = itemNode.Element(XmlNamespace + Mappings[nameof(Torrent.InfoHash)])?.Value,
-            Category = itemNode.Element(Mappings[nameof(Torrent.Category)])?.Value.ToLowerInvariant(),
+            Category = itemNode.Element(XmlNamespace + Mappings[nameof(Torrent.Category)])?.Value.ToLowerInvariant(),
         };
 }
