@@ -81,6 +81,11 @@ export class TorrentEntriesService implements ITorrentEntriesService {
             return;
         }
 
+        if (fileCollection.videos.some(video => parse(torrent.title).season !== undefined && video.imdbEpisode === undefined && video.imdbSeason === undefined && video.kitsuEpisode === undefined)) {
+            this.logger.warn(`Unsatisfied episode and season found for ${torrent.provider} [${torrent.infoHash}] ${torrent.title} - skipping torrent`);
+            return;
+        }
+
         const newTorrent: ITorrentCreationAttributes = ({
             ...torrent,
             contents: fileCollection.contents,

@@ -14,6 +14,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@ctrl/video-filename-parser": "^5.2.0",
     "@tirke/node-cache-manager-mongodb": "^1.6.0",
     "amqplib": "^0.10.3",
     "axios": "^1.6.1",
