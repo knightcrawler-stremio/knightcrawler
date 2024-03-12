@@ -1,3 +1,6 @@
+using FuzzySharp;
+using Producer.Features.Parsing;
+
 namespace Producer.Features.Crawlers.Dmm;
 
 public partial class DebridMediaManagerCrawler(
@@ -5,7 +8,7 @@ public partial class DebridMediaManagerCrawler(
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
     GithubConfiguration githubConfiguration,
-    IParsingService parsingService) : BaseCrawler(logger, storage)
+    ImdbMongoDbService imdbDataService) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
@@ -91,7 +94,7 @@ public partial class DebridMediaManagerCrawler(
         logger.LogInformation("Successfully marked page as ingested");
     }
 
-    private Torrent? ParseTorrent(JsonElement item)
+    private async Task<Torrent?> ParseTorrent(JsonElement item)
     {
 
         if (!item.TryGetProperty("filename", out var filenameElement) ||
@@ -108,69 +111,43 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        var torrentType = parsingService.GetTypeByName(torrentTitle);
+        var parsedTitle = TorrentTitleParseService.ParseTorrentName(torrentTitle);
+        var torrentType = TorrentTitleParseService.GetTypeByName(torrentTitle);
+        var yearAsString = parsedTitle.Year == 0 ? null : parsedTitle.Year.ToString();
+        var imdbEntry = await imdbDataService.FindImdbEntry(parsedTitle.Title, torrentType, yearAsString);
+
+        if (imdbEntry is null)
+        {
+            logger.LogWarning("Failed to find imdb entry for {Title}", parsedTitle.Title);
+            return null;
+        }
 
         var torrent = new Torrent
         {
             Source = Source,
+            Name = imdbEntry.PrimaryTitle,
             Size = bytesElement.GetInt64().ToString(),
             InfoHash = hashElement.ToString(),
             Seeders = 0,
             Leechers = 0,
+            Category = torrentType switch
+            {
+                TorrentType.Movie => "movies",
+                TorrentType.Tv => "tv",
+                _ => "unknown",
+            },
         };
 
-        return torrentType switch
-        {
-            TorrentType.Movie => HandleMovieType(torrent, torrentTitle),
-            TorrentType.Tv => HandleTvType(torrent, torrentTitle),
-            _ => null,
-        };
-    }
-
-    private Torrent HandleMovieType(Torrent torrent, string title)
-    {
-        if (title.IsNullOrEmpty())
-        {
-            return null;
-        }
-
-        if (!parsingService.HasNoBannedTerms(title))
-        {
-            LogBannedTermsFound(torrent);
-            return null;
-        }
-
-        torrent.Category = "movies";
-        torrent.Name = title;
         return torrent;
     }
-
-    private Torrent HandleTvType(Torrent torrent, string title)
-    {
-        if (title.IsNullOrEmpty())
-        {
-            return null;
-        }
-
-        if (!parsingService.HasNoBannedTerms(title))
-        {
-            LogBannedTermsFound(torrent);
-            return null;
-        }
-
-        torrent.Category = "tv";
-        torrent.Name = title;
-        return torrent;
-    }
-
-    private void LogBannedTermsFound(Torrent torrent) => logger.LogWarning("Banned terms found in torrent title for ingested infoHash: {InfoHash}. Skipping", torrent.InfoHash);
 
     private async Task InsertTorrentsForPage(JsonDocument json)
     {
-        var torrents = json.RootElement.EnumerateArray()
-            .Select(ParseTorrent)
+        var torrents = await json.RootElement.EnumerateArray()
+            .ToAsyncEnumerable()
+            .SelectAwait(async x => await ParseTorrent(x))
             .Where(t => t is not null)
-            .ToList();
+            .ToListAsync();
 
         if (torrents.Count == 0)
         {

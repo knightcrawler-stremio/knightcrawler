@@ -24,6 +24,8 @@
       <PackageReference Include="Serilog" Version="3.1.1" />
       <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
       <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+      <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+      <PackageReference Include="TorrentTitleParser" Version="1.0.9" />
     </ItemGroup>
 
     <ItemGroup>
