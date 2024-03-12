@@ -1,8 +1,21 @@
 namespace Producer.Features.ParseTorrentTitle;
 
-public partial class ParsingService(IWordCollections wordCollections, ITorrentTitleParser torrentTitleParser) : IParsingService
+public partial class ParsingService : IParsingService
 {
+    private readonly IWordCollections _wordCollections;
+    private readonly ITorrentTitleParser _torrentTitleParser;
     private static readonly char[] WhitespaceSeparator = [' '];
+    private HashSet<string> _compoundWords = [];
+
+    public ParsingService(IWordCollections wordCollections, ITorrentTitleParser torrentTitleParser)
+    {
+        _wordCollections = wordCollections;
+        _torrentTitleParser = torrentTitleParser;
+
+        _compoundWords.UnionWith(_wordCollections.AdultCompoundPhrases);
+        _compoundWords.UnionWith(_wordCollections.Jav);
+        _compoundWords.UnionWith(_wordCollections.AdultStars);
+    }
 
     public string Naked(string title) =>
         NakedMatcher().Replace(title.ToLower(), "");
@@ -198,8 +211,8 @@ public partial class ParsingService(IWordCollections wordCollections, ITorrentTi
 
     public bool FlexEq(string test, string target, List<string> years)
     {
-        var movieTitle = torrentTitleParser.Parse(test).Movie.Title.ToLower();
-        var tvTitle = torrentTitleParser.Parse(test).Show.Title.ToLower();
+        var movieTitle = _torrentTitleParser.Parse(test).Movie.Title.ToLower();
+        var tvTitle = _torrentTitleParser.Parse(test).Show.Title.ToLower();
 
         var target2 = WhitespaceMatcher().Replace(target, "");
         var test2 = WhitespaceMatcher().Replace(test, "");
@@ -247,7 +260,7 @@ public partial class ParsingService(IWordCollections wordCollections, ITorrentTi
             return false;
         }
 
-        var keyTerms = splits.Where(s => (s.Length > 1 && !wordCollections.CommonWords.Contains(s)) || s.Length > 5).ToList();
+        var keyTerms = splits.Where(s => (s.Length > 1 && !_wordCollections.CommonWords.Contains(s)) || s.Length > 5).ToList();
         keyTerms.AddRange(target.Split(WhitespaceSeparator, StringSplitOptions.RemoveEmptyEntries).Where(e => e.Length > 2));
         var keySet = new HashSet<string>(keyTerms);
         var commonTerms = splits.Where(s => !keySet.Contains(s)).ToList();
@@ -296,42 +309,30 @@ public partial class ParsingService(IWordCollections wordCollections, ITorrentTi
 
     public bool HasNoBannedTerms(string targetTitle, string testTitle)
     {
-        var words = WordMatcher().Split(testTitle.ToLower()).Where(word => word.Length > 3).ToList();
+        var normalisedTitle = targetTitle.NormalizeTitle();
 
-        var hasBannedWords = words.Any(word => !targetTitle.Contains(word) && wordCollections.AdultWords.Contains(word));
+        var normalisedWords = normalisedTitle.Split(' ');
 
-        var titleWithoutSymbols = string.Join(' ', WordMatcher().Split(testTitle.ToLower()));
+        var hasBannedWords = normalisedWords.Where(word => word.Length >= 3).Any(word => !targetTitle.Contains(word) && _wordCollections.AdultWords.Contains(word));
 
-        var hasJavWords = wordCollections.Jav.Any(jav => !targetTitle.Contains(jav) && titleWithoutSymbols.Contains(jav));
-
-        var hasAdultStars = wordCollections.AdultStars.Any(star => !targetTitle.Contains(star) && titleWithoutSymbols.Contains(star));
-
-        var hasBannedCompoundWords = wordCollections.AdultCompoundPhrases.Any(compoundWord => !targetTitle.Contains(compoundWord) && titleWithoutSymbols.Contains(compoundWord));
+        var hasCompounds = _compoundWords.Any(term => normalisedTitle.Contains(term, StringComparison.OrdinalIgnoreCase));
 
         return !hasBannedWords &&
-               !hasJavWords &&
-               !hasAdultStars &&
-               !hasBannedCompoundWords;
+               !hasCompounds;
     }
 
     public bool HasNoBannedTerms(string targetTitle)
     {
-        var words = WordMatcher().Split(targetTitle.ToLower()).ToList();
+        var normalisedTitle = targetTitle.NormalizeTitle();
 
-        var hasBannedWords = words.Any(word => wordCollections.AdultWords.Contains(word));
+        var normalisedWords = normalisedTitle.Split(' ');
 
-        var inputWithoutSymbols = string.Join(' ', WordMatcher().Split(targetTitle.ToLower()));
+        var hasBannedWords = normalisedWords.Where(word => word.Length >= 3).Any(word => normalisedWords.Contains(word, StringComparer.OrdinalIgnoreCase) && _wordCollections.AdultWords.Contains(word));
 
-        var hasJavWords = wordCollections.Jav.Any(jav => inputWithoutSymbols.Contains(jav, StringComparison.OrdinalIgnoreCase));
+        var hasCompounds = _compoundWords.Any(term => normalisedTitle.Contains(term, StringComparison.OrdinalIgnoreCase));
 
-        var hasAdultStars = wordCollections.AdultStars.Any(star => inputWithoutSymbols.Contains(star, StringComparison.OrdinalIgnoreCase));
-
-        var hasBannedCompoundWords = wordCollections.AdultCompoundPhrases.Any(compoundWord => inputWithoutSymbols.Contains(compoundWord, StringComparison.OrdinalIgnoreCase));
-
-        return !hasBannedWords &&
-               !hasJavWords &&
-               !hasAdultStars &&
-               !hasBannedCompoundWords;
+       return !hasBannedWords &&
+                      !hasCompounds;
     }
 
     public bool MeetsTitleConditions(string targetTitle, List<string> years, string testTitle) => MatchesTitle(targetTitle, years, testTitle) && HasNoBannedTerms(targetTitle, testTitle);
@@ -343,10 +344,10 @@ public partial class ParsingService(IWordCollections wordCollections, ITorrentTi
             .Where(word => word.Length > 3)
             .ToList();
 
-        return processedTitle.Count(word => !wordCollections.CommonWords.Contains(word));
+        return processedTitle.Count(word => !_wordCollections.CommonWords.Contains(word));
     }
 
-    public ParsedFilename Parse(string name) => torrentTitleParser.Parse(name);
+    public ParsedFilename Parse(string name) => _torrentTitleParser.Parse(name);
 
-    public TorrentType GetTypeByName(string name) => torrentTitleParser.GetTypeByName(name);
+    public TorrentType GetTypeByName(string name) => _torrentTitleParser.GetTypeByName(name);
 }
