@@ -1,0 +1,14 @@
+name: Build and Push Tissue Service
+
+on:
+  push:
+    paths:
+      - 'src/tissue/**'
+
+jobs:
+  process:
+    uses: ./.github/workflows/base_image_workflow.yaml
+    secrets: inherit
+    with:
+      CONTEXT: ./src/tissue/
+      IMAGE_NAME: knightcrawler-tissue

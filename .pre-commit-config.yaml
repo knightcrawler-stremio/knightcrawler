@@ -17,5 +17,5 @@ repos:
     hooks:
       - id: codespell
         exclude: |
-            (?x)^(src/node/consumer/test/.*|src/producer/Data/.*)$
+            (?x)^(src/node/consumer/test/.*|src/producer/Data/.*|src/tissue/Data/.*)$
         args: ["-L", "strem,chage"]
