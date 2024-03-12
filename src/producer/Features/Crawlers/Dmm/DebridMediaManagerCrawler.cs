@@ -1,6 +1,3 @@
-using FuzzySharp;
-using Producer.Features.Parsing;
-
 namespace Producer.Features.Crawlers.Dmm;
 
 public partial class DebridMediaManagerCrawler(
@@ -111,10 +108,10 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        var parsedTitle = TorrentTitleParseService.ParseTorrentName(torrentTitle);
-        var torrentType = TorrentTitleParseService.GetTypeByName(torrentTitle);
-        var yearAsString = parsedTitle.Year == 0 ? null : parsedTitle.Year.ToString();
-        var imdbEntry = await imdbDataService.FindImdbEntry(parsedTitle.Title, torrentType, yearAsString);
+        var parsedTitle = TorrentTitleParser.Parse(torrentTitle);
+        var torrentType = TorrentTitleParser.GetTypeByName(torrentTitle);
+        var year = parsedTitle.Year == 0 ? null : parsedTitle.Year.ToString();
+        var imdbEntry = await imdbDataService.FindImdbEntry(parsedTitle.Title.CleanTorrentTitleForImdb(), torrentType, year);
 
         if (imdbEntry is null)
         {
