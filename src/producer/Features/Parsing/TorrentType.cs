@@ -1,4 +1,4 @@
-namespace Producer.Features.ParseTorrentTitle;
+namespace Producer.Features.Parsing;
 
 public enum TorrentType
 {
