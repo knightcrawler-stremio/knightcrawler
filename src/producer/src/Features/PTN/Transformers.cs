@@ -12,7 +12,7 @@ public static class Transformers
 
     public static Func<string, string?, string> Integer = (_, input) => int.TryParse(input, out var result) ? result.ToString() : null;
 
-    public static Func<string, string?, string> Boolean = (_, input) => bool.TryParse(input, out var result) ? result.ToString() : null;
+    public static Func<string, string?, string> Boolean = (_, input) => !string.IsNullOrEmpty(input) ? bool.TrueString : null;
     public static Func<string, string?, string> Clean => (_, input) => input.Replace(" ", "", StringComparison.OrdinalIgnoreCase).Replace(".", "", StringComparison.OrdinalIgnoreCase).Replace("-", "", StringComparison.OrdinalIgnoreCase).ToLower();
 
     public static Func<string, string?, string> Date(string dateFormat) => (_, input) =>
