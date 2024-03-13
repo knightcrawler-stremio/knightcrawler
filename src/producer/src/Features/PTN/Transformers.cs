@@ -2,8 +2,10 @@ namespace Producer.Features.PTN;
 
 public static class Transformers
 {
-    public static Func<string, string, string> None = (_, input) => input;
+    private static string[] _dateFormats = ["dd-MM-yy", "MM-dd-yy", "dd-MMM-yyyy", "dd-MMM-yy", "yyyy-MM-dd", "dd-MM-yyyy", "dd-MMMM-yyyy"];
 
+    public static Func<string, string, string> None = (_, input) => input;
+    
     public static Func<string, string?, string> Value(string? value) => (_, input) => value?.Replace("$1", input, StringComparison.OrdinalIgnoreCase);
 
     public static Func<string, string?, string> Lowercase = (_, input) => input?.ToLower();
@@ -15,12 +17,15 @@ public static class Transformers
     public static Func<string, string?, string> Boolean = (_, input) => !string.IsNullOrEmpty(input) ? bool.TrueString : null;
     public static Func<string, string?, string> Clean => (_, input) => input.Replace(" ", "", StringComparison.OrdinalIgnoreCase).Replace(".", "", StringComparison.OrdinalIgnoreCase).Replace("-", "", StringComparison.OrdinalIgnoreCase).ToLower();
 
-    public static Func<string, string?, string> Date(string dateFormat) => (_, input) =>
+    public static Func<string, string?, string> Date => (_, input) =>
     {
-        var sanitized = ParserRegex.Word().Replace(input, " ").Trim();
-        var date = DateTime.ParseExact(sanitized, dateFormat, CultureInfo.InvariantCulture);
+        var sanitized = ParserRegex.Word().Replace(input, " ").Trim().Replace(" ", "-");
+        if (DateTime.TryParseExact(sanitized, _dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+        {
+            return date.ToString("yyyy-MM-dd");
+        }
 
-        return date.ToString("yyyy-MM-dd");
+        return null; // or handle the error in another appropriate way
     };
 
     public static Func<string, string?, string> Range = (match, input) =>
@@ -64,6 +69,6 @@ public static class Transformers
         var result = new List<string>();
         var value = chain(match, input);
 
-        return result.Contains(value) ? string.Join(",", result) : string.Join(",", result.Concat(new[] { value }));
+        return result.Contains(value) ? string.Join(",", result) : string.Join(",", result.Concat(new[] {value}));
     };
 }
