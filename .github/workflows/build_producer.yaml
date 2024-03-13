@@ -13,5 +13,5 @@ jobs:
     uses: ./.github/workflows/base_image_workflow.yaml
     secrets: inherit
     with:
-      CONTEXT: ./src/producer/
+      CONTEXT: ./src/producer/src/
       IMAGE_NAME: knightcrawler-producer
