@@ -106,6 +106,7 @@ public class ParseTorrentName : IParseTorrentName
             Volumes = result.TryGetValue(ResultKeys.Volumes, out var volumesValue) ? volumesValue as List<int> : [],
             Seasons = result.TryGetValue(ResultKeys.Seasons, out var seasonsValue) ? seasonsValue as List<int> : [],
             Episodes = result.TryGetValue(ResultKeys.Episodes, out var episodesValue) ? episodesValue as List<int> : [],
+            EpisodeCode = result.TryGetValue(ResultKeys.EpisodeCode, out var episodeCodeValue) ? episodeCodeValue as string : null,
             Languages = result.TryGetValue(ResultKeys.Languages, out var languagesValue) ? languagesValue as string : null,
         };
 
