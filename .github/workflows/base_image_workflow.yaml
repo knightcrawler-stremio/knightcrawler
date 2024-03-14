@@ -70,8 +70,8 @@ jobs:
           flavor: |
             latest=auto
           tags: |
-            type=edge,branch=master,commit=${{ github.sha }}
             type=sha,commit=${{ github.sha }}
+            type=semver,pattern={{version}}
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build image for scanning
@@ -130,7 +130,7 @@ jobs:
           sarif_file: 'trivy-results-os.sarif'
 
       - name: Push Service Image to repo
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        # if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
           context: ${{ needs.set-vars.outputs.CONTEXT }}
