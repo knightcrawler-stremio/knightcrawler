@@ -64,11 +64,22 @@ public static class Transformers
 
     public static Func<string, string, string> Array(Func<string, string, string>? chain) => (match, input) => chain != null ? chain(match, input) : input;
 
-    public static Func<string, string, string> UniqConcat(Func<string, string, string> chain) => (match, input) =>
+    public static Func<string, string, string> UniqConcat(Func<string, string, string> chain) => (existing, input) =>
     {
-        var result = new List<string>();
-        var value = chain(match, input);
+        var existingValues = new List<string?>();
+        
+        if (!string.IsNullOrEmpty(existing))
+        {
+            existingValues.AddRange(existing.Split(","));
+        }
+        
+        var value = chain(existing, input);
 
-        return result.Contains(value) ? string.Join(",", result) : string.Join(",", result.Concat(new[] {value}));
+        if (!existingValues.Contains(value))
+        {
+            existingValues.Add(value);
+        }
+
+        return string.Join(",", existingValues);
     };
 }
