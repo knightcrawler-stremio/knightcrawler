@@ -21,6 +21,7 @@ public class ParsedTorrentResult
     public string? Source { get; set; }
     public string? Codec { get; set; }
     public string? BitDepth { get; set; }
+    public string? EpisodeCode { get; set; }
     public List<string> Hdr { get; set; } = [];
     public string? Audio { get; set; }
     public string? Group { get; set; }
