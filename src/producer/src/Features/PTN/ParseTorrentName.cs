@@ -93,6 +93,7 @@ public class ParseTorrentName : IParseTorrentName
             Retail = result.TryGetValue(ResultKeys.Retail, out var retailValue) && bool.TryParse(retailValue as string, out var retailBool) && retailBool,
             Remastered = result.TryGetValue(ResultKeys.Remastered, out var remasteredValue) && bool.TryParse(remasteredValue as string, out var remasteredBool) && remasteredBool,
             Complete = result.TryGetValue(ResultKeys.Complete, out var completeValue) && bool.TryParse(completeValue as string, out var completeBool) && completeBool,
+            Dubbed = result.TryGetValue(ResultKeys.Dubbed, out var dubbedValue) && bool.TryParse(dubbedValue as string, out var dubbedBool) && dubbedBool,
             Region = result.TryGetValue(ResultKeys.Region, out var regionValue) ? regionValue as string : null,
             Container = result.TryGetValue(ResultKeys.Container, out var containerValue) ? containerValue as string : null,
             Extension = result.TryGetValue(ResultKeys.Extension, out var extensionValue) ? extensionValue as string : null,
@@ -106,7 +107,6 @@ public class ParseTorrentName : IParseTorrentName
             Seasons = result.TryGetValue(ResultKeys.Seasons, out var seasonsValue) ? seasonsValue as List<int> : [],
             Episodes = result.TryGetValue(ResultKeys.Episodes, out var episodesValue) ? episodesValue as List<int> : [],
             Languages = result.TryGetValue(ResultKeys.Languages, out var languagesValue) ? languagesValue as string : null,
-            Dubbed = result.TryGetValue(ResultKeys.Dubbed, out var dubbedValue) && (bool) dubbedValue,
         };
 
         return parsedResult;
