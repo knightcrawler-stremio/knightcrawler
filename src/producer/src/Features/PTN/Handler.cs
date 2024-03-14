@@ -27,7 +27,7 @@ public class Handler
             var result = context[ResultKeys.Result] as Dictionary<string, object>;
             var matched = context[ResultKeys.Matched] as Dictionary<string, object>;
 
-            if (result.ContainsKey(name) && options.SkipIfAlreadyFound)
+            if (result.ContainsKey(name) && options.SkipIfAlreadyFound == true)
             {
                 return null;
             }
@@ -42,7 +42,7 @@ public class Handler
                 var beforeTitleMatch = ParserRegex.BeforeTitle().Match(title);
                 var isBeforeTitle = beforeTitleMatch.Success && beforeTitleMatch.Groups[1].Value.Contains(rawMatch, StringComparison.OrdinalIgnoreCase);
                 var otherMatches = matched.Where(e => e.Key != name).ToList();
-                var isSkipIfFirst = options.SkipIfFirst && otherMatches.Count > 0 && otherMatches.All(e => match.Index < (int) e.Value);
+                var isSkipIfFirst = options?.SkipIfFirst == true && otherMatches.Count > 0 && otherMatches.All(e => match.Index < (int) e.Value);
 
                 if (!string.IsNullOrEmpty(transformed) && !isSkipIfFirst)
                 {
@@ -50,7 +50,7 @@ public class Handler
                     {
                         matched[name] = new
                         {
-                            rawMatch, matchIndex = match.Index
+                            rawMatch, matchIndex = match.Index,
                         };
                     }
 
@@ -58,7 +58,7 @@ public class Handler
 
                     return new()
                     {
-                        RawMatch = rawMatch, MatchIndex = match.Index, Remove = options.Remove, SkipFromTitle = isBeforeTitle || options.SkipFromTitle
+                        RawMatch = rawMatch, MatchIndex = match.Index, Remove = options.Remove, SkipFromTitle = isBeforeTitle || options.SkipFromTitle == true,
                     };
                 }
             }
