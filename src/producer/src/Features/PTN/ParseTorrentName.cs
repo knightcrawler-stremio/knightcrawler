@@ -84,7 +84,7 @@ public class ParseTorrentName : IParseTorrentName
             Date = result.TryGetValue(ResultKeys.Date, out var dateValue) ? dateValue as string : null,
             Year = result.TryGetValue(ResultKeys.Year, out var yearValue) ? yearValue as string : null,
             Resolution = result.TryGetValue(ResultKeys.Resolution, out var resolutionValue) ? resolutionValue as string : null,
-            Extended = result.TryGetValue(ResultKeys.Extended, out var extendedValue) && (bool) extendedValue,
+            Extended = result.TryGetValue(ResultKeys.Extended, out var extendedValue) && bool.TryParse(extendedValue as string, out var extendedBool) && extendedBool,
             Unrated = result.TryGetValue(ResultKeys.Unrated, out var unratedValue) && bool.TryParse(unratedValue as string, out var unratedBool) && unratedBool,
             Proper = result.TryGetValue(ResultKeys.Proper, out var properValue) && bool.TryParse(properValue as string, out var properBool) && properBool,
             Repack = result.TryGetValue(ResultKeys.Repack, out var repackValue) && bool.TryParse(repackValue as string, out var repackBool) && repackBool,
