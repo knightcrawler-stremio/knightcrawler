@@ -66,7 +66,7 @@ services:
       - knightcrawler-network
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:management-alpine
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, look at the documentation for rabbit on how to secure the service.
     # ports:
