@@ -12,6 +12,8 @@ internal static class WebApplicationBuilderExtensions
             options =>
             {
                 options.DefaultExecutionTimeout = 6.Hours();
+                options.CodeGeneration.TypeLoadMode = TypeLoadMode.Static;
+                options.Services.AssertAllExpectedPreBuiltTypesExistOnStartUp();
             });
 
         return builder;
