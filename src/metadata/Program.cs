@@ -11,4 +11,4 @@ builder.Services
 
 var host = builder.Build();
 
-await host.RunAsync();
+return await host.RunOaktonCommands(args);
