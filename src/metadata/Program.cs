@@ -6,7 +6,8 @@ builder.SetupWolverine();
 
 builder.Services
     .AddHttpClients()
-    .AddJobSupport();
+    .AddServiceConfiguration()
+    .AddDatabase();
 
 var host = builder.Build();
 

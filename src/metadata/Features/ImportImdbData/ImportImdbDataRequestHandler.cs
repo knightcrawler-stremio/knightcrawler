@@ -1,6 +1,6 @@
 namespace Metadata.Features.ImportImdbData;
 
-public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> logger, ImdbRedisDbService mongoDbService, JobConfiguration configuration)
+public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> logger, ImdbDbService dbService, ServiceConfiguration configuration)
 {
     public async Task<DeleteDownloadedImdbDataRequest> Handle(ImportImdbDataRequest request, CancellationToken cancellationToken)
     {
@@ -58,7 +58,7 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
 
                 if (batch.Count > 0)
                 {
-                    await mongoDbService.InsertImdbEntries(batch);
+                    await dbService.InsertImdbEntries(batch);
                     logger.LogInformation("Imported batch of {BatchSize} starting with ImdbId {FirstImdbId}", batch.Count, batch.First().ImdbId);
                 }
             }
@@ -68,17 +68,15 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
     {
         while (await csv.ReadAsync())
         {
+            var isAdultSet = int.TryParse(csv.GetField(4), out var adult);
+            
             var movieData = new ImdbEntry
             {
                 ImdbId = csv.GetField(0),
-                TitleType = csv.GetField(1),
-                PrimaryTitle = csv.GetField(2),
-                OriginalTitle = csv.GetField(3),
-                IsAdult = csv.GetField(4),
-                StartYear = csv.GetField(5),
-                EndYear = csv.GetField(6),
-                RuntimeMinutes = csv.GetField(7),
-                Genres = csv.GetField(8),
+                Category = csv.GetField(1),
+                Title = csv.GetField(2),
+                Adult = isAdultSet && adult == 1,
+                Year = csv.GetField(5),
             };
 
             if (cancellationToken.IsCancellationRequested)

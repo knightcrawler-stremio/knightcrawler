@@ -9,24 +9,19 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection AddRedis(this IServiceCollection services)
+    internal static IServiceCollection AddDatabase(this IServiceCollection services)
     {
-        var redisConfiguration = services.LoadConfigurationFromEnv<RedisConfiguration>();
-
-        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConfiguration.ConnectionString));
-        services.AddTransient<ImdbRedisDbService>();
-
+        services.LoadConfigurationFromEnv<PostgresConfiguration>();
+        services.AddScoped<ImdbDbService>();
+        
         return services;
     }
-
-    internal static IServiceCollection AddJobSupport(this IServiceCollection services)
+    
+    internal static IServiceCollection AddServiceConfiguration(this IServiceCollection services)
     {
-        services.LoadConfigurationFromEnv<JobConfiguration>();
-
-        services.AddScheduler()
-            .AddTransient<DownloadImdbDataJob>()
-            .AddHostedService<JobScheduler>();
-
+        services.LoadConfigurationFromEnv<ServiceConfiguration>();
+        services.AddHostedService<DownloadImdbDataJob>();
+        
         return services;
     }
 }
