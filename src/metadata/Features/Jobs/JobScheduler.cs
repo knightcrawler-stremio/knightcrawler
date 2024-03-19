@@ -6,13 +6,6 @@ public class JobScheduler(IServiceProvider serviceProvider) : IHostedService
     {
         using var scope = serviceProvider.CreateAsyncScope();
 
-        var mongoDbService = scope.ServiceProvider.GetRequiredService<ImdbMongoDbService>();
-
-        if (!mongoDbService.IsDatabaseInitialized())
-        {
-            throw new InvalidOperationException("MongoDb is not initialized");
-        }
-
         var jobConfigurations = scope.ServiceProvider.GetRequiredService<JobConfiguration>();
         var downloadJob = scope.ServiceProvider.GetRequiredService<DownloadImdbDataJob>();
 

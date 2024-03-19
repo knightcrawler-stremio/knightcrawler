@@ -1,6 +1,6 @@
 namespace Metadata.Features.ImportImdbData;
 
-public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> logger, ImdbMongoDbService mongoDbService, JobConfiguration configuration)
+public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> logger, ImdbRedisDbService mongoDbService, JobConfiguration configuration)
 {
     public async Task<DeleteDownloadedImdbDataRequest> Handle(ImportImdbDataRequest request, CancellationToken cancellationToken)
     {
