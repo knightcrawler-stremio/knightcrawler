@@ -2,7 +2,6 @@ namespace Metadata.Features.ImportImdbData;
 
 public class ImdbEntry
 {
-    [BsonId]
     public string ImdbId { get; set; } = default!;
     public string? TitleType { get; set; }
     public string? PrimaryTitle { get; set; }
@@ -12,4 +11,5 @@ public class ImdbEntry
     public string? EndYear { get; set; }
     public string? RuntimeMinutes { get; set; }
     public string? Genres { get; set; }
+    public string RedisKey => $"imdb:{ImdbId}";
 }

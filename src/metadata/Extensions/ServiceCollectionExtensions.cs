@@ -9,10 +9,12 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection AddMongoDb(this IServiceCollection services)
+    internal static IServiceCollection AddRedis(this IServiceCollection services)
     {
-        services.LoadConfigurationFromEnv<MongoConfiguration>();
-        services.AddTransient<ImdbMongoDbService>();
+        var redisConfiguration = services.LoadConfigurationFromEnv<RedisConfiguration>();
+
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConfiguration.ConnectionString));
+        services.AddTransient<ImdbRedisDbService>();
 
         return services;
     }
