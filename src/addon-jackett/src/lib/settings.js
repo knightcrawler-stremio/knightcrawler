@@ -25,7 +25,7 @@ export const cinemetaConfig = {
 }
 
 export const cacheConfig = {
-    MONGODB_URI: process.env.MONGODB_URI,
+    REDIS_CONNECTION_STRING: process.env.REDIS_CONNECTION_STRING || 'redis://localhost:6379/0',
     NO_CACHE: parseBool(process.env.NO_CACHE, false),
     IMDB_TTL: parseInt(process.env.IMDB_TTL || 60 * 60 * 4), // 4 Hours
     STREAM_TTL: parseInt(process.env.STREAM_TTL || 60 * 60 * 4), // 1 Hour

@@ -1,7 +1,7 @@
 import cacheManager from 'cache-manager';
-import mangodbStore from 'cache-manager-mongodb';
 import { isStaticUrl }  from '../moch/static.js';
 import {cacheConfig} from "./settings.js";
+import redisStore from 'cache-manager-redis-store';
 
 const STREAM_KEY_PREFIX = `${cacheConfig.GLOBAL_KEY_PREFIX}|stream`;
 const IMDB_KEY_PREFIX = `${cacheConfig.GLOBAL_KEY_PREFIX}|imdb`;
@@ -12,28 +12,20 @@ const memoryCache = initiateMemoryCache();
 const remoteCache = initiateRemoteCache();
 
 function initiateRemoteCache() {
-  if (cacheConfig.NO_CACHE) {
-    return null;
-  } else if (cacheConfig.MONGODB_URI) {
-    return cacheManager.caching({
-      store: mangodbStore,
-      uri: cacheConfig.MONGODB_URI,
-      options: {
-        collection: 'jackettio_addon_collection',
-        socketTimeoutMS: 120000,
-        useNewUrlParser: true,
-        useUnifiedTopology: false,
-        ttl: cacheConfig.STREAM_EMPTY_TTL
-      },
-      ttl: cacheConfig.STREAM_EMPTY_TTL,
-      ignoreCacheErrors: true
-    });
-  } else {
-    return cacheManager.caching({
-      store: 'memory',
-      ttl: cacheConfig.STREAM_EMPTY_TTL
-    });
-  }
+    if (cacheConfig.NO_CACHE) {
+        return null;
+    } else if (cacheConfig.REDIS_CONNECTION_STRING) {
+        return cacheManager.caching({
+            store: redisStore,
+            ttl: cacheConfig.STREAM_EMPTY_TTL,
+            url: cacheConfig.REDIS_CONNECTION_STRING
+        });
+    } else {
+        return cacheManager.caching({
+            store: 'memory',
+            ttl: cacheConfig.STREAM_EMPTY_TTL
+        });
+    }
 }
 
 function initiateMemoryCache() {
