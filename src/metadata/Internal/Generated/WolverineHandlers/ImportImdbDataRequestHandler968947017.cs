@@ -9,15 +9,15 @@ namespace Internal.Generated.WolverineHandlers
     public class ImportImdbDataRequestHandler968947017 : Wolverine.Runtime.Handlers.MessageHandler
     {
         private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImportImdbDataRequestHandler> _logger1;
-        private readonly Metadata.Features.Configuration.PostgresConfiguration _postgresConfiguration;
         private readonly Metadata.Features.Configuration.ServiceConfiguration _serviceConfiguration;
+        private readonly Metadata.Features.Configuration.PostgresConfiguration _postgresConfiguration;
         private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> _logger2;
 
-        public ImportImdbDataRequestHandler968947017(Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImportImdbDataRequestHandler> __logger1, Metadata.Features.Configuration.PostgresConfiguration postgresConfiguration, Metadata.Features.Configuration.ServiceConfiguration serviceConfiguration, Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> __logger2)
+        public ImportImdbDataRequestHandler968947017(Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImportImdbDataRequestHandler> __logger1, Metadata.Features.Configuration.ServiceConfiguration serviceConfiguration, Metadata.Features.Configuration.PostgresConfiguration postgresConfiguration, Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> __logger2)
         {
             _logger1 = __logger1;
-            _postgresConfiguration = postgresConfiguration;
             _serviceConfiguration = serviceConfiguration;
+            _postgresConfiguration = postgresConfiguration;
             _logger2 = __logger2;
         }
 

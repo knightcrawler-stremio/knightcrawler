@@ -20,6 +20,7 @@ global using Microsoft.AspNetCore.Builder;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.DependencyInjection.Extensions;
 global using Npgsql;
+global using NpgsqlTypes;
 global using Oakton;
 global using Serilog;
 global using Wolverine;
