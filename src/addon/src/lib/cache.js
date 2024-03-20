@@ -1,7 +1,7 @@
 import cacheManager from 'cache-manager';
-import mangodbStore from 'cache-manager-mongodb';
 import { cacheConfig } from './config.js';
 import { isStaticUrl } from '../moch/static.js';
+import redisStore from "cache-manager-redis-store";
 
 const GLOBAL_KEY_PREFIX = 'knightcrawler-addon';
 const STREAM_KEY_PREFIX = `${GLOBAL_KEY_PREFIX}|stream`;
@@ -21,19 +21,11 @@ const remoteCache = initiateRemoteCache();
 function initiateRemoteCache() {
     if (cacheConfig.NO_CACHE) {
         return null;
-    } else if (cacheConfig.MONGO_URI) {
+    } else if (cacheConfig.REDIS_CONNECTION_STRING) {
         return cacheManager.caching({
-            store: mangodbStore,
-            uri: cacheConfig.MONGO_URI,
-            options: {
-                collection: 'knightcrawler_addon_collection',
-                socketTimeoutMS: 120000,
-                useNewUrlParser: true,
-                useUnifiedTopology: false,
-                ttl: STREAM_EMPTY_TTL
-            },
+            store: redisStore,
             ttl: STREAM_EMPTY_TTL,
-            ignoreCacheErrors: true
+            url: cacheConfig.REDIS_CONNECTION_STRING
         });
     } else {
         return cacheManager.caching({
