@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'src/migrator/**'
+  workflow_dispatch:
 
 jobs:
   process:

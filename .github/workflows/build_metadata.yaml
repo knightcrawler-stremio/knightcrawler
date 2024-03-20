@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'src/metadata/**'
+  workflow_dispatch:
 
 jobs:
   process:
