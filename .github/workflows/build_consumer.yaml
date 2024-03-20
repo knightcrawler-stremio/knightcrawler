@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'src/node/consumer/**'
+  workflow_dispatch:
 
 jobs:
   process:

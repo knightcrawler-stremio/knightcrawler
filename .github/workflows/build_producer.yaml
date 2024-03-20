@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'src/producer/**'
+  workflow_dispatch:
 
 jobs:
   process:

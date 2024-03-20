@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'src/node/addon-jackett/**'
+  workflow_dispatch:
 
 jobs:
   process:

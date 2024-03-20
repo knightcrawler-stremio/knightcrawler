@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'src/tissue/**'
+  workflow_dispatch:
 
 jobs:
   process:
