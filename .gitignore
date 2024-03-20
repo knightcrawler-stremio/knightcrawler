@@ -608,3 +608,6 @@ fabric.properties
 # Caddy logs
 !**/caddy/logs/.gitkeep
 **/caddy/logs/**
+
+# Mac directory indexes
+.DS_Store
