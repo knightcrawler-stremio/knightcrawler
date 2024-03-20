@@ -8,6 +8,12 @@ public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> 
     {
         logger.LogInformation("Importing Downloaded IMDB data from {FilePath}", request.FilePath);
 
+        logger.LogInformation("Truncating 'imdb_metadata' table");
+        
+        await dbService.DropPgtrmIndex();
+        
+        await dbService.TruncateTable();
+        
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             Delimiter = "\t",

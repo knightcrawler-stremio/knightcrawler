@@ -6,7 +6,7 @@ public class IndexImdbDataRequestHandler(ILogger<IndexImdbDataRequestHandler> lo
     {
         logger.LogInformation("Creating Trigram Indexes for IMDB data");
 
-        await dbService.EnsureIndexExistsForNewData();
+        await dbService.CreatePgtrmIndex();
 
         return new(request.FilePath);
     }
