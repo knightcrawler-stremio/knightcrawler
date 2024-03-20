@@ -3,7 +3,7 @@ name: Build and Push Jackett Addon Service
 on:
   push:
     paths:
-      - 'src/node/addon-jackett/**'
+      - 'src/addon-jackett/**'
   workflow_dispatch:
 
 jobs:
@@ -11,5 +11,5 @@ jobs:
     uses: ./.github/workflows/base_image_workflow.yaml
     secrets: inherit
     with:
-      CONTEXT: ./src/node/addon-jackett/
+      CONTEXT: ./src/addon-jackett/
       IMAGE_NAME: knightcrawler-addon-jackett

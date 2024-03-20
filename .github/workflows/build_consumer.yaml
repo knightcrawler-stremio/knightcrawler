@@ -3,7 +3,7 @@ name: Build and Push Consumer Service
 on:
   push:
     paths:
-      - 'src/node/consumer/**'
+      - 'src/consumer/**'
   workflow_dispatch:
 
 jobs:
@@ -11,5 +11,5 @@ jobs:
     uses: ./.github/workflows/base_image_workflow.yaml
     secrets: inherit
     with:
-      CONTEXT: ./src/node/consumer/
+      CONTEXT: ./src/consumer/
       IMAGE_NAME: knightcrawler-consumer

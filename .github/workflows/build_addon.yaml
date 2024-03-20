@@ -3,7 +3,7 @@ name: Build and Push Addon Service
 on:
   push:
     paths:
-      - 'src/node/addon/**'
+      - 'src/addon/**'
   workflow_dispatch:
 
 jobs:
@@ -11,5 +11,5 @@ jobs:
     uses: ./.github/workflows/base_image_workflow.yaml
     secrets: inherit
     with:
-      CONTEXT: ./src/node/addon/
+      CONTEXT: ./src/addon/
       IMAGE_NAME: knightcrawler-addon
