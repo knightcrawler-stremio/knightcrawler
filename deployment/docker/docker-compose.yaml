@@ -12,8 +12,8 @@ x-rabbithealth: &rabbitmq-health
   test: rabbitmq-diagnostics -q ping
   <<: *base-health
 
-x-mongohealth: &mongodb-health
-  test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+x-redishealth: &redis-health
+  test: redis-cli ping
   <<: *base-health
 
 x-postgreshealth: &postgresdb-health
@@ -22,12 +22,16 @@ x-postgreshealth: &postgresdb-health
 
 x-apps: &knightcrawler-app
   depends_on:
-    mongodb:
+    redis:
       condition: service_healthy
     postgres:
       condition: service_healthy
     rabbitmq:
       condition: service_healthy
+    migrator:
+      condition: service_completed_successfully
+    metadata:
+      condition: service_completed_successfully
   restart: *restart-policy
 
 services:
@@ -48,20 +52,16 @@ services:
     networks:
       - knightcrawler-network
 
-  mongodb:
-    image: mongo:latest
+  redis:
+    image: redis/redis-stack:latest
     env_file: .env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER:?Variable MONGODB_USER not set}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:?Variable MONGODB_PASSWORD not set}
-    # # If you need the database to be accessible from outside, please open the below port.
-    # # Furthermore, please, please, please, change the username and password in the .env file.
+    # # If you need redis to be accessible from outside, please open the below port.
     # ports:
-    #   - "27017:27017"
+    #   - "6379:6379"
     volumes:
-      - mongo:/data/db
+      - redis:/data
     restart: *restart-policy
-    healthcheck: *mongodb-health
+    healthcheck: *redis-health
     networks:
       - knightcrawler-network
 
@@ -78,6 +78,30 @@ services:
     hostname: ${RABBITMQ_HOST}
     restart: *restart-policy
     healthcheck: *rabbitmq-health
+    networks:
+      - knightcrawler-network
+
+  migrator:
+    image: gabisonfire/knightcrawler-migrator:latest
+    labels:
+      logging: "promtail"
+    env_file: .env
+    restart: no
+    depends_on: 
+      postgres:
+        condition: service_healthy
+    networks:
+      - knightcrawler-network
+        
+  metadata:
+    image: gabisonfire/knightcrawler-metadata:latest
+    env_file: .env
+    labels:
+      logging: "promtail"
+    restart: no
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
     networks:
       - knightcrawler-network
 
@@ -135,5 +159,5 @@ networks:
 
 volumes:
   postgres:
-  mongo:
+  redis:
   rabbitmq:
