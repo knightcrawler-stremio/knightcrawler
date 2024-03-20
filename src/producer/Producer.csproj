@@ -41,4 +41,16 @@
         </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="src\bin\Debug\net8.0\Configuration\logging.json" />
+      <_ContentIncludedByDefault Remove="src\bin\Debug\net8.0\Configuration\scrapers.json" />
+      <_ContentIncludedByDefault Remove="src\bin\Debug\net8.0\Configuration\torrentio.json" />
+      <_ContentIncludedByDefault Remove="src\bin\Debug\net8.0\Producer.deps.json" />
+      <_ContentIncludedByDefault Remove="src\bin\Debug\net8.0\Producer.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="src\obj\Debug\net8.0\Producer.sourcelink.json" />
+      <_ContentIncludedByDefault Remove="src\obj\Producer.csproj.nuget.dgspec.json" />
+      <_ContentIncludedByDefault Remove="src\obj\project.assets.json" />
+      <_ContentIncludedByDefault Remove="src\obj\project.packagespec.json" />
+    </ItemGroup>
+
 </Project>

@@ -6,8 +6,7 @@ public partial class TorrentioCrawler(
     IHttpClientFactory httpClientFactory,
     ILogger<TorrentioCrawler> logger,
     IDataStorage storage,
-    TorrentioConfiguration configuration,
-    ImdbMongoDbService imdbDataService) : BaseCrawler(logger, storage)
+    TorrentioConfiguration configuration) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex(@"(\d+(\.\d+)?) (GB|MB)")]
     private static partial Regex SizeMatcher();
@@ -22,7 +21,7 @@ public partial class TorrentioCrawler(
     {
         var client = httpClientFactory.CreateClient(Literals.CrawlerClient);
         var instances = configuration.Instances;
-        var totalRecordCount = await imdbDataService.GetTotalCountAsync();
+        var totalRecordCount = await storage.GetRowCountImdbMetadata();
         logger.LogInformation("Total IMDB records to process: {TotalRecordCount}", totalRecordCount);
         var tasks = instances.Select(x => ProcessForInstanceAsync(x, client, totalRecordCount)).ToArray();
         await Task.WhenAll(tasks);
@@ -32,7 +31,7 @@ public partial class TorrentioCrawler(
         Task.Run(
             async () =>
             {
-                var emptyMongoDbItemsCount = 0;
+                var emptyMetaDbItemsCount = 0;
 
                 var state = instance.EnsureStateExists(_instanceStates);
 
@@ -43,17 +42,17 @@ public partial class TorrentioCrawler(
                     logger.LogInformation("Processing {TorrentioInstance}", instance.Name);
                     logger.LogInformation("Current processed requests: {ProcessedRequests}", state.TotalProcessed);
 
-                    var items = await imdbDataService.GetImdbEntriesForRequests(
-                        DateTime.UtcNow.Year.ToString(),
-                        instance.RateLimit.MongoBatchSize,
+                    var items = await storage.GetImdbEntriesForRequests(
+                        DateTime.UtcNow.Year,
+                        instance.RateLimit.BatchSize,
                         state.LastProcessedImdbId);
 
                     if (items.Count == 0)
                     {
-                        emptyMongoDbItemsCount++;
+                        emptyMetaDbItemsCount++;
                         logger.LogInformation("No items to process for {TorrentioInstance}", instance.Name);
                         await Task.Delay(10000);
-                        if (emptyMongoDbItemsCount >= MaximumEmptyItemsCount)
+                        if (emptyMetaDbItemsCount >= MaximumEmptyItemsCount)
                         {
                             logger.LogInformation("Maximum empty document count reached. Cancelling {TorrentioInstance}", instance.Name);
                             break;

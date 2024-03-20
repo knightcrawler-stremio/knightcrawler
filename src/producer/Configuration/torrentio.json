@@ -7,7 +7,7 @@
         "RateLimit": {
           "RequestLimit": 300,
           "IntervalInSeconds": 3600,
-          "MongoBatchSize": 300,
+          "BatchSize": 300,
           "ExceptionLimit": 5,
           "ExceptionIntervalInSeconds": 300
         }

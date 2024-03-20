@@ -33,7 +33,7 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
         FROM ingested_torrents
         WHERE processed = false AND category != 'xxx'
         """;
-
+    
     private const string UpdateProcessedSql =
         """
         UPDATE ingested_torrents
@@ -128,6 +128,46 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
         catch (Exception e)
         {
             return new(false, $"Failed to mark page as ingested: {e.Message}");
+        }
+    }
+    
+    public async Task<int> GetRowCountImdbMetadata(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var connection = new NpgsqlConnection(configuration.StorageConnectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            const string query = "SELECT COUNT(*) FROM imdb_metadata";
+
+            var result = await connection.ExecuteScalarAsync<int>(query);
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error while getting row count from imdb_metadata");
+            return 0;
+        }
+    }
+
+    public async Task<List<ImdbEntry>> GetImdbEntriesForRequests(int year, int batchSize, string? stateLastProcessedImdbId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var connection = new NpgsqlConnection(configuration.StorageConnectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            const string query = @"SELECT imdb_id AS ImdbId, title as Title, category as Category, year as Year, adult as Adult FROM imdb_metadata WHERE CAST(NULLIF(Year, '\N') AS INTEGER) <= @Year AND imdb_id > @LastProcessedImdbId ORDER BY ImdbId LIMIT @BatchSize";
+            
+            var result = await connection.QueryAsync<ImdbEntry>(query, new { Year = year, LastProcessedImdbId = stateLastProcessedImdbId, BatchSize = batchSize });
+
+            return result.ToList();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
         }
     }
 }

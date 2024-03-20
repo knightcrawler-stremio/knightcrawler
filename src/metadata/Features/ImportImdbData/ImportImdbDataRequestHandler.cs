@@ -1,8 +1,10 @@
+using Metadata.Features.IndexImdbData;
+
 namespace Metadata.Features.ImportImdbData;
 
 public class ImportImdbDataRequestHandler(ILogger<ImportImdbDataRequestHandler> logger, ImdbDbService dbService, ServiceConfiguration configuration)
 {
-    public async Task<DeleteDownloadedImdbDataRequest> Handle(ImportImdbDataRequest request, CancellationToken cancellationToken)
+    public async Task<IndexImdbDataRequest> Handle(ImportImdbDataRequest request, CancellationToken cancellationToken)
     {
         logger.LogInformation("Importing Downloaded IMDB data from {FilePath}", request.FilePath);
 
