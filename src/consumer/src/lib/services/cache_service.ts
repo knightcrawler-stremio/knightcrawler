@@ -102,7 +102,6 @@ export class CacheService implements ICacheService {
         this.logger.debug(`Cache options: ${JSON.stringify(options)}`);
         this.logger.debug(`Cache item will expire at: ${expirationTime.toISOString()}`);
 
-        // Memory Cache is Milliseconds, Mongo Cache converts to Seconds internally.
         const ttl : number = cacheType === CacheType.Memory ? options.ttl * 1000 : options.ttl;
         return cache.wrap(key, method, ttl);
     };

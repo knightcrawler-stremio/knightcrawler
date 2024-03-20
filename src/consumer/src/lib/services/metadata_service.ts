@@ -46,10 +46,10 @@ export class MetadataService implements IMetadataService {
         const year = info.year || (info.date && info.date.slice(0, 4));
         const key = `${name}_${year || 'NA'}_${info.type}`;
         
-        const imdbInMongo = await this.dataRepository.getImdbId(name, info.type, year);
+        const imdbInPostgres = await this.dataRepository.getImdbId(name, info.type, year);
 
-        if (imdbInMongo) {
-            return imdbInMongo;
+        if (imdbInPostgres) {
+            return imdbInPostgres;
         }
 
         try {
