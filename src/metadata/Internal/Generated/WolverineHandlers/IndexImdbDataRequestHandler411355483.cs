@@ -8,15 +8,15 @@ namespace Internal.Generated.WolverineHandlers
     // START: IndexImdbDataRequestHandler411355483
     public class IndexImdbDataRequestHandler411355483 : Wolverine.Runtime.Handlers.MessageHandler
     {
+        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> _logger2;
         private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.IndexImdbData.IndexImdbDataRequestHandler> _logger1;
         private readonly Metadata.Features.Configuration.PostgresConfiguration _postgresConfiguration;
-        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> _logger2;
 
-        public IndexImdbDataRequestHandler411355483(Microsoft.Extensions.Logging.ILogger<Metadata.Features.IndexImdbData.IndexImdbDataRequestHandler> __logger1, Metadata.Features.Configuration.PostgresConfiguration postgresConfiguration, Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> __logger2)
+        public IndexImdbDataRequestHandler411355483(Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> __logger2, Microsoft.Extensions.Logging.ILogger<Metadata.Features.IndexImdbData.IndexImdbDataRequestHandler> __logger1, Metadata.Features.Configuration.PostgresConfiguration postgresConfiguration)
         {
+            _logger2 = __logger2;
             _logger1 = __logger1;
             _postgresConfiguration = postgresConfiguration;
-            _logger2 = __logger2;
         }
 
 

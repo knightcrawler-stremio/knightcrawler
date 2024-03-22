@@ -20,7 +20,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
                         await writer.WriteAsync(entry.Year, NpgsqlDbType.Text);
                         await writer.WriteAsync(entry.Adult, NpgsqlDbType.Boolean);
                     }
-                    catch (NpgsqlException e)
+                    catch (Npgsql.PostgresException e)
                     {
                         if (e.Message.Contains("duplicate key value violates unique constraint", StringComparison.OrdinalIgnoreCase))
                         {
@@ -34,11 +34,47 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
                 await writer.CompleteAsync();
             }, "Error while inserting imdb entries into database");
     
-    public Task TruncateTable() =>
+    public Task InsertImdbAkaEntries(IEnumerable<ImdbAkaEntry> entries) =>
         ExecuteCommandAsync(
             async connection =>
             {
-                await using var command = new NpgsqlCommand("TRUNCATE TABLE imdb_metadata", connection);
+                await using var writer = await connection.BeginBinaryImportAsync(
+                    "COPY imdb_metadata_akas (\"imdb_id\", \"ordering\", \"localized_title\", \"region\", \"language\", \"types\", \"attributes\", \"is_original_title\") FROM STDIN (FORMAT BINARY)");
+
+                foreach (var entry in entries.Where(x=>x.LocalizedTitle?.Length <= 8000))
+                {
+                    try
+                    {
+                        await writer.StartRowAsync();
+                        await writer.WriteAsync(entry.ImdbId, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.Ordering, NpgsqlDbType.Integer);
+                        await writer.WriteAsync(entry.LocalizedTitle, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.Region, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.Language, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.Types, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.Attributes, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.IsOriginalTitle, NpgsqlDbType.Boolean);
+                        
+                    }
+                    catch (Npgsql.PostgresException e)
+                    {
+                        if (e.Message.Contains("value too long for type character", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        throw;
+                    }
+                }
+
+                await writer.CompleteAsync();
+            }, "Error while inserting imdb entries into database");
+    
+    public Task TruncateTable(string table) =>
+        ExecuteCommandAsync(
+            async connection =>
+            {
+                await using var command = new NpgsqlCommand($"TRUNCATE TABLE {table}", connection);
                 await command.ExecuteNonQueryAsync();
             }, "Error while clearing 'imdb_metadata' table");
 
