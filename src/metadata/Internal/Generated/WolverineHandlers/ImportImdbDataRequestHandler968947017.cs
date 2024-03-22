@@ -8,34 +8,32 @@ namespace Internal.Generated.WolverineHandlers
     // START: ImportImdbDataRequestHandler968947017
     public class ImportImdbDataRequestHandler968947017 : Wolverine.Runtime.Handlers.MessageHandler
     {
-        private readonly Metadata.Features.Configuration.PostgresConfiguration _postgresConfiguration;
-        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.EpisodesFile> _logger5;
-        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> _logger1;
+        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.EpisodesFile> _logger4;
+        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.BasicsFile> _logger1;
         private readonly Metadata.Features.Configuration.ServiceConfiguration _serviceConfiguration;
-        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.BasicsFile> _logger3;
-        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.AkasFile> _logger4;
-        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImportImdbDataRequestHandler> _logger2;
+        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> _logger2;
+        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.AkasFile> _logger3;
+        private readonly Metadata.Features.Configuration.PostgresConfiguration _postgresConfiguration;
 
-        public ImportImdbDataRequestHandler968947017(Metadata.Features.Configuration.PostgresConfiguration postgresConfiguration, Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.EpisodesFile> __logger5, Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> __logger1, Metadata.Features.Configuration.ServiceConfiguration serviceConfiguration, Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.BasicsFile> __logger3, Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.AkasFile> __logger4, Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImportImdbDataRequestHandler> __logger2)
+        public ImportImdbDataRequestHandler968947017(Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.EpisodesFile> __logger4, Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.BasicsFile> __logger1, Metadata.Features.Configuration.ServiceConfiguration serviceConfiguration, Microsoft.Extensions.Logging.ILogger<Metadata.Features.ImportImdbData.ImdbDbService> __logger2, Microsoft.Extensions.Logging.ILogger<Metadata.Features.Files.AkasFile> __logger3, Metadata.Features.Configuration.PostgresConfiguration postgresConfiguration)
         {
-            _postgresConfiguration = postgresConfiguration;
-            _logger5 = __logger5;
+            _logger4 = __logger4;
             _logger1 = __logger1;
             _serviceConfiguration = serviceConfiguration;
-            _logger3 = __logger3;
-            _logger4 = __logger4;
             _logger2 = __logger2;
+            _logger3 = __logger3;
+            _postgresConfiguration = postgresConfiguration;
         }
 
 
 
         public override async System.Threading.Tasks.Task HandleAsync(Wolverine.Runtime.MessageContext context, System.Threading.CancellationToken cancellation)
         {
-            var imdbDbService = new Metadata.Features.ImportImdbData.ImdbDbService(_postgresConfiguration, _logger1);
-            var inline_episodesFile = new Metadata.Features.Files.EpisodesFile(_logger5, imdbDbService);
-            var inline_akasFile = new Metadata.Features.Files.AkasFile(_logger4, imdbDbService);
-            var inline_basicsFile = new Metadata.Features.Files.BasicsFile(_logger3, imdbDbService);
-            var importImdbDataRequestHandler = new Metadata.Features.ImportImdbData.ImportImdbDataRequestHandler(imdbDbService, _logger2, _serviceConfiguration, inline_basicsFile, inline_akasFile, inline_episodesFile);
+            var imdbDbService = new Metadata.Features.ImportImdbData.ImdbDbService(_postgresConfiguration, _logger2);
+            var inline_episodesFile = new Metadata.Features.Files.EpisodesFile(_logger4, imdbDbService);
+            var inline_akasFile = new Metadata.Features.Files.AkasFile(_logger3, imdbDbService);
+            var inline_basicsFile = new Metadata.Features.Files.BasicsFile(_logger1, imdbDbService);
+            var importImdbDataRequestHandler = new Metadata.Features.ImportImdbData.ImportImdbDataRequestHandler(_serviceConfiguration, inline_basicsFile, inline_akasFile, inline_episodesFile);
             // The actual message body
             var importImdbDataRequest = (Metadata.Features.ImportImdbData.ImportImdbDataRequest)context.Envelope.Message;
 

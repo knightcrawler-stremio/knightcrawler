@@ -10,6 +10,7 @@ global using JasperFx.CodeGeneration;
 global using JasperFx.CodeGeneration.Commands;
 global using JasperFx.Core;
 global using Metadata.Extensions;
+global using Metadata.Features.ClearExistingImdbData;
 global using Metadata.Features.Configuration;
 global using Metadata.Features.DeleteDownloadedImdbData;
 global using Metadata.Features.DownloadImdbData;
