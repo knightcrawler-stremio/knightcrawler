@@ -4,15 +4,19 @@ public class DeleteDownloadedImdbDataRequestHandler(ILogger<DeleteDownloadedImdb
 {
     public Task Handle(DeleteDownloadedImdbDataRequest request, CancellationToken _)
     {
-        logger.LogInformation("Deleting file {FilePath}", request.FilePath);
-
-        File.Delete(request.FilePath);
-
-        logger.LogInformation("File Deleted");
+        DeleteFile(request.TitleBasicsFilePath);
+        DeleteFile(request.TitleAkasFilePath);
         logger.LogInformation("Processing Completed");
 
         Environment.Exit(0);
 
         return Task.CompletedTask;
+    }
+
+    private void DeleteFile(string file)
+    {
+        logger.LogInformation("Deleting file {FilePath}", file);
+        File.Delete(file);
+        logger.LogInformation("File Deleted");
     }
 }
