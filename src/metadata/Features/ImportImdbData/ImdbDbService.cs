@@ -106,20 +106,11 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
         ExecuteCommandAsync(
             async connection =>
             {
-                logger.LogInformation("Truncating '{Table}' table", table);
-                await using var command = new NpgsqlCommand($"TRUNCATE TABLE {table}", connection);
+                logger.LogInformation("Truncating '{Table}' table with cascade.", table);
+                await using var command = new NpgsqlCommand($"TRUNCATE TABLE {table} CASCADE", connection);
                 await command.ExecuteNonQueryAsync();
             }, $"Error while clearing '{table}' table");
-    
-    public Task DeleteFromTable(string table) =>
-        ExecuteCommandAsync(
-            async connection =>
-            {
-                logger.LogInformation("Truncating '{Table}' table", table);
-                await using var command = new NpgsqlCommand($"DELETE FROM {table}", connection);
-                await command.ExecuteNonQueryAsync();
-            }, $"Error while clearing '{table}' table");
-
+   
     public Task CreatePgtrmIndex() =>
         ExecuteCommandAsync(
             async connection =>
@@ -132,6 +123,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
         ExecuteCommandAsync(
             async connection =>
             {
+                logger.LogInformation("Dropping Trigrams index if it exists already");
                 await using var dropCommand = new NpgsqlCommand("DROP INDEX if exists title_gist", connection);
                 await dropCommand.ExecuteNonQueryAsync();
             }, $"Error while dropping index on {TableNames.MetadataTable} table");
@@ -141,15 +133,37 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
     {
         try
         {
-            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(configuration.StorageConnectionString)
-            {
-                CommandTimeout = 3000,
-            };
-
-            await using var connection = new NpgsqlConnection(connectionStringBuilder.ConnectionString);
+            await using var connection = CreateNpgsqlConnection();
             await connection.OpenAsync();
 
             await operation(connection);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, errorMessage);
+        }
+    }
+
+    private NpgsqlConnection CreateNpgsqlConnection()
+    {
+        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(configuration.StorageConnectionString)
+        {
+            CommandTimeout = 3000,
+        };
+
+        return new(connectionStringBuilder.ConnectionString);
+    }
+
+    private async Task ExecuteCommandWithTransactionAsync(Func<NpgsqlConnection, NpgsqlTransaction, Task> operation, NpgsqlTransaction transaction, string errorMessage)
+    {
+        try
+        {
+            await operation(transaction.Connection, transaction);
+        }
+        catch (PostgresException)
+        {
+            await transaction.RollbackAsync();
+            throw;
         }
         catch (Exception e)
         {

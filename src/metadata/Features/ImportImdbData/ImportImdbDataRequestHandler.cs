@@ -23,7 +23,7 @@ public class ImportImdbDataRequestHandler(
     {
         logger.LogInformation("Clearing existing IMDB data from database");
         await dbService.DropPgtrmIndex();
-        await dbService.DeleteFromTable(TableNames.MetadataTable);
+        await dbService.TruncateTable(TableNames.MetadataTable);
         logger.LogInformation("Existing IMDB data cleared from database");
     }
 }
