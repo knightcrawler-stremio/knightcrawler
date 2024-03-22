@@ -8,13 +8,13 @@ namespace Internal.Generated.WolverineHandlers
     // START: GetImdbDataRequestHandler1674247617
     public class GetImdbDataRequestHandler1674247617 : Wolverine.Runtime.Handlers.MessageHandler
     {
-        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler> _logger;
         private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
+        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler> _logger;
 
-        public GetImdbDataRequestHandler1674247617(Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler> logger, System.Net.Http.IHttpClientFactory httpClientFactory)
+        public GetImdbDataRequestHandler1674247617(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler> logger)
         {
-            _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
         }
 
 

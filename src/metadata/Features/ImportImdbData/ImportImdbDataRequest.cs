@@ -1,3 +1,3 @@
 namespace Metadata.Features.ImportImdbData;
 
-public record ImportImdbDataRequest(string TitleBasicsFilePath, string TitleAkasFilePath);
+public record ImportImdbDataRequest(string TitleBasicsFilePath, string TitleAkasFilePath, string EpisodesFilePath);

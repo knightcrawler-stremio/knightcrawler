@@ -4,19 +4,21 @@ public class GetImdbDataRequestHandler(IHttpClientFactory clientFactory, ILogger
 {
     private const string TitleBasicsFileName = "title.basics.tsv";
     private const string TitleAkasFileName = "title.akas.tsv";
+    private const string EpisodesFileName = "title.episode.tsv";
 
     public async Task<ImportImdbDataRequest> Handle(GetImdbDataRequest _, CancellationToken cancellationToken)
     {
         logger.LogInformation("Downloading IMDB data");
 
         var client = clientFactory.CreateClient("imdb-data");
-        var tempBasicsFile = await DownloadFileToTempPath(cancellationToken, client, TitleBasicsFileName);
-        var tempAkasFile = await DownloadFileToTempPath(cancellationToken, client, TitleAkasFileName);
+        var tempBasicsFile = await DownloadFileToTempPath(client, TitleBasicsFileName, cancellationToken);
+        var tempAkasFile = await DownloadFileToTempPath(client, TitleAkasFileName, cancellationToken);
+        var tempEpisodesFile = await DownloadFileToTempPath(client, EpisodesFileName, cancellationToken);
 
-        return new(tempBasicsFile, tempAkasFile);
+        return new(tempBasicsFile, tempAkasFile, tempEpisodesFile);
     }
 
-    private async Task<string> DownloadFileToTempPath(CancellationToken cancellationToken, HttpClient client, string fileName)
+    private async Task<string> DownloadFileToTempPath(HttpClient client, string fileName, CancellationToken cancellationToken)
     {
         var response = await client.GetAsync($"{fileName}.gz", cancellationToken);
 

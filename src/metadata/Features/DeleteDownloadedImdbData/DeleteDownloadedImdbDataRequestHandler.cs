@@ -6,6 +6,7 @@ public class DeleteDownloadedImdbDataRequestHandler(ILogger<DeleteDownloadedImdb
     {
         DeleteFile(request.TitleBasicsFilePath);
         DeleteFile(request.TitleAkasFilePath);
+        DeleteFile(request.EpisodesFilePath);
         logger.LogInformation("Processing Completed");
 
         Environment.Exit(0);

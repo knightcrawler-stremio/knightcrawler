@@ -17,6 +17,15 @@ public static class ServiceCollectionExtensions
         return services;
     }
     
+    internal static IServiceCollection AddImporters(this IServiceCollection services)
+    {
+        services.AddScoped<IFileImport<ImdbBasicEntry>, BasicsFile>();
+        services.AddScoped<IFileImport<ImdbAkaEntry>, AkasFile>();
+        services.AddScoped<IFileImport<ImdbEpisodeEntry>, EpisodesFile>();
+        
+        return services;
+    }
+    
     internal static IServiceCollection AddServiceConfiguration(this IServiceCollection services)
     {
         services.LoadConfigurationFromEnv<ServiceConfiguration>();

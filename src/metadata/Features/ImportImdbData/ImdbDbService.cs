@@ -2,12 +2,12 @@ namespace Metadata.Features.ImportImdbData;
 
 public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbService> logger)
 {
-    public Task InsertImdbEntries(IEnumerable<ImdbEntry> entries) =>
+    public Task InsertImdbEntries(IEnumerable<ImdbBasicEntry> entries) =>
         ExecuteCommandAsync(
             async connection =>
             {
                 await using var writer = await connection.BeginBinaryImportAsync(
-                    "COPY imdb_metadata (\"imdb_id\", \"category\", \"title\", \"year\", \"adult\") FROM STDIN (FORMAT BINARY)");
+                    $"COPY {TableNames.MetadataTable} (\"imdb_id\", \"category\", \"title\", \"year\", \"adult\") FROM STDIN (FORMAT BINARY)");
 
                 foreach (var entry in entries)
                 {
@@ -39,7 +39,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
             async connection =>
             {
                 await using var writer = await connection.BeginBinaryImportAsync(
-                    "COPY imdb_metadata_akas (\"imdb_id\", \"ordering\", \"localized_title\", \"region\", \"language\", \"types\", \"attributes\", \"is_original_title\") FROM STDIN (FORMAT BINARY)");
+                    $"COPY {TableNames.AkasTable} (\"imdb_id\", \"ordering\", \"localized_title\", \"region\", \"language\", \"types\", \"attributes\", \"is_original_title\") FROM STDIN (FORMAT BINARY)");
 
                 foreach (var entry in entries.Where(x=>x.LocalizedTitle?.Length <= 8000))
                 {
@@ -56,7 +56,39 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
                         await writer.WriteAsync(entry.IsOriginalTitle, NpgsqlDbType.Boolean);
                         
                     }
-                    catch (Npgsql.PostgresException e)
+                    catch (PostgresException e)
+                    {
+                        if (e.Message.Contains("value too long for type character", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        throw;
+                    }
+                }
+
+                await writer.CompleteAsync();
+            }, "Error while inserting imdb entries into database");
+    
+    public Task InsertImdbEpisodeEntries(IEnumerable<ImdbEpisodeEntry> entries) =>
+        ExecuteCommandAsync(
+            async connection =>
+            {
+                await using var writer = await connection.BeginBinaryImportAsync(
+                    $"COPY {TableNames.EpisodesTable} (\"episode_id\", \"parent_id\", \"season\", \"episode\") FROM STDIN (FORMAT BINARY)");
+
+                foreach (var entry in entries)
+                {
+                    try
+                    {
+                        await writer.StartRowAsync();
+                        await writer.WriteAsync(entry.EpisodeImdbId, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.ParentImdbId, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.SeasonNumber, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.EpisodeNumber, NpgsqlDbType.Text);
+                        
+                    }
+                    catch (PostgresException e)
                     {
                         if (e.Message.Contains("value too long for type character", StringComparison.OrdinalIgnoreCase))
                         {
@@ -74,15 +106,25 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
         ExecuteCommandAsync(
             async connection =>
             {
+                logger.LogInformation("Truncating '{Table}' table", table);
                 await using var command = new NpgsqlCommand($"TRUNCATE TABLE {table}", connection);
                 await command.ExecuteNonQueryAsync();
-            }, "Error while clearing 'imdb_metadata' table");
+            }, $"Error while clearing '{table}' table");
+    
+    public Task DeleteFromTable(string table) =>
+        ExecuteCommandAsync(
+            async connection =>
+            {
+                logger.LogInformation("Truncating '{Table}' table", table);
+                await using var command = new NpgsqlCommand($"DELETE FROM {table}", connection);
+                await command.ExecuteNonQueryAsync();
+            }, $"Error while clearing '{table}' table");
 
     public Task CreatePgtrmIndex() =>
         ExecuteCommandAsync(
             async connection =>
             {
-                await using var command = new NpgsqlCommand("CREATE INDEX title_gist ON imdb_metadata USING gist(title gist_trgm_ops)", connection);
+                await using var command = new NpgsqlCommand($"CREATE INDEX title_gist ON {TableNames.MetadataTable} USING gist(title gist_trgm_ops)", connection);
                 await command.ExecuteNonQueryAsync();
             }, "Error while creating index on imdb_metadata table");
 
@@ -92,7 +134,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
             {
                 await using var dropCommand = new NpgsqlCommand("DROP INDEX if exists title_gist", connection);
                 await dropCommand.ExecuteNonQueryAsync();
-            }, "Error while dropping index on imdb_metadata table");
+            }, $"Error while dropping index on {TableNames.MetadataTable} table");
 
 
     private async Task ExecuteCommandAsync(Func<NpgsqlConnection, Task> operation, string errorMessage)
