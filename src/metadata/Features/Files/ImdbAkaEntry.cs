@@ -1,4 +1,4 @@
-namespace Metadata.Features.ImportImdbData;
+namespace Metadata.Features.Files;
 
 public class ImdbAkaEntry
 {

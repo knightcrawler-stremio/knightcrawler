@@ -8,6 +8,6 @@ public class IndexImdbDataRequestHandler(ILogger<IndexImdbDataRequestHandler> lo
 
         await dbService.CreatePgtrmIndex();
 
-        return new(request.TitleBasicsFilePath, request.TitleAkasFilePath);
+        return new(request.TitleBasicsFilePath, request.TitleAkasFilePath, request.EpisodesFilePath);
     }
 }

@@ -1,15 +1,11 @@
-namespace Metadata.Features.ImportImdbData;
+namespace Metadata.Features.Files;
 
-public static class AkasFile
+public class AkasFile(ILogger<AkasFile> logger, ImdbDbService dbService) : IFileImport<ImdbAkaEntry>
 {
-    public static async Task Import(string fileName, ILogger<ImportImdbDataRequestHandler> logger, ImdbDbService dbService, int batchSize, CancellationToken cancellationToken)
+    public async Task Import(string fileName, int batchSize, CancellationToken cancellationToken)
     {
         logger.LogInformation("Importing Downloaded IMDB AKAs data from {FilePath}", fileName);
         
-        logger.LogInformation("Truncating 'imdb_metadata_akas' table");
-        
-        await dbService.TruncateTable("imdb_metadata_akas");
-
         var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             Delimiter = "\t",
@@ -27,7 +23,7 @@ public static class AkasFile
 
         await csv.ReadAsync();
 
-        var batchInsertTask = CreateBatchOfAkaEntries(channel, logger, dbService, batchSize, cancellationToken);
+        var batchInsertTask = CreateBatchOfAkaEntries(channel, batchSize, cancellationToken);
 
         await ReadAkaEntries(csv, channel, cancellationToken);
 
@@ -36,7 +32,7 @@ public static class AkasFile
         await batchInsertTask;
     }
     
-    private static Task CreateBatchOfAkaEntries(Channel<ImdbAkaEntry, ImdbAkaEntry> channel, ILogger<ImportImdbDataRequestHandler> logger, ImdbDbService dbService, int batchSize, CancellationToken cancellationToken) =>
+    private Task CreateBatchOfAkaEntries(Channel<ImdbAkaEntry, ImdbAkaEntry> channel, int batchSize, CancellationToken cancellationToken) =>
         Task.Run(async () =>
         {
             await foreach (var movieData in channel.Reader.ReadAllAsync(cancellationToken))
@@ -59,7 +55,7 @@ public static class AkasFile
                 if (batch.Count > 0)
                 {
                     await dbService.InsertImdbAkaEntries(batch);
-                    logger.LogInformation("Imported batch of {BatchSize} starting with ImdbId {FirstImdbId}", batch.Count, batch.First().ImdbId);
+                    logger.LogInformation("Imported batch of {BatchSize} aka entries starting with ImdbId {FirstImdbId}", batch.Count, batch.First().ImdbId);
                 }
             }
         }, cancellationToken);

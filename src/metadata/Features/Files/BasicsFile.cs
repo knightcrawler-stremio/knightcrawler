@@ -1,16 +1,10 @@
-namespace Metadata.Features.ImportImdbData;
+namespace Metadata.Features.Files;
 
-public static class BasicsFile
+public class BasicsFile(ILogger<BasicsFile> logger, ImdbDbService dbService): IFileImport<ImdbBasicEntry>
 {
-    public static async Task Import(string fileName, ILogger<ImportImdbDataRequestHandler> logger, ImdbDbService dbService, int batchSize, CancellationToken cancellationToken)
+    public async Task Import(string fileName, int batchSize, CancellationToken cancellationToken)
     {
         logger.LogInformation("Importing Downloaded IMDB Basics data from {FilePath}", fileName);
-
-        logger.LogInformation("Truncating 'imdb_metadata' table");
-        
-        await dbService.DropPgtrmIndex();
-        
-        await dbService.TruncateTable("imdb_metadata");
         
         var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -22,14 +16,14 @@ public static class BasicsFile
         using var reader = new StreamReader(fileName);
         using var csv = new CsvReader(reader, csvConfig);
 
-        var channel = Channel.CreateBounded<ImdbEntry>(new BoundedChannelOptions(batchSize)
+        var channel = Channel.CreateBounded<ImdbBasicEntry>(new BoundedChannelOptions(batchSize)
         {
             FullMode = BoundedChannelFullMode.Wait,
         });
 
         await csv.ReadAsync();
 
-        var batchInsertTask = CreateBatchOfBasicEntries(channel, logger, dbService, batchSize, cancellationToken);
+        var batchInsertTask = CreateBatchOfBasicEntries(channel, batchSize, cancellationToken);
 
         await ReadBasicEntries(csv, channel, cancellationToken);
 
@@ -38,7 +32,7 @@ public static class BasicsFile
         await batchInsertTask;
     }
     
-    private static Task CreateBatchOfBasicEntries(Channel<ImdbEntry, ImdbEntry> channel, ILogger<ImportImdbDataRequestHandler> logger, ImdbDbService dbService, int batchSize, CancellationToken cancellationToken) =>
+    private Task CreateBatchOfBasicEntries(Channel<ImdbBasicEntry, ImdbBasicEntry> channel, int batchSize, CancellationToken cancellationToken) =>
         Task.Run(async () =>
         {
             await foreach (var movieData in channel.Reader.ReadAllAsync(cancellationToken))
@@ -48,7 +42,7 @@ public static class BasicsFile
                     return;
                 }
 
-                var batch = new List<ImdbEntry>
+                var batch = new List<ImdbBasicEntry>
                 {
                     movieData,
                 };
@@ -61,18 +55,18 @@ public static class BasicsFile
                 if (batch.Count > 0)
                 {
                     await dbService.InsertImdbEntries(batch);
-                    logger.LogInformation("Imported batch of {BatchSize} starting with ImdbId {FirstImdbId}", batch.Count, batch.First().ImdbId);
+                    logger.LogInformation("Imported batch of {BatchSize} basics starting with ImdbId {FirstImdbId}", batch.Count, batch.First().ImdbId);
                 }
             }
         }, cancellationToken);
     
-    private static async Task ReadBasicEntries(CsvReader csv, Channel<ImdbEntry, ImdbEntry> channel, CancellationToken cancellationToken)
+    private static async Task ReadBasicEntries(CsvReader csv, Channel<ImdbBasicEntry, ImdbBasicEntry> channel, CancellationToken cancellationToken)
     {
         while (await csv.ReadAsync())
         {
             var isAdultSet = int.TryParse(csv.GetField(4), out var adult);
             
-            var movieData = new ImdbEntry
+            var movieData = new ImdbBasicEntry
             {
                 ImdbId = csv.GetField(0),
                 Category = csv.GetField(1),

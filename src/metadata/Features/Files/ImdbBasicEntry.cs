@@ -1,6 +1,6 @@
-namespace Metadata.Features.ImportImdbData;
+namespace Metadata.Features.Files;
 
-public class ImdbEntry
+public class ImdbBasicEntry
 {
     public string ImdbId { get; set; } = default!;
     public string? Category { get; set; }

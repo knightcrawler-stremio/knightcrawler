@@ -6,5 +6,9 @@ CREATE TABLE public.imdb_metadata_akas (
 	"language" varchar(100) NULL,
 	types varchar(200) NULL,
 	attributes varchar(200) NULL,
-	is_original_title boolean NULL
+	is_original_title boolean NULL,
+    CONSTRAINT fk_imdb_metadata_akas_imdb_id
+        FOREIGN KEY (imdb_id)
+            REFERENCES public.imdb_metadata(imdb_id)
+            ON DELETE CASCADE
 );
