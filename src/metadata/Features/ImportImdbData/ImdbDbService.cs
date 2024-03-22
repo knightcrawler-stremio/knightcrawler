@@ -102,12 +102,13 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
                 await writer.CompleteAsync();
             }, "Error while inserting imdb entries into database");
     
-    public Task TruncateTable(string table) =>
+    public Task TruncateTable(string table, bool cascade = false) =>
         ExecuteCommandAsync(
             async connection =>
             {
-                logger.LogInformation("Truncating '{Table}' table with cascade.", table);
-                await using var command = new NpgsqlCommand($"TRUNCATE TABLE {table} CASCADE", connection);
+                var cascadeOption = cascade ? "CASCADE" : string.Empty;
+                logger.LogInformation("Truncating '{Table}' table {CascadeOption}", table, cascadeOption);
+                await using var command = new NpgsqlCommand($"TRUNCATE TABLE {table} {cascadeOption}", connection);
                 await command.ExecuteNonQueryAsync();
             }, $"Error while clearing '{table}' table");
    
