@@ -8,20 +8,23 @@ namespace Internal.Generated.WolverineHandlers
     // START: GetImdbDataRequestHandler1674247617
     public class GetImdbDataRequestHandler1674247617 : Wolverine.Runtime.Handlers.MessageHandler
     {
+        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler> _logger2;
+        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.ImdbFileDownloader> _logger1;
         private readonly System.Net.Http.IHttpClientFactory _httpClientFactory;
-        private readonly Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler> _logger;
 
-        public GetImdbDataRequestHandler1674247617(System.Net.Http.IHttpClientFactory httpClientFactory, Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler> logger)
+        public GetImdbDataRequestHandler1674247617(Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler> __logger2, Microsoft.Extensions.Logging.ILogger<Metadata.Features.DownloadImdbData.ImdbFileDownloader> __logger1, System.Net.Http.IHttpClientFactory httpClientFactory)
         {
+            _logger2 = __logger2;
+            _logger1 = __logger1;
             _httpClientFactory = httpClientFactory;
-            _logger = logger;
         }
 
 
 
         public override async System.Threading.Tasks.Task HandleAsync(Wolverine.Runtime.MessageContext context, System.Threading.CancellationToken cancellation)
         {
-            var getImdbDataRequestHandler = new Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler(_httpClientFactory, _logger);
+            var imdbFileDownloader = new Metadata.Features.DownloadImdbData.ImdbFileDownloader(_logger1);
+            var getImdbDataRequestHandler = new Metadata.Features.DownloadImdbData.GetImdbDataRequestHandler(_httpClientFactory, imdbFileDownloader, _logger2);
             // The actual message body
             var getImdbDataRequest = (Metadata.Features.DownloadImdbData.GetImdbDataRequest)context.Envelope.Message;
 

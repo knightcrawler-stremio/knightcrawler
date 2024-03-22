@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
     internal static IServiceCollection AddServiceConfiguration(this IServiceCollection services)
     {
         services.LoadConfigurationFromEnv<ServiceConfiguration>();
+        services.AddScoped<IImdbFileDownloader, ImdbFileDownloader>();
         services.AddHostedService<DownloadImdbDataJob>();
         
         return services;

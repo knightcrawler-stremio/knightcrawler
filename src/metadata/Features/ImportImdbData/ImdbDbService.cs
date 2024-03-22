@@ -107,7 +107,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
             async connection =>
             {
                 var cascadeOption = cascade ? "CASCADE" : string.Empty;
-                logger.LogInformation("Truncating '{Table}' table {CascadeOption}", table, cascadeOption);
+                logger.LogInformation("Truncating '{Table}' table", table);
                 await using var command = new NpgsqlCommand($"TRUNCATE TABLE {table} {cascadeOption}", connection);
                 await command.ExecuteNonQueryAsync();
             }, $"Error while clearing '{table}' table");
