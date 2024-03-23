@@ -1,5 +1,6 @@
 using FuzzySharp;
 using FuzzySharp.Extractor;
+using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
 
 namespace Producer.Features.Crawlers.Dmm;
 
@@ -110,7 +111,12 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        var parsedTorrent = Parser.Default.Parse(torrentTitle.CleanTorrentTitleForImdb());
+        var parsedTorrent = ParseTorrentTitle(torrentTitle);
+        if (parsedTorrent == null)
+        {
+            return null;
+        }
+
         var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Title, parsedTorrent.TorrentType, parsedTorrent.Year);
 
         if (imdbEntry.Count == 0)
@@ -143,9 +149,26 @@ public partial class DebridMediaManagerCrawler(
         return torrent;
     }
 
+    private TorrentMetadata? ParseTorrentTitle(string? torrentTitle)
+    {
+        TorrentMetadata parsedTorrent;
+
+        try
+        {
+            parsedTorrent = Parser.Default.Parse(torrentTitle.CleanTorrentTitleForImdb());
+        }
+        catch (Exception)
+        {
+            logger.LogWarning("Failed to parse torrent title {Title}", torrentTitle);
+            return null;
+        }
+
+        return parsedTorrent;
+    }
+
     private bool ScoreTitles(TorrentMetadata parsedTorrent, List<ImdbEntry> imdbEntry, out ExtractedResult<string>? bestMatch)
     {
-        var scoredResults = Process.ExtractAll(parsedTorrent.Title, imdbEntry.Select(x => x.Title), cutoff: 85);
+        var scoredResults = Process.ExtractAll(parsedTorrent.Title.ToLowerInvariant(), imdbEntry.Select(x => x.Title.ToLowerInvariant()), scorer: new DefaultRatioScorer(), cutoff: 85);
         
         bestMatch = scoredResults.MaxBy(x => x.Score);
         
