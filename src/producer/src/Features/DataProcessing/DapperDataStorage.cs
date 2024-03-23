@@ -166,7 +166,7 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            logger.LogError(e, "Error while getting imdb entries for requests");
             throw;
         }
     }
@@ -178,12 +178,8 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
             await using var connection = new NpgsqlConnection(configuration.StorageConnectionString);
             await connection.OpenAsync(cancellationToken);
 
-            var query = $"select * from search_imdb_meta('{parsedTorrentTitle}', '{(torrentType == TorrentType.Movie ? "movie" : "tvSeries")}'";
-            
-            if (year is not null)
-            {
-                query += $", '{year}'";
-            }
+            var query = $"select * from search_imdb_meta('{parsedTorrentTitle.Replace("'", "").Replace("\"", "")}', '{(torrentType == TorrentType.Movie ? "movie" : "tvSeries")}'";
+            query += year is not null ? $", '{year}'" : ", NULL";
             query += ", 15)";
             
             var result = await connection.QueryAsync<ImdbEntry>(query);
@@ -192,7 +188,7 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            logger.LogError(e, "Error while getting imdb entries for requests");
             throw;
         }
     }
