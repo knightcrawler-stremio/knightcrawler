@@ -4,9 +4,7 @@ public partial class DebridMediaManagerCrawler(
     IHttpClientFactory httpClientFactory,
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
-    GithubConfiguration githubConfiguration,
-    ImdbMongoDbService imdbDataService,
-    IParseTorrentName ptn) : BaseCrawler(logger, storage)
+    GithubConfiguration githubConfiguration) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
