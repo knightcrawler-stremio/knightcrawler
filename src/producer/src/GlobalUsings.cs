@@ -1,6 +1,5 @@
 // Global using directives
 
-global using System.Globalization;
 global using System.Reflection;
 global using System.Text;
 global using System.Text.Json;
@@ -23,5 +22,4 @@ global using Producer.Features.Crawlers.Torrentio;
 global using Producer.Features.CrawlerSupport;
 global using Producer.Features.DataProcessing;
 global using Producer.Features.JobSupport;
-global using Producer.Features.PTN;
 global using Serilog;
