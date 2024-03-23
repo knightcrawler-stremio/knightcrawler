@@ -7,6 +7,7 @@ internal static class ServiceCollectionExtensions
         services.LoadConfigurationFromEnv<PostgresConfiguration>();
         services.AddTransient<IDataStorage, DapperDataStorage>();
         services.AddTransient<IMessagePublisher, TorrentPublisher>();
+        services.AddSingleton<IParseTorrentTitle, ParseTorrentTitle>();
         return services;
     }
 }

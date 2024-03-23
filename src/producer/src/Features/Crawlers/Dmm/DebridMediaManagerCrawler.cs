@@ -1,14 +1,11 @@
-using FuzzySharp;
-using FuzzySharp.Extractor;
-using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
-
 namespace Producer.Features.Crawlers.Dmm;
 
 public partial class DebridMediaManagerCrawler(
     IHttpClientFactory httpClientFactory,
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
-    GithubConfiguration githubConfiguration) : BaseCrawler(logger, storage)
+    GithubConfiguration githubConfiguration,
+    IParseTorrentTitle parseTorrentTitle) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
@@ -111,12 +108,8 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        var parsedTorrent = ParseTorrentTitle(torrentTitle);
-        if (parsedTorrent == null)
-        {
-            return null;
-        }
-
+        var parsedTorrent = parseTorrentTitle.Parse(torrentTitle.CleanTorrentTitleForImdb());
+        
         var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Title, parsedTorrent.TorrentType, parsedTorrent.Year);
 
         if (imdbEntry.Count == 0)
@@ -149,26 +142,9 @@ public partial class DebridMediaManagerCrawler(
         return torrent;
     }
 
-    private TorrentMetadata? ParseTorrentTitle(string? torrentTitle)
-    {
-        TorrentMetadata parsedTorrent;
-
-        try
-        {
-            parsedTorrent = Parser.Default.Parse(torrentTitle.CleanTorrentTitleForImdb());
-        }
-        catch (Exception)
-        {
-            logger.LogWarning("Failed to parse torrent title {Title}", torrentTitle);
-            return null;
-        }
-
-        return parsedTorrent;
-    }
-
     private bool ScoreTitles(TorrentMetadata parsedTorrent, List<ImdbEntry> imdbEntry, out ExtractedResult<string>? bestMatch)
     {
-        var scoredResults = Process.ExtractAll(parsedTorrent.Title.ToLowerInvariant(), imdbEntry.Select(x => x.Title.ToLowerInvariant()), scorer: new DefaultRatioScorer(), cutoff: 85);
+        var scoredResults = Process.ExtractAll(parsedTorrent.Title.ToLowerInvariant(), imdbEntry.Select(x => x.Title.ToLowerInvariant()), scorer: new PartialRatioScorer(), cutoff: 90);
         
         bestMatch = scoredResults.MaxBy(x => x.Score);
         
