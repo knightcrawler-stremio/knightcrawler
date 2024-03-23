@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace Producer.Features.DataProcessing;
 
 public interface IDataStorage
@@ -11,4 +9,5 @@ public interface IDataStorage
     Task<PageIngestedResult> MarkPageAsIngested(string pageId, CancellationToken cancellationToken = default);
     Task<int> GetRowCountImdbMetadata(CancellationToken cancellationToken = default);
     Task<List<ImdbEntry>> GetImdbEntriesForRequests(int year, int batchSize, string? stateLastProcessedImdbId, CancellationToken cancellationToken = default);
+    Task<List<ImdbEntry>> FindImdbMetadata(string? parsedTorrentTitle, TorrentType parsedTorrentTorrentType, string? parsedTorrentYear, CancellationToken cancellationToken = default);
 }

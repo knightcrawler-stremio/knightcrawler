@@ -170,4 +170,30 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
             throw;
         }
     }
+
+    public async Task<List<ImdbEntry>> FindImdbMetadata(string? parsedTorrentTitle, TorrentType torrentType, string? year, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await using var connection = new NpgsqlConnection(configuration.StorageConnectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            var query = $"select * from search_imdb_meta('{parsedTorrentTitle}', '{(torrentType == TorrentType.Movie ? "movie" : "tvSeries")}'";
+            
+            if (year is not null)
+            {
+                query += $", '{year}'";
+            }
+            query += ", 15)";
+            
+            var result = await connection.QueryAsync<ImdbEntry>(query);
+
+            return result.ToList();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }

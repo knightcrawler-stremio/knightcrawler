@@ -22,4 +22,5 @@ global using Producer.Features.Crawlers.Torrentio;
 global using Producer.Features.CrawlerSupport;
 global using Producer.Features.DataProcessing;
 global using Producer.Features.JobSupport;
+global using PromKnight.ParseTorrentTitle;
 global using Serilog;

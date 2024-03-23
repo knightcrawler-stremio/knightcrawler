@@ -21,7 +21,7 @@ public partial class TorrentioCrawler(
     {
         var client = httpClientFactory.CreateClient(Literals.CrawlerClient);
         var instances = configuration.Instances;
-        var totalRecordCount = await storage.GetRowCountImdbMetadata();
+        var totalRecordCount = await Storage.GetRowCountImdbMetadata();
         logger.LogInformation("Total IMDB records to process: {TotalRecordCount}", totalRecordCount);
         var tasks = instances.Select(x => ProcessForInstanceAsync(x, client, totalRecordCount)).ToArray();
         await Task.WhenAll(tasks);
@@ -42,7 +42,7 @@ public partial class TorrentioCrawler(
                     logger.LogInformation("Processing {TorrentioInstance}", instance.Name);
                     logger.LogInformation("Current processed requests: {ProcessedRequests}", state.TotalProcessed);
 
-                    var items = await storage.GetImdbEntriesForRequests(
+                    var items = await Storage.GetImdbEntriesForRequests(
                         DateTime.UtcNow.Year,
                         instance.RateLimit.BatchSize,
                         state.LastProcessedImdbId);
