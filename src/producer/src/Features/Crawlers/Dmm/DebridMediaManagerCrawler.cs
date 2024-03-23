@@ -1,3 +1,6 @@
+using FuzzySharp;
+using FuzzySharp.Extractor;
+
 namespace Producer.Features.Crawlers.Dmm;
 
 public partial class DebridMediaManagerCrawler(
@@ -107,25 +110,29 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        var parsedTorrent = ptn.Parse(torrentTitle.CleanTorrentTitleForImdb());
-        var torrentType = ptn.GetTorrentTypeByName(torrentTitle);
-        var imdbEntry = await imdbDataService.FindImdbEntry(parsedTorrent.Title, torrentType, parsedTorrent.Year);
+        var parsedTorrent = Parser.Default.Parse(torrentTitle.CleanTorrentTitleForImdb());
+        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Title, parsedTorrent.TorrentType, parsedTorrent.Year);
 
-        if (imdbEntry is null)
+        if (imdbEntry.Count == 0)
         {
             logger.LogWarning("Failed to find imdb entry for {Title}", parsedTorrent.Title);
+            return null;
+        }
+        
+        if (!ScoreTitles(parsedTorrent, imdbEntry, out var bestMatch))
+        {
             return null;
         }
 
         var torrent = new Torrent
         {
             Source = Source,
-            Name = imdbEntry.PrimaryTitle,
+            Name = bestMatch.Value,
             Size = bytesElement.GetInt64().ToString(),
             InfoHash = hashElement.ToString(),
             Seeders = 0,
             Leechers = 0,
-            Category = torrentType switch
+            Category = parsedTorrent.TorrentType switch
             {
                 TorrentType.Movie => "movies",
                 TorrentType.Tv => "tv",
@@ -134,6 +141,21 @@ public partial class DebridMediaManagerCrawler(
         };
 
         return torrent;
+    }
+
+    private bool ScoreTitles(TorrentMetadata parsedTorrent, List<ImdbEntry> imdbEntry, out ExtractedResult<string>? bestMatch)
+    {
+        var scoredResults = Process.ExtractAll(parsedTorrent.Title, imdbEntry.Select(x => x.Title), cutoff: 85);
+        
+        bestMatch = scoredResults.MaxBy(x => x.Score);
+        
+        if (bestMatch is null)
+        {
+            logger.LogWarning("Failed to find best match for {Title}", parsedTorrent.Title);
+            return false;
+        }
+
+        return true;
     }
 
     private async Task InsertTorrentsForPage(JsonDocument json)
