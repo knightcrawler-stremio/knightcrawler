@@ -1,3 +1,5 @@
+using DebridCollector.Features.Configuration;
+
 namespace DebridCollector.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -12,7 +14,7 @@ public static class ServiceCollectionExtensions
     
     internal static IServiceCollection AddServiceConfiguration(this IServiceCollection services)
     {
-        var serviceConfiguration = services.LoadConfigurationFromEnv<ServiceConfiguration>();
+        var serviceConfiguration = services.LoadConfigurationFromEnv<DebridCollectorConfiguration>();
         
         services.AddRealDebridClient(serviceConfiguration);
         services.AddSingleton<IParseTorrentTitle, ParseTorrentTitle>();

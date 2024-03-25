@@ -1,8 +1,10 @@
-﻿namespace DebridCollector.Features.Debrid;
+﻿using DebridCollector.Features.Configuration;
+
+namespace DebridCollector.Features.Debrid;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddRealDebridClient(this IServiceCollection services, ServiceConfiguration serviceConfiguration)
+    public static IServiceCollection AddRealDebridClient(this IServiceCollection services, DebridCollectorConfiguration serviceConfiguration)
     {
         services.AddHttpClient<IDebridHttpClient, RealDebridClient>(
                 client =>
