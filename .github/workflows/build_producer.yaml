@@ -2,10 +2,10 @@ name: Build and Push Producer Service
 
 on:
   push:
+    tags:
+      - '**'
     paths:
       - 'src/producer/**'
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:

@@ -2,6 +2,8 @@ name: Build and Push Debrid Collector Service
 
 on:
   push:
+    tags:
+      - '**'
     paths:
       - 'src/debrid-collector/**'
   workflow_dispatch:
