@@ -1,0 +1,25 @@
+version: "3.9"
+
+networks:
+  knightcrawler-network:
+    external: true
+
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    hostname: qbit
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    networks:
+      - knightcrawler-network
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+      - 8080:8080
+    restart: unless-stopped
+    volumes:
+      - ./config/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf
