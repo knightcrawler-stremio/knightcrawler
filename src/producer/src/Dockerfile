@@ -8,6 +8,7 @@ WORKDIR /src/producer/src
 RUN dotnet restore -a $TARGETARCH
 RUN dotnet publish -c Release --no-restore -o /src/out -a $TARGETARCH
 
+
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
 WORKDIR /app
