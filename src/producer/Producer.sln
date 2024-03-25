@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Producer", "src\Producer.csproj", "{EBDD1F47-B7DB-4DD5-96BC-812DFFC86A01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedContracts", "..\shared\SharedContracts.csproj", "{455A8BDD-541A-4F7B-894D-B4AE8C4ACDE9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{FF5CA857-51E8-4446-8840-2A1D24ED3952}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,12 @@ Global
 		{EBDD1F47-B7DB-4DD5-96BC-812DFFC86A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBDD1F47-B7DB-4DD5-96BC-812DFFC86A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBDD1F47-B7DB-4DD5-96BC-812DFFC86A01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{455A8BDD-541A-4F7B-894D-B4AE8C4ACDE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{455A8BDD-541A-4F7B-894D-B4AE8C4ACDE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{455A8BDD-541A-4F7B-894D-B4AE8C4ACDE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{455A8BDD-541A-4F7B-894D-B4AE8C4ACDE9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{455A8BDD-541A-4F7B-894D-B4AE8C4ACDE9} = {FF5CA857-51E8-4446-8840-2A1D24ED3952}
 	EndGlobalSection
 EndGlobal

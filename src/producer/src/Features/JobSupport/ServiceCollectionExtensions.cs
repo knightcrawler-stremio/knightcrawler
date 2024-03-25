@@ -39,6 +39,7 @@ internal static class ServiceCollectionExtensions
             options =>
             {
                 options.WaitForJobsToComplete = true;
+                options.AwaitApplicationStarted = true;
             });
 
         return services;

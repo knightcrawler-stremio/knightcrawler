@@ -1,0 +1,16 @@
+name: Build and Push Debrid Collector Service
+
+on:
+  push:
+    paths:
+      - 'src/debrid-collector/**'
+  workflow_dispatch:
+
+jobs:
+  process:
+    uses: ./.github/workflows/base_image_workflow.yaml
+    secrets: inherit
+    with:
+      CONTEXT: ./src/
+      DOCKERFILE: ./src/debrid-collector/Dockerfile
+      IMAGE_NAME: knightcrawler-debrid-collector

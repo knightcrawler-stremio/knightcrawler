@@ -24,7 +24,7 @@ public abstract class BaseXmlCrawler(IHttpClientFactory httpClientFactory, ILogg
         await InsertTorrents(torrents!);
     }
 
-    protected virtual void HandleInfoHash(XElement itemNode, Torrent torrent, string infoHashKey)
+    protected virtual void HandleInfoHash(XElement itemNode, IngestedTorrent torrent, string infoHashKey)
     {
         if (!Mappings.ContainsKey(infoHashKey))
         {
@@ -39,5 +39,5 @@ public abstract class BaseXmlCrawler(IHttpClientFactory httpClientFactory, ILogg
         }
     }
 
-    protected abstract Torrent? ParseTorrent(XElement itemNode);
+    protected abstract IngestedTorrent? ParseTorrent(XElement itemNode);
 }

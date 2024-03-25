@@ -26,7 +26,7 @@ public abstract class BaseJsonCrawler(IHttpClientFactory httpClientFactory, ILog
         await InsertTorrents(torrents!);
     }
 
-    protected virtual void HandleInfoHash(JsonElement item, Torrent torrent, string infoHashKey)
+    protected virtual void HandleInfoHash(JsonElement item, IngestedTorrent torrent, string infoHashKey)
     {
         if (!Mappings.ContainsKey(infoHashKey))
         {
@@ -41,5 +41,5 @@ public abstract class BaseJsonCrawler(IHttpClientFactory httpClientFactory, ILog
         }
     }
 
-    protected abstract Torrent? ParseTorrent(JsonElement item);
+    protected abstract IngestedTorrent? ParseTorrent(JsonElement item);
 }

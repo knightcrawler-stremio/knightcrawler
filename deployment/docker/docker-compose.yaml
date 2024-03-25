@@ -33,6 +33,11 @@ x-apps: &knightcrawler-app
     metadata:
       condition: service_completed_successfully
   restart: *restart-policy
+  env_file: .env
+  labels:
+    logging: "promtail"
+  networks:
+    - knightcrawler-network
 
 services:
   postgres:
@@ -82,7 +87,7 @@ services:
       - knightcrawler-network
 
   migrator:
-    image: gabisonfire/knightcrawler-migrator:latest
+    image: gabisonfire/knightcrawler-migrator:2.0.0
     labels:
       logging: "promtail"
     env_file: .env
@@ -94,55 +99,32 @@ services:
       - knightcrawler-network
         
   metadata:
-    image: gabisonfire/knightcrawler-metadata:latest
-    env_file: .env
-    labels:
-      logging: "promtail"
+    image: gabisonfire/knightcrawler-metadata:2.0.0
     restart: no
     depends_on:
       migrator:
         condition: service_completed_successfully
-    networks:
-      - knightcrawler-network
 
   producer:
-    image: gabisonfire/knightcrawler-producer:1.0.1
-    labels:
-      logging: "promtail"
-    env_file: .env
+    image: gabisonfire/knightcrawler-producer:2.0.0
     <<: *knightcrawler-app
-    networks:
-      - knightcrawler-network
-
+ 
   consumer:
-    image: gabisonfire/knightcrawler-consumer:1.0.1
-    env_file: .env
-    labels:
-      logging: "promtail"
-    deploy:
-      replicas: ${CONSUMER_REPLICAS}
+    image: gabisonfire/knightcrawler-consumer:2.0.0
     <<: *knightcrawler-app
-    networks:
-      - knightcrawler-network
 
   metadata:
-    image: gabisonfire/knightcrawler-metadata:1.0.1
-    env_file: .env
-    labels:
-      logging: "promtail"
+    image: gabisonfire/knightcrawler-metadata:2.0.0
     restart: no
-    networks:
-      - knightcrawler-network
+ 
+  debridcollector:
+    image: gabisonfire/knightcrawler-debridcollector:2.0.0
+    <<: *knightcrawler-app
 
   addon:
     <<: *knightcrawler-app
-    env_file: .env
     hostname: knightcrawler-addon
-    image: gabisonfire/knightcrawler-addon:1.0.1
-    labels:
-      logging: "promtail"
-    networks:
-      - knightcrawler-network
+    image: gabisonfire/knightcrawler-addon:2.0.0
       # - caddy
     ports:
       - "7000:7000"

@@ -13,10 +13,10 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
     protected override IReadOnlyDictionary<string, string> Mappings
         => new Dictionary<string, string>
         {
-            [nameof(Torrent.Name)] = "title",
-            [nameof(Torrent.Size)] = "description",
-            [nameof(Torrent.InfoHash)] = "guid",
-            [nameof(Torrent.Category)] = "category",
+            [nameof(IngestedTorrent.Name)] = "title",
+            [nameof(IngestedTorrent.Size)] = "description",
+            [nameof(IngestedTorrent.InfoHash)] = "guid",
+            [nameof(IngestedTorrent.Category)] = "category",
         };
 
     private static readonly HashSet<string> AllowedCategories =
@@ -25,7 +25,7 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
         "tv",
     ];
 
-    protected override Torrent? ParseTorrent(XElement itemNode)
+    protected override IngestedTorrent? ParseTorrent(XElement itemNode)
     {
         var category = itemNode.Element(Mappings["Category"])?.Value.ToLowerInvariant();
 
@@ -40,11 +40,11 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
         }
 
 
-        var torrent = new Torrent
+        var torrent = new IngestedTorrent
         {
             Source = Source,
             Name = itemNode.Element(Mappings["Name"])?.Value,
-            InfoHash = itemNode.Element(Mappings[nameof(Torrent.InfoHash)])?.Value,
+            InfoHash = itemNode.Element(Mappings[nameof(IngestedTorrent.InfoHash)])?.Value,
             Size = "0",
             Seeders = 0,
             Leechers = 0,
@@ -68,7 +68,7 @@ public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<Tg
             },
         };
 
-    private void HandleSize(XContainer itemNode, Torrent torrent, string key)
+    private void HandleSize(XContainer itemNode, IngestedTorrent torrent, string key)
     {
         var description = itemNode.Element(Mappings[key])?.Value;
 

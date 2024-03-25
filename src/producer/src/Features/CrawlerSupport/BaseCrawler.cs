@@ -9,17 +9,17 @@ public abstract class BaseCrawler(ILogger<BaseCrawler> logger, IDataStorage stor
 
     public virtual Task Execute() => Task.CompletedTask;
 
-    protected async Task<InsertTorrentResult> InsertTorrents(IReadOnlyCollection<Torrent> torrent)
+    protected async Task<InsertTorrentResult> InsertTorrents(IReadOnlyCollection<IngestedTorrent> torrent)
     {
         var result = await storage.InsertTorrents(torrent);
 
-        if (!result.Success)
+        if (!result.IsSuccess)
         {
-            logger.LogWarning("Ingestion Failed: [{Error}]", result.ErrorMessage);
-            return result;
+            logger.LogWarning("Ingestion Failed: [{Error}]", result.Failure.ErrorMessage);
+            return result.Failure;
         }
 
-        logger.LogInformation("Ingestion Successful - Wrote {Count} new torrents", result.InsertedCount);
-        return result;
+        logger.LogInformation("Ingestion Successful - Wrote {Count} new torrents", result.Success.InsertedCount);
+        return result.Success;
     }
 }

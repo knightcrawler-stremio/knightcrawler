@@ -22,8 +22,15 @@ public partial class TorrentioCrawler(
         var client = httpClientFactory.CreateClient(Literals.CrawlerClient);
         var instances = configuration.Instances;
         var totalRecordCount = await Storage.GetRowCountImdbMetadata();
-        logger.LogInformation("Total IMDB records to process: {TotalRecordCount}", totalRecordCount);
-        var tasks = instances.Select(x => ProcessForInstanceAsync(x, client, totalRecordCount)).ToArray();
+
+        if (!totalRecordCount.IsSuccess)
+        {
+            logger.LogError("Failed to get total record count from metadata");
+            return;
+        }
+        
+        logger.LogInformation("Total IMDB records to process: {TotalRecordCount}", totalRecordCount.Success);
+        var tasks = instances.Select(x => ProcessForInstanceAsync(x, client, totalRecordCount.Success)).ToArray();
         await Task.WhenAll(tasks);
     }
 
@@ -61,7 +68,7 @@ public partial class TorrentioCrawler(
                         continue;
                     }
 
-                    var newTorrents = new List<Torrent>();
+                    var newTorrents = new List<IngestedTorrent>();
                     var processedItemsCount = 0;
 
                     foreach (var item in items)
@@ -144,7 +151,7 @@ public partial class TorrentioCrawler(
         state.ResiliencyPolicy = policyWrap;
     }
 
-    private async Task<List<Torrent?>?> ScrapeInstance(TorrentioInstance instance, string imdbId, HttpClient client)
+    private async Task<List<IngestedTorrent?>?> ScrapeInstance(TorrentioInstance instance, string imdbId, HttpClient client)
     {
         logger.LogInformation("Searching Torrentio {TorrentioInstance}: {ImdbId}", instance.Name, imdbId);
         var movieSlug = string.Format(MovieSlug, imdbId);
@@ -152,7 +159,7 @@ public partial class TorrentioCrawler(
         return await RunRequest(instance, urlSlug, imdbId, client);
     }
 
-    private async Task<List<Torrent?>?> RunRequest(TorrentioInstance instance, string urlSlug, string imdbId, HttpClient client)
+    private async Task<List<IngestedTorrent?>?> RunRequest(TorrentioInstance instance, string urlSlug, string imdbId, HttpClient client)
     {
         var requestUrl = $"{instance.Url}/{urlSlug}";
         var response = await client.GetAsync(requestUrl);
@@ -167,7 +174,7 @@ public partial class TorrentioCrawler(
         return streams.Select(x => ParseTorrent(instance, x, imdbId)).Where(x => x != null).ToList();
     }
 
-    private Torrent? ParseTorrent(TorrentioInstance instance, JsonElement item, string imdId)
+    private IngestedTorrent? ParseTorrent(TorrentioInstance instance, JsonElement item, string imdId)
     {
         var title = item.GetProperty("title").GetString();
         var infoHash = item.GetProperty("infoHash").GetString();
@@ -182,9 +189,9 @@ public partial class TorrentioCrawler(
         return string.IsNullOrEmpty(torrent.Name) ? null : torrent;
     }
 
-    private Torrent ParseTorrentDetails(string title, TorrentioInstance instance, string infoHash, string imdbId)
+    private IngestedTorrent ParseTorrentDetails(string title, TorrentioInstance instance, string infoHash, string imdbId)
     {
-        var torrent = new Torrent
+        var torrent = new IngestedTorrent
         {
             Source = $"{Source}_{instance.Name}",
             InfoHash = infoHash,

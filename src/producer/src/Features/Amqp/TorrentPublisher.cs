@@ -1,38 +1,27 @@
 ﻿namespace Producer.Features.Amqp;
 
 public class TorrentPublisher(
-    ISendEndpointProvider sendEndpointProvider,
+    IBus messageBus,
     RabbitMqConfiguration configuration,
     IHttpClientFactory httpClientFactory,
     ILogger<TorrentPublisher> logger) : IMessagePublisher
 {
-    public async Task<bool> PublishAsync(IReadOnlyCollection<Torrent> torrents, CancellationToken cancellationToken = default)
+    public async Task<bool> PublishAsync(IReadOnlyCollection<IngestedTorrent> torrents, CancellationToken cancellationToken = default)
     {
-        var queueAddress = ConstructQueue();
-        var sendEndpoint = await sendEndpointProvider.GetSendEndpoint(new(queueAddress));
-
         if (!await CanPublishToRabbitMq(torrents, cancellationToken))
         {
             logger.LogWarning("Queue is full or not accessible, not publishing this time.");
             return false;
         }
 
-        await sendEndpoint.SendBatch(torrents, cancellationToken: cancellationToken);
+        var outgoingMessages = torrents.Select(ingestedTorrent => new IngestTorrent(NewId.NextGuid(), ingestedTorrent)).ToList();
+
+        await messageBus.PublishBatch(outgoingMessages, cancellationToken: cancellationToken);
+
         return true;
     }
 
-    private string ConstructQueue()
-    {
-        var queueBuilder = new StringBuilder();
-        queueBuilder.Append("queue:");
-        queueBuilder.Append(configuration.QueueName);
-        queueBuilder.Append("?durable=");
-        queueBuilder.Append(configuration.Durable ? "true" : "false");
-
-        return queueBuilder.ToString();
-    }
-
-    private async Task<bool> CanPublishToRabbitMq(IReadOnlyCollection<Torrent> torrents, CancellationToken cancellationToken)
+    private async Task<bool> CanPublishToRabbitMq(IReadOnlyCollection<IngestedTorrent> torrents, CancellationToken cancellationToken)
     {
         if (configuration.MaxQueueSize == 0)
         {

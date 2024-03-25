@@ -10,22 +10,22 @@ public class NyaaCrawler(IHttpClientFactory httpClientFactory, ILogger<NyaaCrawl
     protected override IReadOnlyDictionary<string, string> Mappings =>
         new Dictionary<string, string>
         {
-            [nameof(Torrent.Name)] = "title",
-            [nameof(Torrent.Size)] = "size",
-            [nameof(Torrent.Seeders)] = "seeders",
-            [nameof(Torrent.Leechers)] = "leechers",
-            [nameof(Torrent.InfoHash)] = "infoHash",
+            [nameof(IngestedTorrent.Name)] = "title",
+            [nameof(IngestedTorrent.Size)] = "size",
+            [nameof(IngestedTorrent.Seeders)] = "seeders",
+            [nameof(IngestedTorrent.Leechers)] = "leechers",
+            [nameof(IngestedTorrent.InfoHash)] = "infoHash",
         };
 
-    protected override Torrent ParseTorrent(XElement itemNode) =>
+    protected override IngestedTorrent ParseTorrent(XElement itemNode) =>
         new()
         {
             Source = Source,
-            Name = itemNode.Element(Mappings[nameof(Torrent.Name)])?.Value,
-            Size = itemNode.Element(XmlNamespace + Mappings[nameof(Torrent.Size)])?.Value,
-            Seeders = int.Parse(itemNode.Element(XmlNamespace + Mappings[nameof(Torrent.Seeders)])?.Value ?? "0"),
-            Leechers = int.Parse(itemNode.Element(XmlNamespace + Mappings[nameof(Torrent.Leechers)])?.Value ?? "0"),
-            InfoHash = itemNode.Element(XmlNamespace + Mappings[nameof(Torrent.InfoHash)])?.Value,
+            Name = itemNode.Element(Mappings[nameof(IngestedTorrent.Name)])?.Value,
+            Size = itemNode.Element(XmlNamespace + Mappings[nameof(IngestedTorrent.Size)])?.Value,
+            Seeders = int.Parse(itemNode.Element(XmlNamespace + Mappings[nameof(IngestedTorrent.Seeders)])?.Value ?? "0"),
+            Leechers = int.Parse(itemNode.Element(XmlNamespace + Mappings[nameof(IngestedTorrent.Leechers)])?.Value ?? "0"),
+            InfoHash = itemNode.Element(XmlNamespace + Mappings[nameof(IngestedTorrent.InfoHash)])?.Value,
             Category = "anime",
         };
 }

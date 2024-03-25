@@ -47,15 +47,15 @@ public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler
     protected override IReadOnlyDictionary<string, string> Mappings
         => new Dictionary<string, string>
         {
-            [nameof(Torrent.Name)] = "name",
-            [nameof(Torrent.Size)] = "size",
-            [nameof(Torrent.Seeders)] = "seeders",
-            [nameof(Torrent.Leechers)] = "leechers",
-            [nameof(Torrent.InfoHash)] = "info_hash",
-            [nameof(Torrent.Category)] = "category",
+            [nameof(IngestedTorrent.Name)] = "name",
+            [nameof(IngestedTorrent.Size)] = "size",
+            [nameof(IngestedTorrent.Seeders)] = "seeders",
+            [nameof(IngestedTorrent.Leechers)] = "leechers",
+            [nameof(IngestedTorrent.InfoHash)] = "info_hash",
+            [nameof(IngestedTorrent.Category)] = "category",
         };
 
-    protected override Torrent? ParseTorrent(JsonElement item)
+    protected override IngestedTorrent? ParseTorrent(JsonElement item)
     {
         var incomingCategory = item.GetProperty(Mappings["Category"]).GetInt32();
 
@@ -64,7 +64,7 @@ public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler
             return null;
         }
 
-        var torrent = new Torrent
+        var torrent = new IngestedTorrent
         {
             Source = Source,
             Name = item.GetProperty(Mappings["Name"]).GetString(),

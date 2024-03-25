@@ -1,5 +1,7 @@
 ﻿var builder = WebApplication.CreateBuilder(args);
 
+builder.DisableIpPortBinding();
+
 builder.Configuration
     .AddScrapeConfiguration();
 
@@ -12,6 +14,5 @@ builder.Services
     .AddCrawlers()
     .AddQuartz(builder.Configuration);
 
-var host = builder.Build();
-
-await host.RunAsync();
+var app = builder.Build();
+app.Run();

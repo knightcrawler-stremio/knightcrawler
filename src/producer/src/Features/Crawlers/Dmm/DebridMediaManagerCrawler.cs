@@ -5,17 +5,17 @@ public partial class DebridMediaManagerCrawler(
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
     GithubConfiguration githubConfiguration,
-    IParseTorrentTitle parseTorrentTitle) : BaseCrawler(logger, storage)
+    IParseTorrentTitle parseTorrentTitle,
+    IDistributedCache cache) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
 
     private const string DownloadBaseUrl = "https://raw.githubusercontent.com/debridmediamanager/hashlists/main";
-
     protected override IReadOnlyDictionary<string, string> Mappings => new Dictionary<string, string>();
     protected override string Url => "https://api.github.com/repos/debridmediamanager/hashlists/git/trees/main?recursive=1";
     protected override string Source => "DMM";
-
+    
     public override async Task Execute()
     {
         var client = httpClientFactory.CreateClient("Scraper");
@@ -82,16 +82,16 @@ public partial class DebridMediaManagerCrawler(
 
         var result = await Storage.MarkPageAsIngested(name);
 
-        if (!result.Success)
+        if (!result.IsSuccess)
         {
-            logger.LogWarning("Failed to mark page as ingested: [{Error}]", result.ErrorMessage);
+            logger.LogWarning("Failed to mark page as ingested: [{Error}]", result.Failure.ErrorMessage);
             return;
         }
 
         logger.LogInformation("Successfully marked page as ingested");
     }
 
-    private async Task<Torrent?> ParseTorrent(JsonElement item)
+    private async Task<IngestedTorrent?> ParseTorrent(JsonElement item)
     {
 
         if (!item.TryGetProperty("filename", out var filenameElement) ||
@@ -110,23 +110,50 @@ public partial class DebridMediaManagerCrawler(
 
         var parsedTorrent = parseTorrentTitle.Parse(torrentTitle.CleanTorrentTitleForImdb());
         
+        var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.Title);
+        
+        if (cached)
+        {
+            logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.Title);
+            return new()
+            {
+                Source = Source,
+                Name = cachedResult.Title,
+                Imdb = cachedResult.ImdbId,
+                Size = bytesElement.GetInt64().ToString(),
+                InfoHash = hashElement.ToString(),
+                Seeders = 0,
+                Leechers = 0,
+                Category = parsedTorrent.TorrentType switch
+                {
+                    TorrentType.Movie => "movies",
+                    TorrentType.Tv => "tv",
+                    _ => "unknown",
+                },
+            };
+        }
+        
         var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Title, parsedTorrent.TorrentType, parsedTorrent.Year);
 
         if (imdbEntry.Count == 0)
         {
-            logger.LogWarning("Failed to find imdb entry for {Title}", parsedTorrent.Title);
             return null;
         }
         
-        if (!ScoreTitles(parsedTorrent, imdbEntry, out var bestMatch))
+        var scoredTitles = await ScoreTitles(parsedTorrent, imdbEntry);
+        
+        if (!scoredTitles.Success)
         {
             return null;
         }
+        
+        logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", scoredTitles.BestMatch.Value.ImdbId, parsedTorrent.Title, scoredTitles.BestMatch.Value.Title, scoredTitles.BestMatch.Score);
 
-        var torrent = new Torrent
+        var torrent = new IngestedTorrent
         {
             Source = Source,
-            Name = bestMatch.Value,
+            Name = scoredTitles.BestMatch.Value.Title,
+            Imdb = scoredTitles.BestMatch.Value.ImdbId,
             Size = bytesElement.GetInt64().ToString(),
             InfoHash = hashElement.ToString(),
             Seeders = 0,
@@ -142,19 +169,45 @@ public partial class DebridMediaManagerCrawler(
         return torrent;
     }
 
-    private bool ScoreTitles(TorrentMetadata parsedTorrent, List<ImdbEntry> imdbEntry, out ExtractedResult<string>? bestMatch)
+    private async Task<(bool Success, ExtractedResult<ImdbEntry>? BestMatch)> ScoreTitles(TorrentMetadata parsedTorrent, List<ImdbEntry> imdbEntries)
     {
-        var scoredResults = Process.ExtractAll(parsedTorrent.Title.ToLowerInvariant(), imdbEntry.Select(x => x.Title.ToLowerInvariant()), scorer: new PartialRatioScorer(), cutoff: 90);
-        
-        bestMatch = scoredResults.MaxBy(x => x.Score);
-        
-        if (bestMatch is null)
-        {
-            logger.LogWarning("Failed to find best match for {Title}", parsedTorrent.Title);
-            return false;
-        }
+        var lowerCaseTitle = parsedTorrent.Title.ToLowerInvariant();
+       
+        // Scoring directly operates on the List<ImdbEntry>, no need for lookup table.
+        var scoredResults = Process.ExtractAll(new(){Title = lowerCaseTitle}, imdbEntries, x => x.Title?.ToLowerInvariant(), scorer: new DefaultRatioScorer(), cutoff: 90);
 
-        return true;
+        var best = scoredResults.MaxBy(x => x.Score);
+
+        if (best is null)
+        {
+            return (false, null);
+        }
+        
+        await AddToCache(lowerCaseTitle, best);
+        
+        return (true, best);
+    }
+
+    private Task AddToCache(string lowerCaseTitle, ExtractedResult<ImdbEntry> best)
+    {
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15),
+        };
+        
+        return cache.SetStringAsync(lowerCaseTitle, JsonSerializer.Serialize(best.Value), cacheOptions);
+    }
+
+    private async Task<(bool Success, ImdbEntry? Entry)> CheckIfInCacheAndReturn(string title)
+    {
+        var cachedImdbId = await cache.GetStringAsync(title.ToLowerInvariant());
+        
+        if (!string.IsNullOrEmpty(cachedImdbId))
+        {
+            return (true, JsonSerializer.Deserialize<ImdbEntry>(cachedImdbId));
+        }
+        
+        return (false, null);
     }
 
     private async Task InsertTorrentsForPage(JsonDocument json)

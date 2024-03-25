@@ -4,18 +4,26 @@ internal static class ServiceCollectionExtensions
 {
     internal static IServiceCollection RegisterMassTransit(this IServiceCollection services)
     {
-        var rabbitConfig = services.LoadConfigurationFromEnv<RabbitMqConfiguration>();
-
-        services.AddMassTransit(busConfigurator =>
+        var rabbitConfiguration = services.LoadConfigurationFromEnv<RabbitMqConfiguration>();
+        
+        services.AddMassTransit(x =>
         {
-            busConfigurator.SetKebabCaseEndpointNameFormatter();
-            busConfigurator.UsingRabbitMq((_, busFactoryConfigurator) =>
+            x.SetKebabCaseEndpointNameFormatter();
+            
+            x.UsingRabbitMq((context, cfg) =>
             {
-                busFactoryConfigurator.Host(rabbitConfig.Host, hostConfigurator =>
+                cfg.AutoStart = true;
+                
+                cfg.Host(rabbitConfiguration.Host, h =>
                 {
-                    hostConfigurator.Username(rabbitConfig.Username);
-                    hostConfigurator.Password(rabbitConfig.Password);
+                    h.Username(rabbitConfiguration.Username);
+                    h.Password(rabbitConfiguration.Password);
                 });
+
+                cfg.Message<IngestTorrent>(e => e.SetEntityName(rabbitConfiguration.QueueName));
+                cfg.Publish<IngestTorrent>(config => config.PublishToQueue(rabbitConfiguration.QueueName, rabbitConfiguration.QueueName));
+                
+                cfg.ConfigureEndpoints(context);
             });
         });
 

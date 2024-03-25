@@ -15,26 +15,32 @@ public class PublisherJob(IMessagePublisher publisher, IDataStorage storage, ILo
         var cancellationToken = context.CancellationToken;
         var torrents = await storage.GetPublishableTorrents(cancellationToken);
 
-        if (torrents.Count == 0)
+        if (!torrents.IsSuccess)
+        {
+            logger.LogWarning("Failed to get publishable torrents]");
+            return;
+        }
+
+        if (torrents.Success.Count == 0)
         {
             return;
         }
 
-        var published = await publisher.PublishAsync(torrents, cancellationToken);
+        var published = await publisher.PublishAsync(torrents.Success, cancellationToken);
 
         if (!published)
         {
             return;
         }
 
-        var result = await storage.SetTorrentsProcessed(torrents, cancellationToken);
+        var result = await storage.SetTorrentsProcessed(torrents.Success, cancellationToken);
 
-        if (!result.Success)
+        if (!result.IsSuccess)
         {
-            logger.LogWarning("Failed to set torrents as processed: [{Error}]", result.ErrorMessage);
+            logger.LogWarning("Failed to set torrents as processed: [{Error}]", result.Failure.ErrorMessage);
             return;
         }
 
-        logger.LogInformation("Successfully set {Count} torrents as processed", result.UpdatedCount);
+        logger.LogInformation("Successfully set {Count} torrents as processed", result.Success.UpdatedCount);
     }
 }

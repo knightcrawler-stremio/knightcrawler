@@ -8,16 +8,16 @@ public class YtsCrawler(IHttpClientFactory httpClientFactory, ILogger<YtsCrawler
     protected override IReadOnlyDictionary<string, string> Mappings
         => new Dictionary<string, string>
         {
-            [nameof(Torrent.Name)] = "title",
-            [nameof(Torrent.Size)] = "size",
-            [nameof(Torrent.Seeders)] = "seeders",
-            [nameof(Torrent.Leechers)] = "leechers",
-            [nameof(Torrent.InfoHash)] = "enclosure",
+            [nameof(IngestedTorrent.Name)] = "title",
+            [nameof(IngestedTorrent.Size)] = "size",
+            [nameof(IngestedTorrent.Seeders)] = "seeders",
+            [nameof(IngestedTorrent.Leechers)] = "leechers",
+            [nameof(IngestedTorrent.InfoHash)] = "enclosure",
         };
 
-    protected override Torrent? ParseTorrent(XElement itemNode)
+    protected override IngestedTorrent? ParseTorrent(XElement itemNode)
     {
-        var torrent = new Torrent
+        var torrent = new IngestedTorrent
         {
             Source = Source,
             Name = itemNode.Element(Mappings["Name"])?.Value,
@@ -32,7 +32,7 @@ public class YtsCrawler(IHttpClientFactory httpClientFactory, ILogger<YtsCrawler
         return torrent;
     }
 
-    protected override void HandleInfoHash(XElement itemNode, Torrent torrent, string infoHashKey)
+    protected override void HandleInfoHash(XElement itemNode, IngestedTorrent torrent, string infoHashKey)
     {
         var infoHash = itemNode.Element(Mappings[infoHashKey])?.Attribute("url")?.Value.Split("/download/").ElementAtOrDefault(1);
 
