@@ -2,6 +2,8 @@ name: Build and Push Qbit Collector Service
 
 on:
   push:
+    tags:
+      - '**'
     paths:
       - 'src/qbit-collector/**'
   workflow_dispatch:

@@ -2,10 +2,10 @@ name: Build and Push Tissue Service
 
 on:
   push:
+    tags:
+      - '**'
     paths:
       - 'src/tissue/**'
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:

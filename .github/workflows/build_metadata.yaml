@@ -2,10 +2,10 @@ name: Build and Push Metadata Service
 
 on:
   push:
+    tags:
+      - '**'
     paths:
       - 'src/metadata/**'
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:

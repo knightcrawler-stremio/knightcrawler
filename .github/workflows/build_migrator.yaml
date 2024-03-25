@@ -2,10 +2,10 @@ name: Build and Push Migrator Service
 
 on:
   push:
+    tags:
+      - '**'
     paths:
       - 'src/migrator/**'
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:

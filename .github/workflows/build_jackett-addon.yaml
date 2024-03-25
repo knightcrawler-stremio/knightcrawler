@@ -2,10 +2,10 @@ name: Build and Push Jackett Addon Service
 
 on:
   push:
+    tags:
+      - '**'
     paths:
       - 'src/addon-jackett/**'
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:
