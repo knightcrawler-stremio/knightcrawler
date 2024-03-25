@@ -32,7 +32,7 @@ x-apps: &knightcrawler-app
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:alpine
     env_file: .env
     environment:
       PGUSER: postgres # needed for healthcheck.
@@ -49,7 +49,7 @@ services:
       - knightcrawler-network
 
   mongodb:
-    image: mongo:latest
+    image: rapidfort/mongodb-official:latest
     env_file: .env
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER:?Variable MONGODB_USER not set}
@@ -66,7 +66,7 @@ services:
       - knightcrawler-network
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:management-alpine
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, look at the documentation for rabbit on how to secure the service.
     # ports:
