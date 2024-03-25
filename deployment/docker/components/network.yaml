@@ -1,0 +1,4 @@
+networks:
+  knightcrawler-network:
+    driver: bridge
+    name: knightcrawler-network

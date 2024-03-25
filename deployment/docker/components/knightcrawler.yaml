@@ -1,0 +1,71 @@
+x-apps: &knightcrawler-app
+  labels:
+    logging: "promtail"
+    env_file: ../.env
+  networks:
+    - knightcrawler-network
+
+x-depends: &knightcrawler-app-depends
+  depends_on:
+    redis:
+      condition: service_healthy
+    postgres:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+    migrator:
+      condition: service_completed_successfully
+    metadata:
+      condition: service_completed_successfully
+
+services:
+  metadata:
+    image: gabisonfire/knightcrawler-metadata:2.0.0
+    env_file: ../.env
+    networks:
+      - knightcrawler-network
+    restart: no
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+
+  migrator:
+    image: gabisonfire/knightcrawler-migrator:2.0.0
+    env_file: ../.env
+    networks:
+      - knightcrawler-network
+    restart: no
+    depends_on: 
+      postgres:
+        condition: service_healthy
+
+  addon:
+    image: gabisonfire/knightcrawler-addon:2.0.0
+    <<: [*knightcrawler-app, *knightcrawler-app-depends]
+    restart: unless-stopped
+    hostname: knightcrawler-addon
+    ports:
+      - "7000:7000"
+
+  consumer:
+    image: gabisonfire/knightcrawler-consumer:2.0.0
+    <<: [*knightcrawler-app, *knightcrawler-app-depends]
+    restart: unless-stopped
+
+  debridcollector:
+    image: gabisonfire/knightcrawler-debridcollector:2.0.0
+    <<: [*knightcrawler-app, *knightcrawler-app-depends]
+    restart: unless-stopped
+        
+  producer:
+    image: gabisonfire/knightcrawler-producer:2.0.0
+    <<: [*knightcrawler-app, *knightcrawler-app-depends]
+    restart: unless-stopped
+
+  qbitcollector:
+    image: gabisonfire/knightcrawler-qbitcollector:2.0.0
+    <<: [*knightcrawler-app, *knightcrawler-app-depends]
+    restart: unless-stopped
+    depends_on:
+      qbittorrent:
+        condition: service_healthy
