@@ -6,12 +6,16 @@ on:
       CONTEXT:
         required: true
         type: string
+      DOCKERFILE:
+        required: true
+        type: string
       IMAGE_NAME:
         required: true
         type: string
 
 env:
   CONTEXT: ${{ inputs.CONTEXT }}
+  DOCKERFILE: ${{ inputs.DOCKERFILE }}
   IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
   PLATFORMS: linux/amd64,linux/arm64
 
@@ -21,11 +25,13 @@ jobs:
     steps:
       - name: Setting variables
         run: |
-          echo "CONTEXT=${{ env.CONTEXT }}
-          echo "IMAGE_NAME=${{ env.IMAGE_NAME }}
+          echo "CONTEXT=${{ env.CONTEXT }}"
+          echo "DOCKERFILE=${{ env.DOCKERFILE }}"
+          echo "IMAGE_NAME=${{ env.IMAGE_NAME }}"
           echo "PLATFORMS=${{ env.PLATFORMS }}"
     outputs:
       CONTEXT: ${{ env.CONTEXT }}
+      DOCKERFILE: ${{ env.DOCKERFILE }}
       IMAGE_NAME: ${{ env.IMAGE_NAME }}
       PLATFORMS: ${{ env.PLATFORMS }}
 
@@ -80,6 +86,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ needs.set-vars.outputs.CONTEXT }}
+          file: ${{ needs.set-vars.outputs.DOCKERFILE }}
           push: true
           provenance: false
           tags: localhost:5000/dockle-examine-image:test
@@ -136,6 +143,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ needs.set-vars.outputs.CONTEXT }}
+          file: ${{ needs.set-vars.outputs.DOCKERFILE }}
           push: true
           provenance: false
           tags: ${{ steps.docker-metadata.outputs.tags }}

@@ -14,4 +14,5 @@ jobs:
     secrets: inherit
     with:
       CONTEXT: ./src/metadata/
+      DOCKERFILE: ./src/metadata/Dockerfile
       IMAGE_NAME: knightcrawler-metadata

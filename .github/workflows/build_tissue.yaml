@@ -14,4 +14,5 @@ jobs:
     secrets: inherit
     with:
       CONTEXT: ./src/tissue/
+      DOCKERFILE: ./src/tissue/Dockerfile
       IMAGE_NAME: knightcrawler-tissue

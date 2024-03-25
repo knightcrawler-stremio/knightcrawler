@@ -1,0 +1,17 @@
+{
+  "TorrentioConfiguration": {
+    "Instances": [
+      {
+        "Name": "Official",
+        "Url": "https://torrentio.strem.fun",
+        "RateLimit": {
+          "RequestLimit": 300,
+          "IntervalInSeconds": 3600,
+          "BatchSize": 300,
+          "ExceptionLimit": 5,
+          "ExceptionIntervalInSeconds": 300
+        }
+      }
+    ]
+  }
+}

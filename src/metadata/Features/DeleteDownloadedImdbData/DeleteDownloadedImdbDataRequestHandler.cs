@@ -1,21 +1,23 @@
 namespace Metadata.Features.DeleteDownloadedImdbData;
 
-public class DeleteDownloadedImdbDataRequestHandler(ILogger<DeleteDownloadedImdbDataRequestHandler> logger, JobConfiguration configuration)
+public class DeleteDownloadedImdbDataRequestHandler(ILogger<DeleteDownloadedImdbDataRequestHandler> logger)
 {
     public Task Handle(DeleteDownloadedImdbDataRequest request, CancellationToken _)
     {
-        logger.LogInformation("Deleting file {FilePath}", request.FilePath);
+        DeleteFile(request.TitleBasicsFilePath);
+        DeleteFile(request.TitleAkasFilePath);
+        DeleteFile(request.EpisodesFilePath);
+        logger.LogInformation("Processing Completed");
 
-        File.Delete(request.FilePath);
-
-        logger.LogInformation("File Deleted");
-
-        if (configuration.DownloadImdbOnce)
-        {
-            logger.LogInformation("Processing Completed: Exiting application as DownloadImdbOnce is set to true");
-            Environment.Exit(0);
-        }
+        Environment.Exit(0);
 
         return Task.CompletedTask;
+    }
+
+    private void DeleteFile(string file)
+    {
+        logger.LogInformation("Deleting file {FilePath}", file);
+        File.Delete(file);
+        logger.LogInformation("File Deleted");
     }
 }

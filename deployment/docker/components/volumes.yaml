@@ -1,0 +1,4 @@
+volumes:
+  postgres:
+  redis:
+  rabbitmq:

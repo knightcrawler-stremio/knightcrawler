@@ -1,30 +1,20 @@
 namespace Metadata.Features.DownloadImdbData;
 
-public class GetImdbDataRequestHandler(IHttpClientFactory clientFactory, ILogger<GetImdbDataRequestHandler> logger)
+public class GetImdbDataRequestHandler(IHttpClientFactory clientFactory, IImdbFileDownloader downloader, ILogger<GetImdbDataRequestHandler> logger)
 {
     private const string TitleBasicsFileName = "title.basics.tsv";
+    private const string TitleAkasFileName = "title.akas.tsv";
+    private const string EpisodesFileName = "title.episode.tsv";
 
-    public async Task<ImportImdbDataRequest> Handle(GetImdbDataRequest _, CancellationToken cancellationToken)
+    public async Task<ClearExistingImdbDataRequest> Handle(GetImdbDataRequest _, CancellationToken cancellationToken)
     {
         logger.LogInformation("Downloading IMDB data");
 
         var client = clientFactory.CreateClient("imdb-data");
-        var response = await client.GetAsync($"{TitleBasicsFileName}.gz", cancellationToken);
+        var tempBasicsFile = await downloader.DownloadFileToTempPath(client, TitleBasicsFileName, cancellationToken);
+        var tempAkasFile = await downloader.DownloadFileToTempPath(client, TitleAkasFileName, cancellationToken);
+        var tempEpisodesFile = await downloader.DownloadFileToTempPath(client, EpisodesFileName, cancellationToken);
 
-        var tempFile = Path.Combine(Path.GetTempPath(), TitleBasicsFileName);
-
-        response.EnsureSuccessStatusCode();
-
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        await using var gzipStream = new GZipStream(stream, CompressionMode.Decompress);
-        await using var fileStream = File.Create(tempFile);
-
-        await gzipStream.CopyToAsync(fileStream, cancellationToken);
-
-        logger.LogInformation("Downloaded IMDB data to {TempFile}", tempFile);
-
-        fileStream.Close();
-
-        return new(tempFile);
+        return new(tempBasicsFile, tempAkasFile, tempEpisodesFile);
     }
 }

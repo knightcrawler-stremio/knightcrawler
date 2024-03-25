@@ -1,0 +1,89 @@
+x-basehealth: &base-health
+  interval: 10s
+  timeout: 10s
+  retries: 3
+  start_period: 10s
+
+x-rabbithealth: &rabbitmq-health
+  test: rabbitmq-diagnostics -q ping
+  <<: *base-health
+
+x-redishealth: &redis-health
+  test: redis-cli ping
+  <<: *base-health
+
+x-postgreshealth: &postgresdb-health
+  test: pg_isready
+  <<: *base-health
+
+x-qbit: &qbit-health
+  test: "curl --fail http://localhost:8080"
+  <<: *base-health
+
+services:
+
+  postgres:
+    image: postgres:latest
+    environment:
+      PGUSER: postgres # needed for healthcheck.
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, change the username and password in the .env file.
+    # # If you want to enhance your security even more, create a new user for the database with a strong password.
+    # ports:
+    #   - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck: *postgresdb-health
+    restart: unless-stopped
+    env_file: ../.env
+    networks:
+      - knightcrawler-network
+
+  redis:
+    image: redis/redis-stack:latest
+    # # If you need redis to be accessible from outside, please open the below port.
+    # ports:
+    #   - "6379:6379"
+    volumes:
+      - redis:/data
+    restart: unless-stopped
+    healthcheck: *redis-health
+    env_file: ../.env
+    networks:
+      - knightcrawler-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, look at the documentation for rabbit on how to secure the service.
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+    #   - "15692:15692"
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    restart: unless-stopped
+    healthcheck: *rabbitmq-health
+    env_file: ../.env
+    networks:
+      - knightcrawler-network
+
+  ## QBitTorrent is a torrent client that can be used to download torrents. In this case its used to download metadata.
+  ## The QBit collector requires this.
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+    env_file: ../.env
+    networks:
+      - knightcrawler-network
+    restart: unless-stopped
+    healthcheck: *qbit-health
+    volumes:
+      - ./config/qbit/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf

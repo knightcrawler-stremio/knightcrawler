@@ -1,0 +1,7 @@
+version: "3.9"
+name: "knightcrawler"
+include:
+  - components/network.yaml
+  - components/volumes.yaml
+  - components/infrastructure.yaml
+  - components/knightcrawler.yaml

@@ -6,8 +6,10 @@ builder.SetupWolverine();
 
 builder.Services
     .AddHttpClients()
-    .AddJobSupport();
+    .AddServiceConfiguration()
+    .AddDatabase()
+    .AddImporters();
 
 var host = builder.Build();
 
-await host.RunAsync();
+return await host.RunOaktonCommands(args);

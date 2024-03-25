@@ -1,0 +1,16 @@
+name: Build and Push Qbit Collector Service
+
+on:
+  push:
+    paths:
+      - 'src/qbit-collector/**'
+  workflow_dispatch:
+
+jobs:
+  process:
+    uses: ./.github/workflows/base_image_workflow.yaml
+    secrets: inherit
+    with:
+      CONTEXT: ./src/
+      DOCKERFILE: ./src/qbit-collector/Dockerfile
+      IMAGE_NAME: knightcrawler-qbit-collector

@@ -1,0 +1,7 @@
+services:
+  qbittorrent:
+    deploy:
+      replicas: 0
+  qbitcollector:
+    deploy:
+      replicas: 0
