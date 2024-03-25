@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'src/node/consumer/**'
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:

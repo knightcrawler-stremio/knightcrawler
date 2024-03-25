@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'src/tissue/**'
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:
