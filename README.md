@@ -7,9 +7,6 @@
 
 ## Contents
 
-> [!CAUTION]
-> Until we reach `v1.0.0`, please consider releases as alpha.
-
 > [!IMPORTANT]
 > The latest change renames the project and requires a [small migration](#selfhostio-to-knightcrawler-migration).
 - [Contents](#contents)
