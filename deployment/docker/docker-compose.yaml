@@ -20,7 +20,18 @@ x-postgreshealth: &postgresdb-health
   test: pg_isready
   <<: *base-health
 
+x-qbit: &qbit-health
+  test: "curl --fail http://localhost:8080"
+  <<: *base-health
+
 x-apps: &knightcrawler-app
+  env_file: .env
+  labels:
+    logging: "promtail"
+  networks:
+    - knightcrawler-network
+
+x-depends: &knightcrawler-app-depends
   depends_on:
     redis:
       condition: service_healthy
@@ -32,12 +43,6 @@ x-apps: &knightcrawler-app
       condition: service_completed_successfully
     metadata:
       condition: service_completed_successfully
-  restart: *restart-policy
-  env_file: .env
-  labels:
-    logging: "promtail"
-  networks:
-    - knightcrawler-network
 
 services:
   postgres:
@@ -86,18 +91,48 @@ services:
     networks:
       - knightcrawler-network
 
-  migrator:
-    image: gabisonfire/knightcrawler-migrator:2.0.0
-    labels:
-      logging: "promtail"
-    env_file: .env
-    restart: no
-    depends_on: 
-      postgres:
-        condition: service_healthy
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
     networks:
       - knightcrawler-network
-        
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+    deploy:
+      replicas: 0
+    restart: *restart-policy
+    healthcheck: *qbit-health
+    volumes:
+      - ./support/qbit/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf
+
+  addon:
+    image: gabisonfire/knightcrawler-addon:2.0.0
+    <<: *knightcrawler-app
+    <<: *knightcrawler-app-depends
+    restart: *restart-policy
+    hostname: knightcrawler-addon
+      # - caddy
+    ports:
+      - "7000:7000"
+
+  consumer:
+    image: gabisonfire/knightcrawler-consumer:2.0.0
+    <<: *knightcrawler-app
+    <<: *knightcrawler-app-depends
+    restart: *restart-policy
+
+  debridcollector:
+    image: gabisonfire/knightcrawler-debridcollector:2.0.0
+    <<: *knightcrawler-app
+    <<: *knightcrawler-app-depends
+    restart: *restart-policy
+
   metadata:
     image: gabisonfire/knightcrawler-metadata:2.0.0
     restart: no
@@ -105,29 +140,32 @@ services:
       migrator:
         condition: service_completed_successfully
 
+  migrator:
+    image: gabisonfire/knightcrawler-migrator:2.0.0
+    <<: *knightcrawler-app
+    restart: no
+    depends_on: 
+      postgres:
+        condition: service_healthy
+    networks:
+      - knightcrawler-network
+        
   producer:
     image: gabisonfire/knightcrawler-producer:2.0.0
     <<: *knightcrawler-app
- 
-  consumer:
-    image: gabisonfire/knightcrawler-consumer:2.0.0
-    <<: *knightcrawler-app
+    <<: *knightcrawler-app-depends
+    restart: *restart-policy
 
-  metadata:
-    image: gabisonfire/knightcrawler-metadata:2.0.0
-    restart: no
- 
-  debridcollector:
-    image: gabisonfire/knightcrawler-debridcollector:2.0.0
+  qbitcollector:
+    image: gabisonfire/knightcrawler-qbitcollector:2.0.0
     <<: *knightcrawler-app
-
-  addon:
-    <<: *knightcrawler-app
-    hostname: knightcrawler-addon
-    image: gabisonfire/knightcrawler-addon:2.0.0
-      # - caddy
-    ports:
-      - "7000:7000"
+    <<: *knightcrawler-app-depends
+    restart: *restart-policy
+    depends_on:
+      qbittorrent:
+        condition: service_healthy
+    deploy:
+      replicas: 0
 
 networks:
   knightcrawler-network:
