@@ -5,7 +5,7 @@ export const cacheConfig = {
     NO_CACHE: parseBool(process.env.NO_CACHE, false),
 }
 
-cacheConfig.REDIS_CONNECTION_STRING = 'redis://' + cacheConfig.REDIS_HOST + ':' + cacheConfig.REDIS_PORT + cacheConfig.REDIS_EXTRA;
+cacheConfig.REDIS_CONNECTION_STRING = 'redis://' + cacheConfig.REDIS_HOST + ':' + cacheConfig.REDIS_PORT + '?' + cacheConfig.REDIS_EXTRA;
 
 export const databaseConfig = {
     POSTGRES_HOST: process.env.POSTGRES_HOST || 'postgres',
