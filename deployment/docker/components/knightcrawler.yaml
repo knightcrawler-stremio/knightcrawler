@@ -1,7 +1,7 @@
 x-apps: &knightcrawler-app
   labels:
     logging: "promtail"
-    env_file: ../.env
+  env_file: ../.env
   networks:
     - knightcrawler-network
 
