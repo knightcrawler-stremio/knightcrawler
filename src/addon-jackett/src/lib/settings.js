@@ -25,7 +25,9 @@ export const cinemetaConfig = {
 }
 
 export const cacheConfig = {
-    REDIS_CONNECTION_STRING: process.env.REDIS_CONNECTION_STRING || 'redis://localhost:6379/0',
+    REDIS_HOST: process.env.REDIS_HOST || 'redis',
+    REDIS_PORT: process.env.REDIS_PORT || '6379',
+    REDIS_EXTRA: process.env.REDIS_EXTRA || '',
     NO_CACHE: parseBool(process.env.NO_CACHE, false),
     IMDB_TTL: parseInt(process.env.IMDB_TTL || 60 * 60 * 4), // 4 Hours
     STREAM_TTL: parseInt(process.env.STREAM_TTL || 60 * 60 * 4), // 1 Hour
@@ -40,3 +42,5 @@ export const cacheConfig = {
     STALE_ERROR_AGE: parseInt(process.env.STALE_ERROR_AGE) || 7 * 24 * 60 * 60, // 7 days
     GLOBAL_KEY_PREFIX: process.env.GLOBAL_KEY_PREFIX || 'jackettio-addon',
 }
+
+cacheConfig.REDIS_CONNECTION_STRING = 'redis://' + cacheConfig.REDIS_HOST + ':' + cacheConfig.REDIS_PORT + cacheConfig.REDIS_EXTRA;
