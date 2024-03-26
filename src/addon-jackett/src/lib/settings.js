@@ -43,4 +43,4 @@ export const cacheConfig = {
     GLOBAL_KEY_PREFIX: process.env.GLOBAL_KEY_PREFIX || 'jackettio-addon',
 }
 
-cacheConfig.REDIS_CONNECTION_STRING = 'redis://' + cacheConfig.REDIS_HOST + ':' + cacheConfig.REDIS_PORT + cacheConfig.REDIS_EXTRA;
+cacheConfig.REDIS_CONNECTION_STRING = 'redis://' + cacheConfig.REDIS_HOST + ':' + cacheConfig.REDIS_PORT + '?' + cacheConfig.REDIS_EXTRA;
