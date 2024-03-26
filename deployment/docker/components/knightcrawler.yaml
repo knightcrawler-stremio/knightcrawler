@@ -53,7 +53,7 @@ services:
     restart: unless-stopped
 
   debridcollector:
-    image: gabisonfire/knightcrawler-debridcollector:2.0.0
+    image: gabisonfire/knightcrawler-debrid-collector:2.0.0
     <<: [*knightcrawler-app, *knightcrawler-app-depends]
     restart: unless-stopped
         
@@ -63,7 +63,7 @@ services:
     restart: unless-stopped
 
   qbitcollector:
-    image: gabisonfire/knightcrawler-qbitcollector:2.0.0
+    image: gabisonfire/knightcrawler-qbit-collector:2.0.0
     <<: [*knightcrawler-app, *knightcrawler-app-depends]
     restart: unless-stopped
     depends_on:
