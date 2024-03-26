@@ -1,8 +1,7 @@
 namespace QBitCollector.Features.Trackers;
 
-public class TrackersService(IDistributedCache cache, HttpClient client, IMemoryCache memoryCache) : ITrackersService
+public class TrackersService(IDistributedCache cache, HttpClient client, IMemoryCache memoryCache, QbitConfiguration configuration) : ITrackersService
 {
-    private const string TrackersListUrl = "https://ngosang.github.io/trackerslist/trackers_all.txt";
     private const string CacheKey = "trackers";
 
     public async Task<List<string>> GetTrackers()
@@ -42,7 +41,7 @@ public class TrackersService(IDistributedCache cache, HttpClient client, IMemory
 
     private async Task<List<string>> GetTrackersAsync()
     {
-        var response = await client.GetStringAsync(TrackersListUrl);
+        var response = await client.GetStringAsync(configuration.TrackersUrl);
 
         var lines = response.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
 
