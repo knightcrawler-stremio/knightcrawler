@@ -99,7 +99,10 @@ public static class ServiceCollectionExtensions
                             timeout.Timeout = TimeSpan.FromMinutes(1);
                         });
                 })
-            .RedisRepository(redisConfiguration.ConnectionString);
+            .RedisRepository(redisConfiguration.ConnectionString, options =>
+            {
+                options.KeyPrefix = "qbit-collector:";
+            });
     
     private static void AddQBitTorrentClient(this IServiceCollection services)
     {

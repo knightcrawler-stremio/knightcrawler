@@ -62,7 +62,10 @@ public static class ServiceCollectionExtensions
                     cfg.UseMessageRetry(r => r.Intervals(1000,2000,5000));
                     cfg.UseInMemoryOutbox();
                 })
-            .RedisRepository(redisConfiguration.ConnectionString)
+            .RedisRepository(redisConfiguration.ConnectionString, options =>
+            {
+                options.KeyPrefix = "debrid-collector:";
+            })
             .Endpoint(
                 e =>
                 {
