@@ -35,7 +35,7 @@ services:
       - postgres:/var/lib/postgresql/data
     healthcheck: *postgresdb-health
     restart: unless-stopped
-    env_file: ../.env
+    env_file: ../../.env
     networks:
       - knightcrawler-network
 
@@ -48,7 +48,7 @@ services:
       - redis:/data
     restart: unless-stopped
     healthcheck: *redis-health
-    env_file: ../.env
+    env_file: ../../.env
     networks:
       - knightcrawler-network
 
@@ -64,7 +64,7 @@ services:
       - rabbitmq:/var/lib/rabbitmq
     restart: unless-stopped
     healthcheck: *rabbitmq-health
-    env_file: ../.env
+    env_file: ../../.env
     networks:
       - knightcrawler-network
 
@@ -80,10 +80,10 @@ services:
     ports:
       - 6881:6881
       - 6881:6881/udp
-    env_file: ../.env
+    env_file: ../../.env
     networks:
       - knightcrawler-network
     restart: unless-stopped
     healthcheck: *qbit-health
     volumes:
-      - ./config/qbit/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf
+      - ../../config/qbit/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf

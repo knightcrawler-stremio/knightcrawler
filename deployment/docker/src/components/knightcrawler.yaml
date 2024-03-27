@@ -1,7 +1,7 @@
 x-apps: &knightcrawler-app
   labels:
     logging: "promtail"
-  env_file: ../.env
+  env_file: ../../.env
   networks:
     - knightcrawler-network
 
@@ -21,7 +21,7 @@ x-depends: &knightcrawler-app-depends
 services:
   metadata:
     image: gabisonfire/knightcrawler-metadata:2.0.7
-    env_file: ../.env
+    env_file: ../../.env
     networks:
       - knightcrawler-network
     restart: no
@@ -31,7 +31,7 @@ services:
 
   migrator:
     image: gabisonfire/knightcrawler-migrator:2.0.7
-    env_file: ../.env
+    env_file: ../../.env
     networks:
       - knightcrawler-network
     restart: no
