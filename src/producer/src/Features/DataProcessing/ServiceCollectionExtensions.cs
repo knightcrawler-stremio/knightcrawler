@@ -9,7 +9,7 @@ internal static class ServiceCollectionExtensions
        
         services.AddTransient<IDataStorage, DapperDataStorage>();
         services.AddTransient<IMessagePublisher, TorrentPublisher>();
-        services.AddSingleton<IParseTorrentTitle, ParseTorrentTitle>();
+        services.RegisterPythonEngine();
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConfiguration.ConnectionString;

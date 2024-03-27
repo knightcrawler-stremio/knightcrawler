@@ -115,10 +115,10 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
             return result.ToList();
         }, "Error getting imdb metadata.", cancellationToken);
 
-    public async Task<List<ImdbEntry>> FindImdbMetadata(string? parsedTorrentTitle, TorrentType torrentType, string? year, CancellationToken cancellationToken = default) =>
+    public async Task<List<ImdbEntry>> FindImdbMetadata(string? parsedTorrentTitle, string torrentType, string? year, CancellationToken cancellationToken = default) =>
         await ExecuteCommandAsync(async connection =>
         {
-            var query = $"select \"imdb_id\" as \"ImdbId\", \"title\" as \"Title\", \"year\" as \"Year\" from search_imdb_meta('{parsedTorrentTitle.Replace("'", "").Replace("\"", "")}', '{(torrentType == TorrentType.Movie ? "movie" : "tvSeries")}'";
+            var query = $"select \"imdb_id\" as \"ImdbId\", \"title\" as \"Title\", \"year\" as \"Year\" from search_imdb_meta('{parsedTorrentTitle.Replace("'", "").Replace("\"", "")}', '{(torrentType.Equals("movie", StringComparison.OrdinalIgnoreCase) ? "movie" : "tvSeries")}'";
             query += year is not null ? $", '{year}'" : ", NULL";
             query += ", 15)";
             
