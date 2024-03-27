@@ -611,3 +611,4 @@ fabric.properties
 
 # Mac directory indexes
 .DS_Store
+deployment/docker/stack.env

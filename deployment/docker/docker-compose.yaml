@@ -16,7 +16,7 @@ services:
   ## Postgres is the database that is used by the services.
   ## All downloaded metadata is stored in this database.
   postgres:
-    env_file: .env
+    env_file: stack.env
     environment:
       PGUSER: ${POSTGRES_USER}
     healthcheck:
@@ -29,7 +29,7 @@ services:
       start_period: 10s
     image: postgres:latest
     # # If you need the database to be accessible from outside, please open the below port.
-    # # Furthermore, please, please, please, change the username and password in the .env file.
+    # # Furthermore, please, please, please, change the username and password in the stack.env file.
     # # If you want to enhance your security even more, create a new user for the database with a strong password.
     # ports:
     #   - "5432:5432"
@@ -42,7 +42,7 @@ services:
   ## Redis is used as a cache for the services.
   ## It is used to store the infohashes that are currently being processed in sagas, as well as intrim data.
   redis:
-    env_file: .env
+    env_file: stack.env
     healthcheck:
       test:
         - CMD-SHELL
@@ -64,7 +64,7 @@ services:
   ## RabbitMQ is used as a message broker for the services.
   ## It is used to communicate between the services.
   rabbitmq:
-    env_file: .env
+    env_file: stack.env
     healthcheck:
       test:
         - CMD-SHELL
@@ -104,7 +104,7 @@ services:
       redis:
         condition: service_healthy
         required: true
-    env_file: .env
+    env_file: stack.env
     hostname: knightcrawler-addon
     image: gabisonfire/knightcrawler-addon:2.0.7
     labels:
@@ -133,7 +133,7 @@ services:
       redis:
         condition: service_healthy
         required: true
-    env_file: .env
+    env_file: stack.env
     image: gabisonfire/knightcrawler-consumer:2.0.7
     labels:
       logging: promtail
@@ -159,7 +159,7 @@ services:
       redis:
         condition: service_healthy
         required: true
-    env_file: .env
+    env_file: stack.env
     image: gabisonfire/knightcrawler-debrid-collector:2.0.7
     labels:
       logging: promtail
@@ -174,7 +174,7 @@ services:
       migrator:
         condition: service_completed_successfully
         required: true
-    env_file: .env
+    env_file: stack.env
     image: gabisonfire/knightcrawler-metadata:2.0.7
     networks:
       - knightcrawler-network
@@ -186,7 +186,7 @@ services:
       postgres:
         condition: service_healthy
         required: true
-    env_file: .env
+    env_file: stack.env
     image: gabisonfire/knightcrawler-migrator:2.0.7
     networks:
       - knightcrawler-network
@@ -210,7 +210,7 @@ services:
       redis:
         condition: service_healthy
         required: true
-    env_file: .env
+    env_file: stack.env
     image: gabisonfire/knightcrawler-producer:2.0.7
     labels:
       logging: promtail
@@ -226,7 +226,7 @@ services:
         required: true
     deploy:
       replicas: ${QBIT_REPLICAS:-0}
-    env_file: .env
+    env_file: stack.env
     image: gabisonfire/knightcrawler-qbit-collector:2.0.7
     labels:
       logging: promtail
@@ -239,7 +239,7 @@ services:
   qbittorrent:
     deploy:
       replicas: ${QBIT_REPLICAS:-0}
-    env_file: .env
+    env_file: stack.env
     environment:
       PGID: "1000"
       PUID: "1000"
