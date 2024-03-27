@@ -51,11 +51,11 @@ Download and install [Docker Compose](https://docs.docker.com/compose/install/),
 
 ### Environment Setup
 
-Before running the project, you need to set up the environment variables. Copy the `.env.example` file to `.env`:
+Before running the project, you need to set up the environment variables. Edit the values in `stack.env`:
 
 ```sh
 cd deployment/docker
-cp .env.example .env
+code stack.env
 ```
 
 Then set any of the values you wouldd like to customize.
@@ -66,9 +66,6 @@ Then set any of the values you wouldd like to customize.
 > These values should be tested and tuned for your specific machine.
 
 By default, Knight Crawler is configured to be *relatively* conservative in its resource usage. If running on a decent machine (16GB RAM, i5+ or equivalent), you can increase some settings to increase consumer throughput. This is especially helpful if you have a large backlog from [importing databases](#importing-external-dumps).
-
-In your `.env` file, under the `# Consumer` section increase `CONSUMER_REPLICAS` from `3` to `15`.
-You can also increase `JOB_CONCURRENCY` from `5` to `10`.
 
 ### DebridMediaManager setup (optional)
 
@@ -90,9 +87,9 @@ We can search DebridMediaManager hash lists which are hosted on GitHub. This all
         (checked) Public Repositories (read-only)
    ```
 4. Click `Generate token`
-5. Take the new token and add it to the bottom of the [.env](deployment/docker/.env) file
+5. Take the new token and add it to the bottom of the [stack.env](deployment/docker/stack.env) file
    ```
-   GithubSettings__PAT=<YOUR TOKEN HERE>
+   GITHUB_PAT=<YOUR TOKEN HERE>
    ```
 ### Configure external access
 
@@ -143,7 +140,7 @@ Remove or comment out the port for the addon, and connect it to Caddy:
 addon:
   <<: *knightcrawler-app
   env_file:
-    - .env
+    - stack.env
   hostname: knightcrawler-addon
   image: gabisonfire/knightcrawler-addon:latest
   labels:
