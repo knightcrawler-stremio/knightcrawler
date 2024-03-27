@@ -1,0 +1,16 @@
+PTN/__init__.py,sha256=eTrZ6cZ3BWJYltM21u5YMLPtujg5XZtSDNg0MRh08Zg,601
+PTN/__pycache__/__init__.cpython-312.pyc,,
+PTN/__pycache__/extras.cpython-312.pyc,,
+PTN/__pycache__/parse.cpython-312.pyc,,
+PTN/__pycache__/patterns.cpython-312.pyc,,
+PTN/__pycache__/post.cpython-312.pyc,,
+PTN/extras.py,sha256=Xi9PN0Bt06tAiiLPxXnwc76G7EBzcUXZSOnD6fvYK_4,6178
+PTN/parse.py,sha256=CRnlSjFu8V9NfomICMVMEmX3NK2HVBsQs-bZ1GIBMic,16926
+PTN/patterns.py,sha256=41x6B9Tvf9LPpXNPYdk969DluBeuaot49pLlTbJd40s,13501
+PTN/post.py,sha256=1daK3tvBwxyvKeMMrAfn7obqUVc4dffqBcXCOlXpUdE,8467
+parse_torrent_title-2.8.1.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+parse_torrent_title-2.8.1.dist-info/LICENSE,sha256=FQV0WevlDe6gg_4tEJtwRbDtrgcBG8aRSTQJbt9UEls,1168
+parse_torrent_title-2.8.1.dist-info/METADATA,sha256=phYqs3FQCZXkUqK6odSYwxAZAC2rIQByEd3Q4H0u9vY,10288
+parse_torrent_title-2.8.1.dist-info/RECORD,,
+parse_torrent_title-2.8.1.dist-info/WHEEL,sha256=G16H4A3IeoQmnOrYV4ueZGKSjhipXx8zc8nu9FGlvMA,92
+parse_torrent_title-2.8.1.dist-info/top_level.txt,sha256=mQaajYNsu_xCmw5I07Gzt0zG2NZACCFlNRUxnWIcwQ4,4

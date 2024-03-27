@@ -1,3 +1,5 @@
+using SharedContracts.Python.RTN;
+
 namespace Producer.Features.Crawlers.Dmm;
 
 public partial class DebridMediaManagerCrawler(
@@ -5,7 +7,7 @@ public partial class DebridMediaManagerCrawler(
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
     GithubConfiguration githubConfiguration,
-    IParseTorrentTitle parseTorrentTitle,
+    IRankTorrentName rankTorrentName,
     IDistributedCache cache) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
@@ -108,13 +110,13 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
 
-        var parsedTorrent = parseTorrentTitle.Parse(torrentTitle.CleanTorrentTitleForImdb());
+        var parsedTorrent = rankTorrentName.Parse(torrentTitle.CleanTorrentTitleForImdb());
         
-        var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.Title);
+        var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.ParsedTitle);
         
         if (cached)
         {
-            logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.Title);
+            logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.ParsedTitle);
             return new()
             {
                 Source = Source,
@@ -124,16 +126,15 @@ public partial class DebridMediaManagerCrawler(
                 InfoHash = hashElement.ToString(),
                 Seeders = 0,
                 Leechers = 0,
-                Category = parsedTorrent.TorrentType switch
+                Category = parsedTorrent.IsMovie switch
                 {
-                    TorrentType.Movie => "movies",
-                    TorrentType.Tv => "tv",
-                    _ => "unknown",
+                    true => "movies",
+                    false => "tv",
                 },
             };
         }
         
-        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Title, parsedTorrent.TorrentType, parsedTorrent.Year);
+        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.ParsedTitle, parsedTorrent.IsMovie ? "movies" : "tv", parsedTorrent.Year.GetValueOrDefault().ToString());
 
         if (imdbEntry.Count == 0)
         {
@@ -147,7 +148,7 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
         
-        logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", scoredTitles.BestMatch.Value.ImdbId, parsedTorrent.Title, scoredTitles.BestMatch.Value.Title, scoredTitles.BestMatch.Score);
+        logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", scoredTitles.BestMatch.Value.ImdbId, parsedTorrent.ParsedTitle, scoredTitles.BestMatch.Value.Title, scoredTitles.BestMatch.Score);
 
         var torrent = new IngestedTorrent
         {
@@ -158,20 +159,19 @@ public partial class DebridMediaManagerCrawler(
             InfoHash = hashElement.ToString(),
             Seeders = 0,
             Leechers = 0,
-            Category = parsedTorrent.TorrentType switch
+            Category = parsedTorrent.IsMovie switch
             {
-                TorrentType.Movie => "movies",
-                TorrentType.Tv => "tv",
-                _ => "unknown",
+                true => "movies",
+                false => "tv",
             },
         };
 
         return torrent;
     }
 
-    private async Task<(bool Success, ExtractedResult<ImdbEntry>? BestMatch)> ScoreTitles(TorrentMetadata parsedTorrent, List<ImdbEntry> imdbEntries)
+    private async Task<(bool Success, ExtractedResult<ImdbEntry>? BestMatch)> ScoreTitles(ParseTorrentTitleResponse parsedTorrent, List<ImdbEntry> imdbEntries)
     {
-        var lowerCaseTitle = parsedTorrent.Title.ToLowerInvariant();
+        var lowerCaseTitle = parsedTorrent.ParsedTitle.ToLowerInvariant();
        
         // Scoring directly operates on the List<ImdbEntry>, no need for lookup table.
         var scoredResults = Process.ExtractAll(new(){Title = lowerCaseTitle}, imdbEntries, x => x.Title?.ToLowerInvariant(), scorer: new DefaultRatioScorer(), cutoff: 90);
