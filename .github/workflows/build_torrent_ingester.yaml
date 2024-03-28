@@ -1,0 +1,14 @@
+name: Build and Push Torrent Ingestor Service
+
+on:
+  push:
+    paths:
+      - 'src/python/torrent_ingestor/**'
+
+jobs:
+  process:
+    uses: ./.github/workflows/base_image_workflow.yaml
+    secrets: inherit
+    with:
+      CONTEXT: ./src/producer/
+      IMAGE_NAME: knightcrawler-torrent-ingestor
