@@ -12,6 +12,7 @@ public partial class DebridMediaManagerCrawler(
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
+    private LengthAwareRatioScorer _lengthAwareRatioScorer = new();
 
     private const string DownloadBaseUrl = "https://raw.githubusercontent.com/debridmediamanager/hashlists/main";
     protected override IReadOnlyDictionary<string, string> Mappings => new Dictionary<string, string>();
@@ -109,7 +110,7 @@ public partial class DebridMediaManagerCrawler(
         {
             return null;
         }
-
+        
         var parsedTorrent = rankTorrentName.Parse(torrentTitle.CleanTorrentTitleForImdb());
         
         if (!parsedTorrent.Success)
@@ -126,14 +127,14 @@ public partial class DebridMediaManagerCrawler(
         }
 
         var year = parsedTorrent.Year != 0 ? parsedTorrent.Year.ToString() : null;
-        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.ParsedTitle, parsedTorrent.IsMovie ? "movies" : "tv", year);
+        var imdbEntries = await Storage.FindImdbMetadata(parsedTorrent.ParsedTitle, parsedTorrent.IsMovie ? "movies" : "tv", year);
 
-        if (imdbEntry.Count == 0)
+        if (imdbEntries.Count == 0)
         {
             return null;
         }
         
-        var scoredTitles = await ScoreTitles(parsedTorrent, imdbEntry);
+        var scoredTitles = await ScoreTitles(parsedTorrent, imdbEntries);
         
         if (!scoredTitles.Success)
         {
@@ -167,7 +168,7 @@ public partial class DebridMediaManagerCrawler(
         var lowerCaseTitle = parsedTorrent.ParsedTitle.ToLowerInvariant();
        
         // Scoring directly operates on the List<ImdbEntry>, no need for lookup table.
-        var scoredResults = Process.ExtractAll(new(){Title = lowerCaseTitle}, imdbEntries, x => x.Title?.ToLowerInvariant(), scorer: new DefaultRatioScorer(), cutoff: 90);
+        var scoredResults = Process.ExtractAll(new(){Title = lowerCaseTitle}, imdbEntries, x => x.Title?.ToLowerInvariant(), scorer: _lengthAwareRatioScorer, cutoff: 90);
 
         var best = scoredResults.MaxBy(x => x.Score);
 
@@ -185,7 +186,7 @@ public partial class DebridMediaManagerCrawler(
     {
         var cacheOptions = new DistributedCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15),
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1),
         };
         
         return cache.SetStringAsync(lowerCaseTitle, JsonSerializer.Serialize(best.Value), cacheOptions);

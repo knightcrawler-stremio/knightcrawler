@@ -7,6 +7,8 @@ global using System.Text.RegularExpressions;
 global using System.Xml.Linq;
 global using FuzzySharp;
 global using FuzzySharp.Extractor;
+global using FuzzySharp.PreProcess;
+global using FuzzySharp.SimilarityRatio.Scorer;
 global using FuzzySharp.SimilarityRatio.Scorer.StrategySensitive;
 global using LZStringCSharp;
 global using MassTransit;

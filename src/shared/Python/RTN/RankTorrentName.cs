@@ -36,6 +36,53 @@ public class RankTorrentName : IRankTorrentName
             return new(false, string.Empty, 0);
         }
     }
+
+    public bool IsTrash(string title)
+    {
+        try
+        {
+            using var py = Py.GIL();
+            var result = _rtn?.check_trash(title);
+
+            if (result == null)
+            {
+                return false;
+            }
+
+            var response = result.As<bool>() ?? false;
+            
+            return response;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to parse title");
+            return false;
+        }
+    }
+    
+    public bool TitleMatch(string title, string checkTitle)
+    {
+        try
+        {
+            using var py = Py.GIL();
+            var result = _rtn?.title_match(title, checkTitle);
+
+            if (result == null)
+            {
+                return false;
+            }
+
+            var response = result.As<bool>() ?? false;
+            
+            return response;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to parse title");
+            return false;
+        }
+    }
+    
     
     private static ParseTorrentTitleResponse ParseResult(dynamic result)
     {
