@@ -10,5 +10,5 @@ jobs:
     uses: ./.github/workflows/base_image_workflow.yaml
     secrets: inherit
     with:
-      CONTEXT: ./src/producer/
+      CONTEXT: ./src/python/torrent_ingestor
       IMAGE_NAME: knightcrawler-torrent-ingestor
