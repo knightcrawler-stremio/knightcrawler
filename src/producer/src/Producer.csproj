@@ -33,6 +33,9 @@
       <None Include="Configuration\*.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
         <Content Remove="python\**" />
         <None Include="python\**">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -40,18 +43,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Remove="Data\**" />
-        <None Include="Data\**">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\..\shared\SharedContracts.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="python\" />
     </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-using SharedContracts.Python.RTN;
+using Microsoft.VisualBasic;
 
 namespace Producer.Features.Crawlers.Dmm;
 
@@ -112,29 +112,21 @@ public partial class DebridMediaManagerCrawler(
 
         var parsedTorrent = rankTorrentName.Parse(torrentTitle.CleanTorrentTitleForImdb());
         
+        if (!parsedTorrent.Success)
+        {
+            return null;
+        }
+        
         var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.ParsedTitle);
         
         if (cached)
         {
             logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.ParsedTitle);
-            return new()
-            {
-                Source = Source,
-                Name = cachedResult.Title,
-                Imdb = cachedResult.ImdbId,
-                Size = bytesElement.GetInt64().ToString(),
-                InfoHash = hashElement.ToString(),
-                Seeders = 0,
-                Leechers = 0,
-                Category = parsedTorrent.IsMovie switch
-                {
-                    true => "movies",
-                    false => "tv",
-                },
-            };
+            return MapToTorrent(cachedResult, bytesElement, hashElement, parsedTorrent);
         }
-        
-        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.ParsedTitle, parsedTorrent.IsMovie ? "movies" : "tv", parsedTorrent.Year.GetValueOrDefault().ToString());
+
+        var year = parsedTorrent.Year != 0 ? parsedTorrent.Year.ToString() : null;
+        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.ParsedTitle, parsedTorrent.IsMovie ? "movies" : "tv", year);
 
         if (imdbEntry.Count == 0)
         {
@@ -150,11 +142,15 @@ public partial class DebridMediaManagerCrawler(
         
         logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", scoredTitles.BestMatch.Value.ImdbId, parsedTorrent.ParsedTitle, scoredTitles.BestMatch.Value.Title, scoredTitles.BestMatch.Score);
 
-        var torrent = new IngestedTorrent
+        return MapToTorrent(scoredTitles.BestMatch.Value, bytesElement, hashElement, parsedTorrent);
+    }
+
+    private IngestedTorrent MapToTorrent(ImdbEntry result, JsonElement bytesElement, JsonElement hashElement, ParseTorrentTitleResponse parsedTorrent) =>
+        new()
         {
             Source = Source,
-            Name = scoredTitles.BestMatch.Value.Title,
-            Imdb = scoredTitles.BestMatch.Value.ImdbId,
+            Name = result.Title,
+            Imdb = result.ImdbId,
             Size = bytesElement.GetInt64().ToString(),
             InfoHash = hashElement.ToString(),
             Seeders = 0,
@@ -165,9 +161,6 @@ public partial class DebridMediaManagerCrawler(
                 false => "tv",
             },
         };
-
-        return torrent;
-    }
 
     private async Task<(bool Success, ExtractedResult<ImdbEntry>? BestMatch)> ScoreTitles(ParseTorrentTitleResponse parsedTorrent, List<ImdbEntry> imdbEntries)
     {

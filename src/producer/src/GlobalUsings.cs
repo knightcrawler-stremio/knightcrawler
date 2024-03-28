@@ -28,4 +28,5 @@ global using SharedContracts.Dapper;
 global using SharedContracts.Extensions;
 global using SharedContracts.Models;
 global using SharedContracts.Python;
+global using SharedContracts.Python.RTN;
 global using SharedContracts.Requests;

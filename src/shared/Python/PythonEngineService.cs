@@ -28,6 +28,7 @@ public class PythonEngineService(ILogger<PythonEngineService> logger) : IHostedS
             _mainThreadState = PythonEngine.BeginAllowThreads();
             
             _isInitialized = true;
+            logger.LogInformation("Python engine initialized");
         }
         catch (Exception e)
         {
