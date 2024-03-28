@@ -1,20 +1,22 @@
 import asyncio
-from sqlalchemy.exc import IntegrityError
 import contextlib
+from datetime import datetime, timedelta
 from os import environ
-from datetime import datetime
-from redis import asyncio as redis
-from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from concurrent.futures import ThreadPoolExecutor
 
-# Define SQLAlchemy model (for DB interaction)
+import logger
+import structlog
+from pydantic import BaseModel
+from redis import asyncio as redis
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, create_engine
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
+
+logger.init()
+log = structlog.getLogger(__name__)
+
 Base = declarative_base()
 
 
-# Define your Pydantic model (for validation)
 class TorrentAddedEvent(BaseModel):
     info_hash: str
     title: str
@@ -62,13 +64,25 @@ async def write_to_postgres(
                     )
                 )
                 sess.commit()
-                print("saved torrent", event.info_hash)
+                log.info("saved torrent", torrent=event.info_hash)
             queue.task_done()
+        except asyncio.CancelledError:
+            return
         except Exception as e:
-            print("error saving torrent", e)
+            log.error("error saving torrent", exc_info=e)
             await asyncio.sleep(1)
         finally:
             sess.close()
+
+
+def run_redis_subscriber(
+    redis_url: str, channel_name: str, queue: asyncio.Queue[TorrentAddedEvent]
+) -> None:
+    asyncio.run(redis_subscriber(redis_url, channel_name, queue))
+
+
+def start_queue_processor(SessionLocal: sessionmaker[Session], queue: asyncio.Queue):
+    asyncio.run(run_queue_processors(SessionLocal, queue, 10))
 
 
 async def redis_subscriber(
@@ -79,12 +93,19 @@ async def redis_subscriber(
     await pubsub.subscribe(channel_name)
     try:
         async for message in pubsub.listen():
-            print("got message:", message)
             if message["type"] == "message":
-                event_data = TorrentAddedEvent.model_validate_json(
-                    message["data"].decode()
-                )
-                await queue.put(event_data)
+                log.debug("got message", message=message)
+                event_data = TorrentAddedEvent.model_validate_json(message["data"].decode())
+                # only process the event if we haven't seen it in the last 24 hours
+                # this is to prevent processing the same event multiple times
+                # to allow multiple consumers since redis pubsub is a broadcast
+                if await db.set(
+                    name=f"kc:torrents:seen:{event_data.info_hash}",
+                    value=1,
+                    nx=True,
+                    ex=timedelta(days=1),
+                ):
+                    await queue.put(event_data)
     finally:
         await pubsub.unsubscribe(channel_name)
         await db.aclose()
@@ -104,32 +125,23 @@ async def main():
     )
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    # Initialize DB (create tables)
     Base.metadata.create_all(bind=engine, checkfirst=True)
 
-    queue = asyncio.Queue[TorrentAddedEvent]()
-
-    # Run the subscriber and the writer as concurrent tasks
-    subscriber_task = asyncio.create_task(
-        redis_subscriber(REDIS_URL, "events:v1:torrent:added", queue)
-    )
-
-    writer_task = asyncio.create_task(run_queue_processors(SessionLocal, queue, 10))
+    queue = asyncio.Queue[TorrentAddedEvent](maxsize=100)
 
     await asyncio.wait(
-        [subscriber_task, writer_task], return_when=asyncio.FIRST_COMPLETED
+        [
+            asyncio.create_task(redis_subscriber(REDIS_URL, "events:v1:torrent:added", queue)),
+            asyncio.create_task(run_queue_processors(SessionLocal, queue, 10)),
+        ]
     )
 
 
 async def run_queue_processors(
     session: sessionmaker[Session], queue: asyncio.Queue, n_processors: int
 ):
-    with ThreadPoolExecutor(max_workers=n_processors) as executor:
-        tasks = [
-            asyncio.create_task(write_to_postgres(session, queue))
-            for _ in range(n_processors)
-        ]
-        await asyncio.gather(*tasks)
+    tasks = [asyncio.create_task(write_to_postgres(session, queue)) for _ in range(n_processors)]
+    await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
