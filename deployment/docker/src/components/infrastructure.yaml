@@ -13,7 +13,7 @@ x-redishealth: &redis-health
   <<: *base-health
 
 x-postgreshealth: &postgresdb-health
-  test: pg_isready
+  test: [ "CMD", "sh", "-c", "pg_isready -h localhost -U $$POSTGRES_USER" ]
   <<: *base-health
 
 x-qbit: &qbit-health

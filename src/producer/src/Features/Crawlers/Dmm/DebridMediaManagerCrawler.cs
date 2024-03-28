@@ -1,3 +1,5 @@
+using Microsoft.VisualBasic;
+
 namespace Producer.Features.Crawlers.Dmm;
 
 public partial class DebridMediaManagerCrawler(
@@ -5,11 +7,12 @@ public partial class DebridMediaManagerCrawler(
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
     GithubConfiguration githubConfiguration,
-    IParseTorrentTitle parseTorrentTitle,
+    IRankTorrentName rankTorrentName,
     IDistributedCache cache) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
+    private LengthAwareRatioScorer _lengthAwareRatioScorer = new();
 
     private const string DownloadBaseUrl = "https://raw.githubusercontent.com/debridmediamanager/hashlists/main";
     protected override IReadOnlyDictionary<string, string> Mappings => new Dictionary<string, string>();
@@ -107,74 +110,65 @@ public partial class DebridMediaManagerCrawler(
         {
             return null;
         }
-
-        var parsedTorrent = parseTorrentTitle.Parse(torrentTitle.CleanTorrentTitleForImdb());
         
-        var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.Title);
+        var parsedTorrent = rankTorrentName.Parse(torrentTitle.CleanTorrentTitleForImdb());
         
-        if (cached)
-        {
-            logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.Title);
-            return new()
-            {
-                Source = Source,
-                Name = cachedResult.Title,
-                Imdb = cachedResult.ImdbId,
-                Size = bytesElement.GetInt64().ToString(),
-                InfoHash = hashElement.ToString(),
-                Seeders = 0,
-                Leechers = 0,
-                Category = parsedTorrent.TorrentType switch
-                {
-                    TorrentType.Movie => "movies",
-                    TorrentType.Tv => "tv",
-                    _ => "unknown",
-                },
-            };
-        }
-        
-        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Title, parsedTorrent.TorrentType, parsedTorrent.Year);
-
-        if (imdbEntry.Count == 0)
+        if (!parsedTorrent.Success)
         {
             return null;
         }
         
-        var scoredTitles = await ScoreTitles(parsedTorrent, imdbEntry);
+        var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.ParsedTitle);
+        
+        if (cached)
+        {
+            logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.ParsedTitle);
+            return MapToTorrent(cachedResult, bytesElement, hashElement, parsedTorrent);
+        }
+
+        var year = parsedTorrent.Year != 0 ? parsedTorrent.Year.ToString() : null;
+        var imdbEntries = await Storage.FindImdbMetadata(parsedTorrent.ParsedTitle, parsedTorrent.IsMovie ? "movies" : "tv", year);
+
+        if (imdbEntries.Count == 0)
+        {
+            return null;
+        }
+        
+        var scoredTitles = await ScoreTitles(parsedTorrent, imdbEntries);
         
         if (!scoredTitles.Success)
         {
             return null;
         }
         
-        logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", scoredTitles.BestMatch.Value.ImdbId, parsedTorrent.Title, scoredTitles.BestMatch.Value.Title, scoredTitles.BestMatch.Score);
+        logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", scoredTitles.BestMatch.Value.ImdbId, parsedTorrent.ParsedTitle, scoredTitles.BestMatch.Value.Title, scoredTitles.BestMatch.Score);
 
-        var torrent = new IngestedTorrent
+        return MapToTorrent(scoredTitles.BestMatch.Value, bytesElement, hashElement, parsedTorrent);
+    }
+
+    private IngestedTorrent MapToTorrent(ImdbEntry result, JsonElement bytesElement, JsonElement hashElement, ParseTorrentTitleResponse parsedTorrent) =>
+        new()
         {
             Source = Source,
-            Name = scoredTitles.BestMatch.Value.Title,
-            Imdb = scoredTitles.BestMatch.Value.ImdbId,
+            Name = result.Title,
+            Imdb = result.ImdbId,
             Size = bytesElement.GetInt64().ToString(),
             InfoHash = hashElement.ToString(),
             Seeders = 0,
             Leechers = 0,
-            Category = parsedTorrent.TorrentType switch
+            Category = parsedTorrent.IsMovie switch
             {
-                TorrentType.Movie => "movies",
-                TorrentType.Tv => "tv",
-                _ => "unknown",
+                true => "movies",
+                false => "tv",
             },
         };
 
-        return torrent;
-    }
-
-    private async Task<(bool Success, ExtractedResult<ImdbEntry>? BestMatch)> ScoreTitles(TorrentMetadata parsedTorrent, List<ImdbEntry> imdbEntries)
+    private async Task<(bool Success, ExtractedResult<ImdbEntry>? BestMatch)> ScoreTitles(ParseTorrentTitleResponse parsedTorrent, List<ImdbEntry> imdbEntries)
     {
-        var lowerCaseTitle = parsedTorrent.Title.ToLowerInvariant();
+        var lowerCaseTitle = parsedTorrent.ParsedTitle.ToLowerInvariant();
        
         // Scoring directly operates on the List<ImdbEntry>, no need for lookup table.
-        var scoredResults = Process.ExtractAll(new(){Title = lowerCaseTitle}, imdbEntries, x => x.Title?.ToLowerInvariant(), scorer: new DefaultRatioScorer(), cutoff: 90);
+        var scoredResults = Process.ExtractAll(new(){Title = lowerCaseTitle}, imdbEntries, x => x.Title?.ToLowerInvariant(), scorer: _lengthAwareRatioScorer, cutoff: 90);
 
         var best = scoredResults.MaxBy(x => x.Score);
 
@@ -192,7 +186,7 @@ public partial class DebridMediaManagerCrawler(
     {
         var cacheOptions = new DistributedCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15),
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1),
         };
         
         return cache.SetStringAsync(lowerCaseTitle, JsonSerializer.Serialize(best.Value), cacheOptions);
