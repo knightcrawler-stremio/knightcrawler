@@ -1,4 +1,4 @@
 volumes:
   postgres:
   redis:
-  rabbitmq:
+  lavinmq:

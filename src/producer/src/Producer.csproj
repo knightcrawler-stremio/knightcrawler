@@ -33,6 +33,9 @@
       <None Include="Configuration\*.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="requirements.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup Condition="'$(Configuration)' == 'Debug'">

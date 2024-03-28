@@ -1,4 +1,5 @@
 #!/bin/bash
 
+rm -rf ../src/python
 mkdir -p ../src/python
-pip install --force-reinstall rank-torrent-name==0.1.6 -t ../src/python/
+python3 -m pip install -r ../src/requirements.txt -t ../src/python/

@@ -4,9 +4,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterPythonEngine(this IServiceCollection services)
     {
-        services.AddSingleton<PythonEngineService>();
-        
-        services.AddHostedService(p => p.GetRequiredService<PythonEngineService>());
+        services.AddSingleton<IPythonEngineService, PythonEngineService>();
+        services.AddHostedService<PythonEngineManager>();
 
         return services;
     }

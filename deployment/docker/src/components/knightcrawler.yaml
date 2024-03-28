@@ -11,7 +11,7 @@ x-depends: &knightcrawler-app-depends
       condition: service_healthy
     postgres:
       condition: service_healthy
-    rabbitmq:
+    lavinmq:
       condition: service_healthy
     migrator:
       condition: service_completed_successfully
