@@ -17,12 +17,8 @@ services:
   ## All downloaded metadata is stored in this database.
   postgres:
     env_file: stack.env
-    environment:
-      PGUSER: ${POSTGRES_USER}
     healthcheck:
-      test:
-        - CMD-SHELL
-        - pg_isready
+      test: [ "CMD", "sh", "-c", "pg_isready -h localhost -U $$POSTGRES_USER" ]
       timeout: 10s
       interval: 10s
       retries: 3
@@ -44,9 +40,7 @@ services:
   redis:
     env_file: stack.env
     healthcheck:
-      test:
-        - CMD-SHELL
-        - redis-cli ping
+      test: ["CMD-SHELL", "redis-cli ping"]
       timeout: 10s
       interval: 10s
       retries: 3
@@ -66,9 +60,7 @@ services:
   rabbitmq:
     env_file: stack.env
     healthcheck:
-      test:
-        - CMD-SHELL
-        - rabbitmq-diagnostics -q ping
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
       timeout: 10s
       interval: 10s
       retries: 3
@@ -91,22 +83,17 @@ services:
     depends_on:
       metadata:
         condition: service_completed_successfully
-        required: true
       migrator:
         condition: service_completed_successfully
-        required: true
       postgres:
         condition: service_healthy
-        required: true
       rabbitmq:
         condition: service_healthy
-        required: true
       redis:
         condition: service_healthy
-        required: true
     env_file: stack.env
     hostname: knightcrawler-addon
-    image: gabisonfire/knightcrawler-addon:2.0.7
+    image: gabisonfire/knightcrawler-addon:2.0.8
     labels:
       logging: promtail
     networks:
@@ -120,21 +107,16 @@ services:
     depends_on:
       metadata:
         condition: service_completed_successfully
-        required: true
       migrator:
         condition: service_completed_successfully
-        required: true
       postgres:
         condition: service_healthy
-        required: true
       rabbitmq:
         condition: service_healthy
-        required: true
       redis:
         condition: service_healthy
-        required: true
     env_file: stack.env
-    image: gabisonfire/knightcrawler-consumer:2.0.7
+    image: gabisonfire/knightcrawler-consumer:2.0.8
     labels:
       logging: promtail
     networks:
@@ -146,21 +128,16 @@ services:
     depends_on:
       metadata:
         condition: service_completed_successfully
-        required: true
       migrator:
         condition: service_completed_successfully
-        required: true
       postgres:
         condition: service_healthy
-        required: true
       rabbitmq:
         condition: service_healthy
-        required: true
       redis:
         condition: service_healthy
-        required: true
     env_file: stack.env
-    image: gabisonfire/knightcrawler-debrid-collector:2.0.7
+    image: gabisonfire/knightcrawler-debrid-collector:2.0.8
     labels:
       logging: promtail
     networks:
@@ -173,9 +150,8 @@ services:
     depends_on:
       migrator:
         condition: service_completed_successfully
-        required: true
     env_file: stack.env
-    image: gabisonfire/knightcrawler-metadata:2.0.7
+    image: gabisonfire/knightcrawler-metadata:2.0.8
     networks:
       - knightcrawler-network
     restart: "no"
@@ -185,9 +161,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-        required: true
     env_file: stack.env
-    image: gabisonfire/knightcrawler-migrator:2.0.7
+    image: gabisonfire/knightcrawler-migrator:2.0.8
     networks:
       - knightcrawler-network
     restart: "no"
@@ -197,21 +172,16 @@ services:
     depends_on:
       metadata:
         condition: service_completed_successfully
-        required: true
       migrator:
         condition: service_completed_successfully
-        required: true
       postgres:
         condition: service_healthy
-        required: true
       rabbitmq:
         condition: service_healthy
-        required: true
       redis:
         condition: service_healthy
-        required: true
     env_file: stack.env
-    image: gabisonfire/knightcrawler-producer:2.0.7
+    image: gabisonfire/knightcrawler-producer:2.0.8
     labels:
       logging: promtail
     networks:
@@ -223,11 +193,10 @@ services:
     depends_on:
       qbittorrent:
         condition: service_healthy
-        required: true
     deploy:
       replicas: ${QBIT_REPLICAS:-0}
     env_file: stack.env
-    image: gabisonfire/knightcrawler-qbit-collector:2.0.7
+    image: gabisonfire/knightcrawler-qbit-collector:2.0.8
     labels:
       logging: promtail
     networks:
@@ -246,9 +215,7 @@ services:
       TORRENTING_PORT: "6881"
       WEBUI_PORT: "8080"
     healthcheck:
-      test:
-        - CMD-SHELL
-        - curl --fail http://localhost:8080
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080"]
       timeout: 10s
       interval: 10s
       retries: 3
