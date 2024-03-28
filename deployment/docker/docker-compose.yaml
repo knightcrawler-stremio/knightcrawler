@@ -9,7 +9,7 @@ networks:
 
 volumes:
   postgres:
-  rabbitmq:
+  lavinmq:
   redis:
 
 services:
@@ -55,28 +55,29 @@ services:
     volumes:
       - redis:/data
 
-  ## RabbitMQ is used as a message broker for the services.
+  ## LavinMQ is used as a message broker for the services.
+  ## It is a high performance drop in replacement for RabbitMQ.
   ## It is used to communicate between the services.
-  rabbitmq:
+  lavinmq:
     env_file: stack.env
-    healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
-      timeout: 10s
-      interval: 10s
-      retries: 3
-      start_period: 10s
     # # If you need the database to be accessible from outside, please open the below port.
-    # # Furthermore, please, please, please, look at the documentation for rabbit on how to secure the service.
+    # # Furthermore, please, please, please, look at the documentation for lavinmq / rabbitmq on how to secure the service.
     # ports:
     #   - "5672:5672"
     #   - "15672:15672"
     #   - "15692:15692"
-    image: rabbitmq:3-management
+    image: cloudamqp/lavinmq:latest
+    healthcheck:
+      test: ["CMD-SHELL", "lavinmqctl status"]
+      timeout: 10s
+      interval: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
     networks:
       - knightcrawler-network
-    restart: unless-stopped
     volumes:
-      - rabbitmq:/var/lib/rabbitmq
+      - lavinmq:/var/lib/lavinmq/
 
   ## The addon. This is what is used in stremio
   addon:
@@ -87,7 +88,7 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      rabbitmq:
+      lavinmq:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -111,7 +112,7 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      rabbitmq:
+      lavinmq:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -132,7 +133,7 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      rabbitmq:
+      lavinmq:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -176,7 +177,7 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      rabbitmq:
+      lavinmq:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -191,6 +192,16 @@ services:
   ## QBit collector utilizes QBitTorrent to download metadata.
   qbitcollector:
     depends_on:
+      metadata:
+        condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      lavinmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
       qbittorrent:
         condition: service_healthy
     deploy:
