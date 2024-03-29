@@ -115,25 +115,25 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
         
-        var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.ParsedTitle);
+        var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.Response.ParsedTitle);
         
         if (cached)
         {
-            logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.ParsedTitle);
+            logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.Response.ParsedTitle);
             return MapToTorrent(cachedResult, bytesElement, hashElement, parsedTorrent);
         }
 
-        int? year = parsedTorrent.Year != 0 ? parsedTorrent.Year : null;
-        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.ParsedTitle, parsedTorrent.IsMovie ? "movies" : "tv", year);
+        int? year = parsedTorrent.Response.Year != 0 ? parsedTorrent.Response.Year : null;
+        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Response.ParsedTitle, parsedTorrent.Response.IsMovie ? "movies" : "tv", year);
 
         if (imdbEntry is null)
         {
             return null;
         }
         
-        await AddToCache(parsedTorrent.ParsedTitle.ToLowerInvariant(), imdbEntry);
+        await AddToCache(parsedTorrent.Response.ParsedTitle.ToLowerInvariant(), imdbEntry);
         
-        logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", imdbEntry.ImdbId, parsedTorrent.ParsedTitle, imdbEntry.Title, imdbEntry.Score);
+        logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", imdbEntry.ImdbId, parsedTorrent.Response.ParsedTitle, imdbEntry.Title, imdbEntry.Score);
 
         return MapToTorrent(imdbEntry, bytesElement, hashElement, parsedTorrent);
     }
@@ -148,11 +148,12 @@ public partial class DebridMediaManagerCrawler(
             InfoHash = hashElement.ToString(),
             Seeders = 0,
             Leechers = 0,
-            Category = parsedTorrent.IsMovie switch
+            Category = parsedTorrent.Response.IsMovie switch
             {
                 true => "movies",
                 false => "tv",
             },
+            ParseTorrentTitleResponse = parsedTorrent,
         };
 
     private Task AddToCache(string lowerCaseTitle, ImdbEntry best)

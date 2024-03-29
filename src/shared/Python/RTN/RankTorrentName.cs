@@ -19,30 +19,26 @@ public class RankTorrentName : IRankTorrentName
             {
                 var result = _rtn?.parse(title);
                 return ParseResult(result);
-            }, new ParseTorrentTitleResponse(false, string.Empty, 0), nameof(Parse), throwOnErrors: false, logErrors: false);
+            }, new ParseTorrentTitleResponse(false, null), nameof(Parse), throwOnErrors: false, logErrors: false);
 
 
     private static ParseTorrentTitleResponse ParseResult(dynamic result)
     {
         if (result == null)
         {
-            return new(false, string.Empty, 0);
+            return new(false, null);
+        }
+
+        var json = result.model_dump_json()?.As<string?>();
+
+        if (json is null || string.IsNullOrEmpty(json))
+        {
+            return new(false, null);
         }
         
-        var parsedTitle = result.GetAttr("parsed_title")?.As<string>() ?? string.Empty;
-        var year = result.GetAttr("year")?.As<int>() ?? 0;
-        var seasons = GetIntArray(result, "season");
-        var episodes = GetIntArray(result, "episode");
+        var response = JsonSerializer.Deserialize<RtnResponse>(json);
 
-        return new ParseTorrentTitleResponse(true, parsedTitle, year, seasons, episodes);
-    }
-
-    private static int[]? GetIntArray(dynamic result, string field)
-    {
-        var theList = result.GetAttr(field)?.As<PyList>();
-        int[]? results = theList?.Length() > 0 ? theList.As<int[]>() : null;
-        
-        return results;
+        return new(true, response);
     }
 
     private void InitModules() => 
