@@ -12,7 +12,7 @@ DROP COLUMN IF EXISTS "trackers";
 
 -- Purpose: Create a foreign key relationsship if it does not already exist between torrents and the source table ingested_torrents, but do not cascade on delete.
 ALTER TABLE torrents
-ADD COLUMN IF NOT EXISTS ingestedTorrentId bigint;
+ADD COLUMN IF NOT EXISTS "ingestedTorrentId" bigint;
 
 DO $$
 BEGIN
