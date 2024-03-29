@@ -17,7 +17,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
                         await writer.WriteAsync(entry.ImdbId, NpgsqlDbType.Text);
                         await writer.WriteAsync(entry.Category, NpgsqlDbType.Text);
                         await writer.WriteAsync(entry.Title, NpgsqlDbType.Text);
-                        await writer.WriteAsync(entry.Year, NpgsqlDbType.Text);
+                        await writer.WriteAsync(entry.Year, NpgsqlDbType.Integer);
                         await writer.WriteAsync(entry.Adult, NpgsqlDbType.Boolean);
                     }
                     catch (Npgsql.PostgresException e)
@@ -116,7 +116,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
         ExecuteCommandAsync(
             async connection =>
             {
-                await using var command = new NpgsqlCommand($"CREATE INDEX title_gist ON {TableNames.MetadataTable} USING gist(title gist_trgm_ops)", connection);
+                await using var command = new NpgsqlCommand($"CREATE INDEX title_gin ON {TableNames.MetadataTable} USING gin(title gin_trgm_ops)", connection);
                 await command.ExecuteNonQueryAsync();
             }, "Error while creating index on imdb_metadata table");
 
@@ -125,7 +125,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
             async connection =>
             {
                 logger.LogInformation("Dropping Trigrams index if it exists already");
-                await using var dropCommand = new NpgsqlCommand("DROP INDEX if exists title_gist", connection);
+                await using var dropCommand = new NpgsqlCommand("DROP INDEX if exists title_gin", connection);
                 await dropCommand.ExecuteNonQueryAsync();
             }, $"Error while dropping index on {TableNames.MetadataTable} table");
 
