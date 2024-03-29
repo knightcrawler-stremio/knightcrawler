@@ -3,6 +3,7 @@ namespace SharedContracts.Models;
 public class Torrent
 {
     public string? InfoHash { get; set; }
+    public long? IngestedTorrentId { get; set; }
     public string? Provider { get; set; }
     public string? TorrentId { get; set; }
     public string? Title { get; set; }

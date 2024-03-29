@@ -78,4 +78,6 @@ public class RtnResponse
     public bool Extended { get; set; }
     
     public bool IsMovie => Season == null && Episode == null;
+    
+    public string ToJson() => this.AsJson();
 }

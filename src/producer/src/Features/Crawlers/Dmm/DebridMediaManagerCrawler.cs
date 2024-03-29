@@ -153,7 +153,7 @@ public partial class DebridMediaManagerCrawler(
                 true => "movies",
                 false => "tv",
             },
-            ParseTorrentTitleResponse = parsedTorrent,
+            RtnResponse = parsedTorrent.Response.ToJson(),
         };
 
     private Task AddToCache(string lowerCaseTitle, ImdbEntry best)

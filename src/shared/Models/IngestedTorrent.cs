@@ -1,5 +1,3 @@
-using SharedContracts.Python.RTN;
-
 namespace SharedContracts.Models;
 
 public class IngestedTorrent
@@ -14,8 +12,9 @@ public class IngestedTorrent
     public int Leechers { get; set; }
     public string? Imdb { get; set; }
 
-    public bool Processed { get; set; } = false;
+    public bool Processed { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    public ParseTorrentTitleResponse? ParseTorrentTitleResponse { get; set; }
+    
+    public string? RtnResponse { get; set; }
 }

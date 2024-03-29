@@ -9,9 +9,9 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
             const string query = 
                 """
                 INSERT INTO ingested_torrents
-                    ("name", "source", "category", "info_hash", "size", "seeders", "leechers", "imdb", "processed", "createdAt", "updatedAt")
+                    ("name", "source", "category", "info_hash", "size", "seeders", "leechers", "imdb", "processed", "createdAt", "updatedAt", "rtn_response")
                 VALUES
-                    (@Name, @Source, @Category, @InfoHash, @Size, @Seeders, @Leechers, @Imdb, @Processed, @CreatedAt, @UpdatedAt)
+                    (@Name, @Source, @Category, @InfoHash, @Size, @Seeders, @Leechers, @Imdb, @Processed, @CreatedAt, @UpdatedAt, @RtnResponse::jsonb)
                 ON CONFLICT (source, info_hash) DO NOTHING
                 """;
             
@@ -134,9 +134,9 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
                 const string query = 
                     """
                     INSERT INTO "torrents"
-                        ("infoHash", "provider", "torrentId", "title", "size", "type", "uploadDate", "seeders", "trackers", "languages", "resolution", "reviewed", "opened", "createdAt", "updatedAt")
+                        ("infoHash", "ingestedTorrentId", "provider", "title", "size", "type", "uploadDate", "seeders", "languages", "resolution", "reviewed", "opened", "createdAt", "updatedAt")
                     VALUES
-                        (@InfoHash, @Provider, @TorrentId, @Title, 0, @Type, NOW(), @Seeders, NULL, NULL, NULL, false, false, NOW(), NOW())
+                        (@InfoHash, @IngestedTorrentId, @Provider, @Title, 0, @Type, NOW(), @Seeders, NULL, NULL, false, false, NOW(), NOW())
                     ON CONFLICT ("infoHash") DO NOTHING
                     """;
                 
