@@ -11,6 +11,7 @@ public class PerformIngestionConsumer(IDataStorage dataStorage, ILogger<PerformI
         var torrent = new Torrent
         {
             InfoHash = request.IngestedTorrent.InfoHash.ToLowerInvariant(),
+            IngestedTorrentId = request.IngestedTorrent.Id,
             Provider = request.IngestedTorrent.Source,
             Title = request.IngestedTorrent.Name,
             Type = request.IngestedTorrent.Category,

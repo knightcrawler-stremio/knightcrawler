@@ -9,9 +9,9 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
             const string query = 
                 """
                 INSERT INTO ingested_torrents
-                    ("name", "source", "category", "info_hash", "size", "seeders", "leechers", "imdb", "processed", "createdAt", "updatedAt")
+                    ("name", "source", "category", "info_hash", "size", "seeders", "leechers", "imdb", "processed", "createdAt", "updatedAt", "rtn_response")
                 VALUES
-                    (@Name, @Source, @Category, @InfoHash, @Size, @Seeders, @Leechers, @Imdb, @Processed, @CreatedAt, @UpdatedAt)
+                    (@Name, @Source, @Category, @InfoHash, @Size, @Seeders, @Leechers, @Imdb, @Processed, @CreatedAt, @UpdatedAt, @RtnResponse::jsonb)
                 ON CONFLICT (source, info_hash) DO NOTHING
                 """;
             
@@ -110,21 +110,21 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
     public async Task<List<ImdbEntry>> GetImdbEntriesForRequests(int year, int batchSize, string? stateLastProcessedImdbId, CancellationToken cancellationToken = default) =>
         await ExecuteCommandAsync(async connection =>
         {
-            const string query = @"SELECT imdb_id AS ImdbId, title as Title, category as Category, year as Year, adult as Adult FROM imdb_metadata WHERE CAST(NULLIF(Year, '\N') AS INTEGER) <= @Year AND imdb_id > @LastProcessedImdbId ORDER BY ImdbId LIMIT @BatchSize";
+            const string query = @"SELECT imdb_id AS ImdbId, title as Title, category as Category, year as Year, adult as Adult FROM imdb_metadata WHERE Year <= @Year AND imdb_id > @LastProcessedImdbId ORDER BY ImdbId LIMIT @BatchSize";
             var result = await connection.QueryAsync<ImdbEntry>(query, new { Year = year, LastProcessedImdbId = stateLastProcessedImdbId, BatchSize = batchSize });
             return result.ToList();
         }, "Error getting imdb metadata.", cancellationToken);
 
-    public async Task<List<ImdbEntry>> FindImdbMetadata(string? parsedTorrentTitle, string torrentType, string? year, CancellationToken cancellationToken = default) =>
+    public async Task<ImdbEntry?> FindImdbMetadata(string? parsedTorrentTitle, string torrentType, int? year, CancellationToken cancellationToken = default) =>
         await ExecuteCommandAsync(async connection =>
         {
-            var query = $"select \"imdb_id\" as \"ImdbId\", \"title\" as \"Title\", \"year\" as \"Year\" from search_imdb_meta('{parsedTorrentTitle.Replace("'", "").Replace("\"", "")}', '{(torrentType.Equals("movie", StringComparison.OrdinalIgnoreCase) ? "movie" : "tvSeries")}'";
-            query += year is not null ? $", '{year}'" : ", NULL";
-            query += ", 15)";
+            var query = $"select \"imdb_id\" as \"ImdbId\", \"title\" as \"Title\", \"year\" as \"Year\", \"score\" as Score from search_imdb_meta('{parsedTorrentTitle.Replace("'", "").Replace("\"", "")}', '{(torrentType.Equals("movie", StringComparison.OrdinalIgnoreCase) ? "movie" : "tvSeries")}'";
+            query += year is not null ? $", {year}" : ", NULL";
+            query += ", 1)";
             
             var result = await connection.QueryAsync<ImdbEntry>(query);
-
-            return result.ToList();
+            var results = result.ToList();
+            return results.FirstOrDefault();
         }, "Error finding imdb metadata.", cancellationToken);
     
     public Task InsertTorrent(Torrent torrent, CancellationToken cancellationToken = default) =>
@@ -134,9 +134,9 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
                 const string query = 
                     """
                     INSERT INTO "torrents"
-                        ("infoHash", "provider", "torrentId", "title", "size", "type", "uploadDate", "seeders", "trackers", "languages", "resolution", "reviewed", "opened", "createdAt", "updatedAt")
+                        ("infoHash", "ingestedTorrentId", "provider", "title", "size", "type", "uploadDate", "seeders", "languages", "resolution", "reviewed", "opened", "createdAt", "updatedAt")
                     VALUES
-                        (@InfoHash, @Provider, @TorrentId, @Title, 0, @Type, NOW(), @Seeders, NULL, NULL, NULL, false, false, NOW(), NOW())
+                        (@InfoHash, @IngestedTorrentId, @Provider, @Title, 0, @Type, NOW(), @Seeders, NULL, NULL, false, false, NOW(), NOW())
                     ON CONFLICT ("infoHash") DO NOTHING
                     """;
                 

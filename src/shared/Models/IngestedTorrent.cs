@@ -12,7 +12,9 @@ public class IngestedTorrent
     public int Leechers { get; set; }
     public string? Imdb { get; set; }
 
-    public bool Processed { get; set; } = false;
+    public bool Processed { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    
+    public string? RtnResponse { get; set; }
 }

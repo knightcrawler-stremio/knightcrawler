@@ -72,7 +72,7 @@ public class BasicsFile(ILogger<BasicsFile> logger, ImdbDbService dbService): IF
                 Category = csv.GetField(1),
                 Title = csv.GetField(2),
                 Adult = isAdultSet && adult == 1,
-                Year = csv.GetField(5),
+                Year = csv.GetField(5) == @"\N" ? 0 : int.Parse(csv.GetField(5)),
             };
 
             if (cancellationToken.IsCancellationRequested)

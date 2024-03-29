@@ -6,5 +6,5 @@ public class ImdbBasicEntry
     public string? Category { get; set; }
     public string? Title { get; set; }
     public bool Adult { get; set; }
-    public string? Year { get; set; }
+    public int Year { get; set; }
 }
