@@ -53,10 +53,10 @@ public class PythonEngineService(ILogger<PythonEngineService> logger) : IPythonE
             }, nameof(ExecuteCommandOrScript), throwOnErrors);
 
     public T ExecutePythonOperation<T>(Func<T> operation, string operationName, bool throwOnErrors) =>
-        ExecutePythonOperationWithDefault(operation, default, operationName, throwOnErrors);
+        ExecutePythonOperationWithDefault(operation, default, operationName, throwOnErrors, true);
 
-    public T ExecutePythonOperationWithDefault<T>(Func<T> operation, T? defaultValue, string operationName, bool throwOnErrors) =>
-        ExecutePythonOperationInternal(operation, defaultValue, operationName, throwOnErrors);
+    public T ExecutePythonOperationWithDefault<T>(Func<T> operation, T? defaultValue, string operationName, bool throwOnErrors, bool logErrors) =>
+        ExecutePythonOperationInternal(operation, defaultValue, operationName, throwOnErrors, logErrors);
 
     public void ExecuteOnGIL(Action act, bool throwOnErrors)
     {
@@ -95,7 +95,7 @@ public class PythonEngineService(ILogger<PythonEngineService> logger) : IPythonE
     }
 
     // ReSharper disable once EntityNameCapturedOnly.Local
-    private T ExecutePythonOperationInternal<T>(Func<T> operation, T? defaultValue, string operationName, bool throwOnErrors)
+    private T ExecutePythonOperationInternal<T>(Func<T> operation, T? defaultValue, string operationName, bool throwOnErrors, bool logErrors)
     {
         Sys ??= LoadSys();
 
@@ -108,7 +108,10 @@ public class PythonEngineService(ILogger<PythonEngineService> logger) : IPythonE
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Python Error: {Message} ({OperationName})", ex.Message, nameof(operationName));
+            if (logErrors)
+            {
+                Logger.LogError(ex, "Python Error: {Message} ({OperationName})", ex.Message, nameof(operationName));
+            }
 
             if (throwOnErrors)
             {

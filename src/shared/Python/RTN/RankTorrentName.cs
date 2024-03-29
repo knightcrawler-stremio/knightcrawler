@@ -14,13 +14,14 @@ public class RankTorrentName : IRankTorrentName
     }
    
     public ParseTorrentTitleResponse Parse(string title) =>
-        _pythonEngineService.ExecutePythonOperation(
+        _pythonEngineService.ExecutePythonOperationWithDefault(
             () =>
             {
                 var result = _rtn?.parse(title);
                 return ParseResult(result);
-            }, nameof(Parse), throwOnErrors: false);
-    
+            }, new ParseTorrentTitleResponse(false, string.Empty, 0), nameof(Parse), throwOnErrors: false, logErrors: false);
+
+
     private static ParseTorrentTitleResponse ParseResult(dynamic result)
     {
         if (result == null)

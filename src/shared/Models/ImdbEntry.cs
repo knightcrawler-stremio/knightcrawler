@@ -7,4 +7,5 @@ public class ImdbEntry
     public string? Category { get; set; }
     public string? Year { get; set; }
     public bool? Adult { get; set; }
+    public decimal? Score { get; set; }
 }
