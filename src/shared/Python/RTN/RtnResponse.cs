@@ -77,7 +77,7 @@ public class RtnResponse
     [JsonPropertyName("extended")]
     public bool Extended { get; set; }
     
-    public bool IsMovie => Season == null && Episode == null;
+    public bool IsMovie => (Season == null && Episode == null) || (Season?.Count == 0 && Episode?.Count == 0);
     
     public string ToJson() => this.AsJson();
 }
