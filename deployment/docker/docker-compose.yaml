@@ -23,7 +23,7 @@ services:
       interval: 10s
       retries: 3
       start_period: 10s
-    image: postgres:latest
+    image: esgn/pgtuned:15
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, change the username and password in the stack.env file.
     # # If you want to enhance your security even more, create a new user for the database with a strong password.
@@ -45,7 +45,7 @@ services:
       interval: 10s
       retries: 3
       start_period: 10s
-    image: redis/redis-stack:latest
+    image: redis/redis-stack-server:latest
     # # If you need redis to be accessible from outside, please open the below port.
     # ports:
     #   - "6379:6379"
