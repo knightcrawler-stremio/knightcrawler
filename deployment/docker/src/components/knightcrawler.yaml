@@ -20,7 +20,7 @@ x-depends: &knightcrawler-app-depends
 
 services:
   metadata:
-    image: gabisonfire/knightcrawler-metadata:2.0.15
+    image: gabisonfire/knightcrawler-metadata:2.0.16
     env_file: ../../.env
     networks:
       - knightcrawler-network
@@ -30,7 +30,7 @@ services:
         condition: service_completed_successfully
 
   migrator:
-    image: gabisonfire/knightcrawler-migrator:2.0.15
+    image: gabisonfire/knightcrawler-migrator:2.0.16
     env_file: ../../.env
     networks:
       - knightcrawler-network
@@ -40,7 +40,7 @@ services:
         condition: service_healthy
 
   addon:
-    image: gabisonfire/knightcrawler-addon:2.0.15
+    image: gabisonfire/knightcrawler-addon:2.0.16
     <<: [*knightcrawler-app, *knightcrawler-app-depends]
     restart: unless-stopped
     hostname: knightcrawler-addon
@@ -48,22 +48,22 @@ services:
       - "7000:7000"
 
   consumer:
-    image: gabisonfire/knightcrawler-consumer:2.0.15
+    image: gabisonfire/knightcrawler-consumer:2.0.16
     <<: [*knightcrawler-app, *knightcrawler-app-depends]
     restart: unless-stopped
 
   debridcollector:
-    image: gabisonfire/knightcrawler-debrid-collector:2.0.15
+    image: gabisonfire/knightcrawler-debrid-collector:2.0.16
     <<: [*knightcrawler-app, *knightcrawler-app-depends]
     restart: unless-stopped
         
   producer:
-    image: gabisonfire/knightcrawler-producer:2.0.15
+    image: gabisonfire/knightcrawler-producer:2.0.16
     <<: [*knightcrawler-app, *knightcrawler-app-depends]
     restart: unless-stopped
 
   qbitcollector:
-    image: gabisonfire/knightcrawler-qbit-collector:2.0.15
+    image: gabisonfire/knightcrawler-qbit-collector:2.0.16
     <<: [*knightcrawler-app, *knightcrawler-app-depends]
     restart: unless-stopped
     depends_on:
