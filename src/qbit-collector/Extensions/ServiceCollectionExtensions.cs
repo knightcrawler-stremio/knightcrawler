@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient();
         services.AddSingleton<ITrackersService, TrackersService>();
         services.AddHostedService<TrackersBackgroundService>();
+        services.AddHostedService<HousekeepingBackgroundService>();
 
         return services;
     }
