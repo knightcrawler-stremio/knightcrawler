@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: '{{ .Release.Name }}-config'
+  labels:
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+data:
+  COLLECTOR_DEBRID_ENABLED: '{{ .Values.knightcrawler.debridcollector.enabled }}'
+  COLLECTOR_QBIT_ENABLED: '{{ .Values.knightcrawler.qbitcollector.enabled }}'
+  DEBUG_MODE: '{{ .Values.knightcrawler.debug }}'
+  METADATA_INSERT_BATCH_SIZE: '{{ .Values.environment.metadata.insertBatchSize }}'
+  POSTGRES_DB: '{{ .Values.environment.postgres.dbName }}'
+  POSTGRES_HOST: '{{ if .Values.environment.postgres.external }}{{ .Values.environment.postgres.host }}{{ else }}{{ .Release.Name }}-postgres{{ end }}'
+  POSTGRES_PORT: '{{ .Values.environment.postgres.port }}'
+  QBIT_HOST: '{{ .Values.environment.qbitcollector.qbitHost }}'
+  QBIT_TRACKERS_URL: '{{ .Values.environment.qbitcollector.trackersUrl }}'
+  RABBITMQ_CONSUMER_QUEUE_NAME: '{{ .Values.environment.producer.queueName }}'
+  RABBITMQ_DURABLE: '{{ .Values.environment.producer.durable }}'
+  RABBITMQ_HOST: '{{ if .Values.environment.lavinmq.external }}{{ .Values.environment.lavinmq.host }}{{ else }}{{ .Release.Name }}-lavinmq{{ end }}'
+  RABBITMQ_MAX_PUBLISH_BATCH_SIZE: '{{ .Values.environment.producer.maxPublishBatchSize }}'
+  RABBITMQ_MAX_QUEUE_SIZE: '{{ .Values.environment.producer.maxQueueSize }}'
+  RABBITMQ_PUBLISH_INTERVAL_IN_SECONDS: '{{ .Values.environment.producer.publishIntervalSeconds }}'
+  REDIS_EXTRA: '{{ .Values.environment.redis.extra }}'
+  REDIS_HOST: '{{ if .Values.environment.redis.external }}{{ .Values.environment.redis.host }}{{ else }}{{ .Release.Name }}-redis{{ end }}'
+  REDIS_PORT: '{{ .Values.environment.redis.port }}'
+  TZ: '{{ .Values.shared.timezone }}'

@@ -1,0 +1,57 @@
+{{ if .Values.knightcrawler.qbitcollector.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: '{{ .Release.Name }}-qbittorrent'
+  labels:
+    component: qbittorrent
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: qbittorrent
+      release: '{{ .Release.Name }}'
+  template:
+    metadata:
+      labels:
+        component: qbittorrent
+        release: '{{ .Release.Name }}'
+    spec:
+      containers:
+        - name: qbittorrent
+          image: '{{ .Values.infrastructure.qbittorrent.image }}:{{ .Values.infrastructure.qbittorrent.tag }}'
+          ports:
+            - name: qbittorrent
+              containerPort: 6881
+            - name: qbittorrent-6881
+              containerPort: 6881
+            - name: qbittorrent-8080
+              containerPort: 8080
+          env:
+            - name: PUID
+              value: '{{ .Values.environment.qbittorrent.puid }}'
+            - name: PGID
+              value: '{{ .Values.environment.qbittorrent.pgid }}'
+            - name: TORRENTING_PORT
+              value: '{{ .Values.environment.qbittorrent.torrentingPort }}'
+            - name: WEBUI_PORT
+              value: '{{ .Values.environment.qbittorrent.webuiPort }}'
+          envFrom:
+            - configMapRef:
+                name: '{{ .Release.Name }}-config'
+            - secretRef:
+                name: '{{ .Release.Name }}-secrets'
+          livenessProbe:
+            exec:
+              command:
+                - curl --fail http://localhost:8080
+            periodSeconds: 10
+            initialDelaySeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+{{- end -}}

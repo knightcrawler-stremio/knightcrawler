@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: '{{ .Release.Name }}-migrator'
+  labels:
+    component: migrator
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        component: migrator
+        release: '{{ .Release.Name }}'
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrator
+          image: '{{ .Values.knightcrawler.migrator.image }}{{ if ne .Values.knightcrawler.globalImageTagOverride "" }}:{{ .Values.knightcrawler.globalImageTagOverride }}{{else}}:{{ .Values.knightcrawler.migrator.tag}}{{ end }}'
+          envFrom:
+            - configMapRef:
+                name: '{{ .Release.Name }}-config'
+            - secretRef:
+                name: '{{ .Release.Name }}-secrets'

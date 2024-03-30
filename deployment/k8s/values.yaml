@@ -1,0 +1,100 @@
+knightcrawler:
+  debug: false
+  globalImageTagOverride: ""
+  addon:
+    image: "gabisonfire/knightcrawler-addon"
+    tag: "2.0.17"
+    replicas: 1
+  consumer:
+    image: "gabisonfire/knightcrawler-consumer"
+    tag: "2.0.17"
+    replicas: 1
+  metadata:
+    image: "gabisonfire/knightcrawler-metadata"
+    tag: "2.0.17"
+    replicas: 1
+  migrator:
+    image: "gabisonfire/knightcrawler-migrator"
+    tag: "2.0.17"
+    replicas: 1
+  debridcollector:
+    image: "gabisonfire/knightcrawler-debrid-collector"
+    tag: "2.0.17"
+    enabled: true
+    replicas: 1
+  qbitcollector:
+    image: "gabisonfire/knightcrawler-qbit-collector"
+    tag: "2.0.17"
+    enabled: false
+    replicas: 1
+  producer:
+    image: "gabisonfire/knightcrawler-producer"
+    tag: "2.0.17"
+    replicas: 1
+    
+infrastructure:
+  lavinmq:
+    image: "cloudamqp/lavinmq"
+    tag: "latest"
+    enabled: true
+  postgres:
+    image: "postgres"
+    tag: "latest"
+    enabled: true
+  redis:
+    image: "redis/redis-stack-server"
+    tag: "latest"
+    enabled: true
+  qbittorrent:
+    image: "lscr.io/linuxserver/qbittorrent"
+    tag: "latest"
+      
+environment:
+  redis:
+    external: false
+    host: ""
+    port: "6379"
+    extra: "abortConnect=false,allowAdmin=true"
+  postgres:
+    external: false
+    host: ""
+    port: "5432"
+    dbName: "knightcrawler"
+    user: "postgres"
+    password: "postgres"
+  lavinmq:
+    external: false
+    host: ""
+    user: "guest"
+    password: "guest"
+  qbitcollector:
+    qbitHost: "http://qbittorrent:8080"
+    trackersUrl: "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt"
+  debridcollector:
+    realDebridApiKey: ""
+  producer:
+    githubPat: ""
+    queueName: "ingested"
+    durable: true
+    maxPublishBatchSize: 500
+    maxQueueSize: 0
+    publishIntervalSeconds: 10
+  metadata:
+    insertBatchSize: 50000
+  qbittorrent:
+    pgid: "1000"
+    puid: "1000"
+    torrentingPort: "6881"
+    webuiPort: "8080"
+      
+persistence:
+  storageClassName: ""
+  redis:
+    capacity: 1Gi
+  postgres:
+    capacity: 1Gi
+  lavinmq:
+    capacity: 1Gi
+    
+shared:
+  timezone: "London/Europe"

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: '{{ .Release.Name }}-consumer'
+  labels:
+    component: consumer
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "4"
+spec:
+  replicas: {{ .Values.knightcrawler.consumer.replicas }}
+  selector:
+    matchLabels:
+      component: consumer
+      release: '{{ .Release.Name }}'
+  template:
+    metadata:
+      labels:
+        component: consumer
+        release: '{{ .Release.Name }}'
+    spec:
+      containers:
+        - name: consumer
+          image: '{{ .Values.knightcrawler.consumer.image }}{{ if ne .Values.knightcrawler.globalImageTagOverride "" }}:{{ .Values.knightcrawler.globalImageTagOverride }}{{else}}:{{ .Values.knightcrawler.consumer.tag}}{{ end }}'
+          envFrom:
+            - configMapRef:
+                name: '{{ .Release.Name }}-config'
+            - secretRef:
+                name: '{{ .Release.Name }}-secrets'
+

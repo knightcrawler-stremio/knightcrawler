@@ -1,0 +1,25 @@
+{{ if .Values.infrastructure.lavinmq.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ .Release.Name }}-lavinmq'
+  labels:
+    component: lavinmq
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+spec:
+  selector:
+    component: lavinmq
+    release: '{{ .Release.Name }}'
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5672
+      targetPort: 5672
+    - protocol: TCP
+      port: 15672
+      targetPort: 15672
+    - protocol: TCP
+      port: 15692
+      targetPort: 15692
+{{- end -}}

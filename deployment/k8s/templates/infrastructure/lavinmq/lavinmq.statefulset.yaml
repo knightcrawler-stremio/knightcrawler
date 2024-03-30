@@ -1,0 +1,60 @@
+{{ if .Values.infrastructure.lavinmq.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: '{{ .Release.Name }}-lavinmq'
+  labels:
+    component: lavinmq
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+spec:
+  serviceName: '{{ .Release.Name }}-lavinmq'
+  replicas: 1
+  selector:
+    matchLabels:
+      component: lavinmq
+      release: '{{ .Release.Name }}'
+  template:
+    metadata:
+      labels:
+        component: lavinmq
+        release: '{{ .Release.Name }}'
+    spec:
+      containers:
+        - name: lavinmq
+          image: '{{ .Values.infrastructure.lavinmq.image }}:{{ .Values.infrastructure.lavinmq.tag }}'
+          ports:
+            - name: lavinmq
+              containerPort: 5672
+            - name: lavinmq-15672
+              containerPort: 15672
+            - name: lavinmq-15692
+              containerPort: 15692
+          envFrom:
+            - configMapRef:
+                name: '{{ .Release.Name }}-config'
+            - secretRef:
+                name: '{{ .Release.Name }}-secrets'
+          volumeMounts:
+            - mountPath: /var/lib/lavinmq
+              name: lavinmq
+          livenessProbe:
+            exec:
+              command:
+                - lavinmqctl status
+            periodSeconds: 10
+            initialDelaySeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: lavinmq
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: '{{ .Values.persistence.lavinmq.capacity }}'
+{{- end -}}

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: '{{ .Release.Name }}-addon'
+  labels:
+    component: addon
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "4"
+spec:
+  replicas: {{ .Values.knightcrawler.addon.replicas }}
+  selector:
+    matchLabels:
+      component: addon
+      release: '{{ .Release.Name }}'
+  template:
+    metadata:
+      labels:
+        component: addon
+        release: '{{ .Release.Name }}'
+    spec:
+      containers:
+        - name: addon
+          image: '{{ .Values.knightcrawler.addon.image }}{{ if ne .Values.knightcrawler.globalImageTagOverride "" }}:{{ .Values.knightcrawler.globalImageTagOverride }}{{else}}:{{ .Values.knightcrawler.addon.tag}}{{ end }}'
+          ports:
+            - name: addon
+              containerPort: 7000
+          envFrom:
+            - configMapRef:
+                name: '{{ .Release.Name }}-config'
+            - secretRef:
+                name: '{{ .Release.Name }}-secrets'
+

@@ -1,0 +1,19 @@
+{{ if .Values.infrastructure.redis.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ .Release.Name }}-redis'
+  labels:
+    component: redis
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+spec:
+  selector:
+    component: redis
+    release: '{{ .Release.Name }}'
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+{{- end -}}

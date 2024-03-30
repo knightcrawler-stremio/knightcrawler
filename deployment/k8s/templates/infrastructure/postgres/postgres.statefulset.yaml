@@ -1,0 +1,58 @@
+{{ if .Values.infrastructure.postgres.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: '{{ .Release.Name }}-postgres'
+  labels:
+    component: postgres
+    project: '{{ .Chart.Name }}'
+    release: '{{ .Release.Name }}'
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+spec:
+  serviceName: '{{ .Release.Name }}-postgres'
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+      release: '{{ .Release.Name }}'
+  template:
+    metadata:
+      labels:
+        component: postgres
+        release: '{{ .Release.Name }}'
+    spec:
+      containers:
+        - name: postgres
+          image: '{{ .Values.infrastructure.postgres.image }}:{{ .Values.infrastructure.postgres.tag }}'
+          ports:
+            - name: postgres
+              containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: '{{ .Release.Name }}-config'
+            - secretRef:
+                name: '{{ .Release.Name }}-secrets'
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -h localhost -U $POSTGRES_USER
+            periodSeconds: 10
+            initialDelaySeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: '{{ .Values.persistence.postgres.capacity }}'
+{{- end -}}
