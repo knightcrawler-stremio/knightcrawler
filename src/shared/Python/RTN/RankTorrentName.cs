@@ -20,8 +20,7 @@ public class RankTorrentName : IRankTorrentName
                 var result = _rtn?.parse(title);
                 return ParseResult(result);
             }, new ParseTorrentTitleResponse(false, null), nameof(Parse), throwOnErrors: false, logErrors: false);
-
-
+    
     private static ParseTorrentTitleResponse ParseResult(dynamic result)
     {
         if (result == null)

@@ -118,7 +118,7 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
     public async Task<ImdbEntry?> FindImdbMetadata(string? parsedTorrentTitle, string torrentType, int? year, CancellationToken cancellationToken = default) =>
         await ExecuteCommandAsync(async connection =>
         {
-            var query = $"select \"imdb_id\" as \"ImdbId\", \"title\" as \"Title\", \"year\" as \"Year\", \"score\" as Score from search_imdb_meta('{parsedTorrentTitle.Replace("'", "").Replace("\"", "")}', '{(torrentType.Equals("movie", StringComparison.OrdinalIgnoreCase) ? "movie" : "tvSeries")}'";
+            var query = $"select \"imdb_id\" as \"ImdbId\", \"title\" as \"Title\", \"year\" as \"Year\", \"score\" as Score, \"category\" as Category from search_imdb_meta('{parsedTorrentTitle.Replace("'", "").Replace("\"", "")}', '{torrentType}'";
             query += year is not null ? $", {year}" : ", NULL";
             query += ", 1)";
             

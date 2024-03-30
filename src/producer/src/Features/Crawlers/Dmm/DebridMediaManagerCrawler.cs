@@ -108,14 +108,18 @@ public partial class DebridMediaManagerCrawler(
             return null;
         }
         
-        var parsedTorrent = rankTorrentName.Parse(torrentTitle.CleanTorrentTitleForImdb());
+        var parsedTorrent = rankTorrentName.Parse(torrentTitle);
         
         if (!parsedTorrent.Success)
         {
             return null;
         }
         
-        var (cached, cachedResult) = await CheckIfInCacheAndReturn(parsedTorrent.Response.ParsedTitle);
+        var torrentType = parsedTorrent.Response.IsMovie ? "movie" : "tvSeries";
+        
+        var cacheKey = GetCacheKey(torrentType, parsedTorrent.Response.ParsedTitle, parsedTorrent.Response.Year);
+        
+        var (cached, cachedResult) = await CheckIfInCacheAndReturn(cacheKey);
         
         if (cached)
         {
@@ -124,14 +128,14 @@ public partial class DebridMediaManagerCrawler(
         }
 
         int? year = parsedTorrent.Response.Year != 0 ? parsedTorrent.Response.Year : null;
-        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Response.ParsedTitle, parsedTorrent.Response.IsMovie ? "movies" : "tv", year);
+        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Response.ParsedTitle, torrentType, year);
 
         if (imdbEntry is null)
         {
             return null;
         }
         
-        await AddToCache(parsedTorrent.Response.ParsedTitle.ToLowerInvariant(), imdbEntry);
+        await AddToCache(cacheKey, imdbEntry);
         
         logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", imdbEntry.ImdbId, parsedTorrent.Response.ParsedTitle, imdbEntry.Title, imdbEntry.Score);
 
@@ -153,19 +157,19 @@ public partial class DebridMediaManagerCrawler(
         };
     
 
-    private Task AddToCache(string lowerCaseTitle, ImdbEntry best)
+    private Task AddToCache(string cacheKey, ImdbEntry best)
     {
         var cacheOptions = new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1),
         };
         
-        return cache.SetStringAsync(lowerCaseTitle, JsonSerializer.Serialize(best), cacheOptions);
+        return cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(best), cacheOptions);
     }
 
-    private async Task<(bool Success, ImdbEntry? Entry)> CheckIfInCacheAndReturn(string title)
+    private async Task<(bool Success, ImdbEntry? Entry)> CheckIfInCacheAndReturn(string cacheKey)
     {
-        var cachedImdbId = await cache.GetStringAsync(title.ToLowerInvariant());
+        var cachedImdbId = await cache.GetStringAsync(cacheKey);
         
         if (!string.IsNullOrEmpty(cachedImdbId))
         {
@@ -207,16 +211,12 @@ public partial class DebridMediaManagerCrawler(
     }
     
     private static string AssignCategory(ImdbEntry entry) =>
-        entry.Category switch
+        entry.Category.ToLower() switch
         {
-            "movie" => "movies",
-            "tvMovie" => "movies",
-            "tvSeries" => "tv",
-            "tvEpisode" => "tv",
-            "tvSpecial" => "tv",
-            "tvMiniSeries" => "tv",
-            "tv" => "tv",
-            "short" => "tv",
+            var category when string.Equals(category, "movie", StringComparison.OrdinalIgnoreCase) => "movies",
+            var category when string.Equals(category, "tvSeries", StringComparison.OrdinalIgnoreCase) => "tv",
             _ => "unknown",
         };
+    
+    private static string GetCacheKey(string category, string title, int year) => $"{category.ToLowerInvariant()}:{year}:{title.ToLowerInvariant()}";
 }

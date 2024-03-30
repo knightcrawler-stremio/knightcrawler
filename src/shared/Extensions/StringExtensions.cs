@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace SharedContracts.Extensions;
 
 public static partial class StringExtensions
