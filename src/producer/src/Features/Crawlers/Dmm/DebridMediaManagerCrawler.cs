@@ -148,13 +148,10 @@ public partial class DebridMediaManagerCrawler(
             InfoHash = hashElement.ToString(),
             Seeders = 0,
             Leechers = 0,
-            Category = parsedTorrent.Response.IsMovie switch
-            {
-                true => "movies",
-                false => "tv",
-            },
+            Category = AssignCategory(result),
             RtnResponse = parsedTorrent.Response.ToJson(),
         };
+    
 
     private Task AddToCache(string lowerCaseTitle, ImdbEntry best)
     {
@@ -208,4 +205,18 @@ public partial class DebridMediaManagerCrawler(
 
         return (pageIngested, name);
     }
+    
+    private static string AssignCategory(ImdbEntry entry) =>
+        entry.Category switch
+        {
+            "movie" => "movies",
+            "tvMovie" => "movies",
+            "tvSeries" => "tv",
+            "tvEpisode" => "tv",
+            "tvSpecial" => "tv",
+            "tvMiniSeries" => "tv",
+            "tv" => "tv",
+            "short" => "tv",
+            _ => "unknown",
+        };
 }
