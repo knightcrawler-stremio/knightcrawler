@@ -16,7 +16,7 @@ public record WriteMetadata(Torrent Torrent, TorrentMetadataResponse Metadata, s
 }
 
 [EntityName("metadata-written-debrid-colloctor")]
-public record MetadataWritten(TorrentMetadataResponse Metadata) : CorrelatedBy<Guid>
+public record MetadataWritten(TorrentMetadataResponse Metadata, bool WithFiles) : CorrelatedBy<Guid>
 {
     public Guid CorrelationId { get; init; } = Metadata.CorrelationId;
 }

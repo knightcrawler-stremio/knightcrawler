@@ -5,7 +5,6 @@ global using MassTransit;
 global using MassTransit.Mediator;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.Extensions.DependencyInjection;
-global using PromKnight.ParseTorrentTitle;
 global using SharedContracts.Configuration;
 global using SharedContracts.Dapper;
 global using SharedContracts.Extensions;

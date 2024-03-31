@@ -6,6 +6,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{2C0A0F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QBitCollector", "QBitCollector.csproj", "{1EF124BE-6EBE-4D9E-846C-FFF814999F3B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eng", "eng", "{2F2EA33A-1303-405D-939B-E9394D262BC9}"
+	ProjectSection(SolutionItems) = preProject
+		eng\install-python-reqs.ps1 = eng\install-python-reqs.ps1
+		eng\install-python-reqs.sh = eng\install-python-reqs.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

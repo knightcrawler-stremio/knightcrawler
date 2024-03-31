@@ -16,7 +16,7 @@ public record WriteQbitMetadata(Torrent Torrent, QBitMetadataResponse Metadata, 
 }
 
 [EntityName("metadata-written-qbit-collector")]
-public record QbitMetadataWritten(QBitMetadataResponse Metadata) : CorrelatedBy<Guid>
+public record QbitMetadataWritten(QBitMetadataResponse Metadata, bool WithFiles) : CorrelatedBy<Guid>
 {
     public Guid CorrelationId { get; init; } = Metadata.CorrelationId;
 

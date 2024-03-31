@@ -13,11 +13,11 @@ public class RankTorrentName : IRankTorrentName
         InitModules();
     }
    
-    public ParseTorrentTitleResponse Parse(string title) =>
+    public ParseTorrentTitleResponse Parse(string title, bool trashGarbage = true) =>
         _pythonEngineService.ExecutePythonOperationWithDefault(
             () =>
             {
-                var result = _rtn?.parse(title, true);
+                var result = _rtn?.parse(title, trashGarbage);
                 return ParseResult(result);
             }, new ParseTorrentTitleResponse(false, null), nameof(Parse), throwOnErrors: false, logErrors: false);
 

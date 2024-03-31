@@ -1,6 +1,4 @@
-﻿using DebridCollector.Features.Configuration;
-
-namespace DebridCollector.Features.Debrid;
+﻿namespace DebridCollector.Features.Debrid;
 
 public static class ServiceCollectionExtensions
 {

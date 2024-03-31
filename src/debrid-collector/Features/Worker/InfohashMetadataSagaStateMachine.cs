@@ -53,6 +53,12 @@ public class InfohashMetadataSagaStateMachine : MassTransitStateMachine<Infohash
                 .Then(
                     context =>
                     {
+                        if (!context.Message.WithFiles)
+                        {
+                            logger.LogInformation("No files written for torrent {InfoHash} in Saga {SagaId}", context.Saga.Torrent.InfoHash, context.Saga.CorrelationId);
+                            return;
+                        }
+                        
                         logger.LogInformation("Metadata Written for torrent {InfoHash} in Saga {SagaId}", context.Saga.Torrent.InfoHash, context.Saga.CorrelationId);
                     })
                 .TransitionTo(Completed)

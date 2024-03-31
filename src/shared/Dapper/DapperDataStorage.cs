@@ -167,12 +167,7 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
                     INSERT INTO subtitles
                         ("infoHash", "fileIndex", "fileId", "title")
                     VALUES
-                        (@InfoHash, @FileIndex, @FileId, @Title)
-                    ON CONFLICT
-                        ("infoHash", "fileIndex")
-                    DO UPDATE SET
-                        "fileId" = COALESCE(subtitles."fileId", EXCLUDED."fileId"),
-                        "title" = COALESCE(subtitles."title", EXCLUDED."title");
+                        (@InfoHash, @FileIndex, @FileId, @Title);
                     """;
                 
                 await connection.ExecuteAsync(query, subtitles);

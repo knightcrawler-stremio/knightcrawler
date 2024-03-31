@@ -614,3 +614,5 @@ fabric.properties
 deployment/docker/stack.env
 
 src/producer/src/python/
+src/debrid-collector/python/
+src/qbit-collector/python/
