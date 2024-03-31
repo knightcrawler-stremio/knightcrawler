@@ -3,10 +3,11 @@ namespace QBitCollector.Features.Worker;
 public static class QbitMetaToTorrentMeta
 {
     public static IReadOnlyList<TorrentFile> MapMetadataToFilesCollection(
-        IParseTorrentTitle torrentTitle,
+        IRankTorrentName rankTorrentName,
         Torrent torrent,
         string ImdbId,
-        IReadOnlyList<TorrentContent> Metadata)
+        IReadOnlyList<TorrentContent> Metadata,
+        ILogger<WriteQbitMetadataConsumer> logger)
     {
         try
         {
@@ -24,23 +25,31 @@ public static class QbitMetaToTorrentMeta
                     Size = metadataEntry.Size,
                 };
             
-                var parsedTitle = torrentTitle.Parse(file.Title);
+                var parsedTitle = rankTorrentName.Parse(file.Title, false);
+
+                if (!parsedTitle.Success)
+                {
+                    logger.LogWarning("Failed to parse title {Title} for metadata mapping", file.Title);
+                    continue;
+                }
             
-                file.ImdbSeason = parsedTitle.Seasons.FirstOrDefault();
-                file.ImdbEpisode = parsedTitle.Episodes.FirstOrDefault();
+                file.ImdbSeason = parsedTitle.Response?.Season?.FirstOrDefault() ?? 0;
+                file.ImdbEpisode = parsedTitle.Response?.Episode?.FirstOrDefault() ?? 0;
             
                 files.Add(file);
             }
 
             return files;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogWarning("Failed to map metadata to files collection: {Exception}", ex.Message);
             return [];
         }
     }
     
-    public static async Task<IReadOnlyList<SubtitleFile>> MapMetadataToSubtitlesCollection(IDataStorage storage, string InfoHash, IReadOnlyList<TorrentContent> Metadata)
+    public static async Task<IReadOnlyList<SubtitleFile>> MapMetadataToSubtitlesCollection(IDataStorage storage, string InfoHash, IReadOnlyList<TorrentContent> Metadata, 
+        ILogger<WriteQbitMetadataConsumer> logger)
     {
         try
         {
@@ -70,8 +79,9 @@ public static class QbitMetaToTorrentMeta
 
             return files;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogWarning("Failed to map metadata to subtitles collection: {Exception}", ex.Message);
             return [];
         }
     }

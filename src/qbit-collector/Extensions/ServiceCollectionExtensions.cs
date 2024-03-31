@@ -13,7 +13,8 @@ public static class ServiceCollectionExtensions
     internal static IServiceCollection AddServiceConfiguration(this IServiceCollection services)
     {
         services.AddQBitTorrentClient();
-        services.AddSingleton<IParseTorrentTitle, ParseTorrentTitle>();
+        services.RegisterPythonEngine();
+        services.AddSingleton<IRankTorrentName, RankTorrentName>();
         services.AddSingleton<QbitRequestProcessor>();
         services.AddHttpClient();
         services.AddSingleton<ITrackersService, TrackersService>();

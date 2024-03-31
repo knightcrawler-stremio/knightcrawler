@@ -3,10 +3,11 @@ namespace DebridCollector.Features.Worker;
 public static class DebridMetaToTorrentMeta
 {
     public static IReadOnlyList<TorrentFile> MapMetadataToFilesCollection(
-        IParseTorrentTitle torrentTitle,
+        IRankTorrentName rankTorrentName,
         Torrent torrent,
         string ImdbId,
-        FileDataDictionary Metadata)
+        FileDataDictionary Metadata,
+        ILogger<WriteMetadataConsumer> logger)
     {
         try
         {
@@ -26,23 +27,30 @@ public static class DebridMetaToTorrentMeta
                     Size = metadataEntry.Value.Filesize.GetValueOrDefault(),
                 };
 
-                var parsedTitle = torrentTitle.Parse(file.Title);
+                var parsedTitle = rankTorrentName.Parse(file.Title, false);
 
-                file.ImdbSeason = parsedTitle.Seasons.FirstOrDefault();
-                file.ImdbEpisode = parsedTitle.Episodes.FirstOrDefault();
+                if (!parsedTitle.Success)
+                {
+                    logger.LogWarning("Failed to parse title {Title} for metadata mapping", file.Title);
+                    continue;
+                }
+
+                file.ImdbSeason = parsedTitle.Response?.Season?.FirstOrDefault() ?? 0;
+                file.ImdbEpisode = parsedTitle.Response?.Episode?.FirstOrDefault() ?? 0;
 
                 files.Add(file);
             }
 
             return files;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogWarning("Failed to map metadata to files collection: {Exception}", ex.Message);
             return [];
         }
     }
     
-    public static async Task<IReadOnlyList<SubtitleFile>> MapMetadataToSubtitlesCollection(IDataStorage storage, string InfoHash, FileDataDictionary Metadata)
+    public static async Task<IReadOnlyList<SubtitleFile>> MapMetadataToSubtitlesCollection(IDataStorage storage, string InfoHash, FileDataDictionary Metadata, ILogger<WriteMetadataConsumer> logger)
     {
         try
         {
@@ -74,8 +82,9 @@ public static class DebridMetaToTorrentMeta
 
             return files;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogWarning("Failed to map metadata to subtitles collection: {Exception}", ex.Message);
             return [];
         }
     }

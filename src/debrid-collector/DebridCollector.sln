@@ -6,6 +6,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedContracts", "..\share
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{2C0A0F53-28E6-404F-9EFE-DADFBEF8338B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eng", "eng", "{72A042C3-B4F3-45C5-AC20-041FE8F41EFC}"
+	ProjectSection(SolutionItems) = preProject
+		eng\install-python-reqs.ps1 = eng\install-python-reqs.ps1
+		eng\install-python-reqs.sh = eng\install-python-reqs.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

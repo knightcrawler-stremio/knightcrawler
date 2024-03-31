@@ -1,5 +1,3 @@
-using DebridCollector.Features.Configuration;
-
 namespace DebridCollector.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -17,7 +15,8 @@ public static class ServiceCollectionExtensions
         var serviceConfiguration = services.LoadConfigurationFromEnv<DebridCollectorConfiguration>();
         
         services.AddRealDebridClient(serviceConfiguration);
-        services.AddSingleton<IParseTorrentTitle, ParseTorrentTitle>();
+        services.RegisterPythonEngine();
+        services.AddSingleton<IRankTorrentName, RankTorrentName>();
         services.AddHostedService<DebridRequestProcessor>();
 
         return services;

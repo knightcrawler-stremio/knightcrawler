@@ -76,23 +76,8 @@ public class RtnResponse
     
     [JsonPropertyName("extended")]
     public bool Extended { get; set; }
-    
-    // [JsonPropertyName("is_show")]
-    // public bool IsTvShow { get; set; }
-    //
-    // [JsonPropertyName("is_movie")]
-    // public bool IsMovie { get; set; }
+
+    public bool IsMovie { get; set; }
     
     public string ToJson() => this.AsJson();
-    
-    public bool IsMovie => !TvRegexes.Any(regex => regex.IsMatch(RawTitle)) && Season?.Count == 0 && Episode?.Count == 0;
-    
-    private static List<Regex> TvRegexes { get; set; } =
-    [
-        new(@"[se]\d\d", RegexOptions.IgnoreCase),
-        new(@"\b(tv|complete)\b", RegexOptions.IgnoreCase),
-        new(@"\b(saisons?|stages?|seasons?).?\d", RegexOptions.IgnoreCase),
-        new(@"[a-z]\s?\-\s?\d{2,4}\b", RegexOptions.IgnoreCase),
-        new(@"\d{2,4}\s?\-\s?\d{2,4}\b", RegexOptions.IgnoreCase),
-    ];
 }

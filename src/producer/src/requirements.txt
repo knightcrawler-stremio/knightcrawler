@@ -1,1 +1,1 @@
-rank-torrent-name==0.1.8
+rank-torrent-name==0.2.5
