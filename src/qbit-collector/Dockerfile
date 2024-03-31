@@ -27,4 +27,5 @@ RUN addgroup -S qbit && adduser -S -G qbit qbit
 USER qbit
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD pgrep -f dotnet || exit 1
+ENV PYTHONNET_PYDLL=/usr/lib/libpython3.11.so.1.0
 ENTRYPOINT ["dotnet", "QBitCollector.dll"]

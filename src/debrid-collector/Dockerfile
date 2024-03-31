@@ -27,4 +27,5 @@ RUN addgroup -S debrid && adduser -S -G debrid debrid
 USER debrid
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD pgrep -f dotnet || exit 1
+ENV PYTHONNET_PYDLL=/usr/lib/libpython3.11.so.1.0
 ENTRYPOINT ["dotnet", "DebridCollector.dll"]

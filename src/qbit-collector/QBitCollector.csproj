@@ -32,6 +32,9 @@
       </None>
       <Content Remove="eng\**" />
       <None Remove="eng\**" />
+      <None Update="requirements.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
