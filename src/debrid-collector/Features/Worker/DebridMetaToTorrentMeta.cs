@@ -16,13 +16,14 @@ public static class DebridMetaToTorrentMeta
             foreach (var metadataEntry in Metadata.Where(m => Filetypes.VideoFileExtensions.Any(ext => m.Value.Filename.EndsWith(ext))))
             {
                 var validFileIndex = int.TryParse(metadataEntry.Key, out var fileIndex);
+                var fileIndexMinusOne = Math.Max(0, fileIndex - 1);
 
                 var file = new TorrentFile
                 {
                     ImdbId = ImdbId,
                     KitsuId = 0,
                     InfoHash = torrent.InfoHash,
-                    FileIndex = validFileIndex ? fileIndex : 0,
+                    FileIndex = validFileIndex ? fileIndexMinusOne : 0,
                     Title = metadataEntry.Value.Filename,
                     Size = metadataEntry.Value.Filesize.GetValueOrDefault(),
                 };
@@ -66,13 +67,14 @@ public static class DebridMetaToTorrentMeta
             foreach (var metadataEntry in Metadata.Where(m => Filetypes.SubtitleFileExtensions.Any(ext => m.Value.Filename.EndsWith(ext))))
             {
                 var validFileIndex = int.TryParse(metadataEntry.Key, out var fileIndex);
+                var fileIndexMinusOne = Math.Max(0, fileIndex - 1);
                 var fileId = torrentFiles.FirstOrDefault(
                     t => Path.GetFileNameWithoutExtension(t.Title) == Path.GetFileNameWithoutExtension(metadataEntry.Value.Filename))?.Id ?? 0;
 
                 var file = new SubtitleFile
                 {
                     InfoHash = InfoHash,
-                    FileIndex = validFileIndex ? fileIndex : 0,
+                    FileIndex = validFileIndex ? fileIndexMinusOne : 0,
                     FileId = fileId,
                     Title = metadataEntry.Value.Filename,
                 };
