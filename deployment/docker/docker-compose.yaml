@@ -13,10 +13,52 @@ volumes:
   redis:
 
 services:
+
+common:
+  environment:
+     # KnightCrawler Version
+   - KC_VER=2.0.19
+     # General environment variables
+   - TZ=London/Europe
+     # PostgreSQL
+   - POSTGRES_HOST=postgres
+   - POSTGRES_PORT=5432
+   - POSTGRES_USER=postgres
+   - POSTGRES_PASSWORD=postgres
+   - POSTGRES_DB=knightcrawler
+     # Redis
+   - REDIS_HOST=redis
+   - REDIS_PORT=6379
+   - REDIS_EXTRA=abortConnect=false,allowAdmin=true
+     # AMQP
+   - RABBITMQ_HOST=lavinmq
+   - RABBITMQ_USER=guest
+   - RABBITMQ_PASSWORD=guest
+   - RABBITMQ_CONSUMER_QUEUE_NAME=ingested
+   - RABBITMQ_DURABLE=true
+   - RABBITMQ_MAX_QUEUE_SIZE=0
+   - RABBITMQ_MAX_PUBLISH_BATCH_SIZE=500
+   - RABBITMQ_PUBLISH_INTERVAL_IN_SECONDS=10
+     # Metadata
+   - METADATA_INSERT_BATCH_SIZE=50000
+     # Collectors
+   - COLLECTOR_QBIT_ENABLED=false
+   - COLLECTOR_DEBRID_ENABLED=true
+   - COLLECTOR_REAL_DEBRID_API_KEY=
+   - QBIT_HOST=http://qbittorrent:8080
+   - QBIT_TRACKERS_URL=https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
+     # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
+   - QBIT_REPLICAS=0
+     # Addon
+   - DEBUG_MODE=false
+     # Producer
+   - GITHUB_PAT=
+
   ## Postgres is the database that is used by the services.
   ## All downloaded metadata is stored in this database.
   postgres:
-    env_file: stack.env
+    extends:
+      service: common
     healthcheck:
       test: [ "CMD", "sh", "-c", "pg_isready -h localhost -U $$POSTGRES_USER" ]
       timeout: 10s
@@ -38,7 +80,8 @@ services:
   ## Redis is used as a cache for the services.
   ## It is used to store the infohashes that are currently being processed in sagas, as well as intrim data.
   redis:
-    env_file: stack.env
+    extends:
+      service: common
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
       timeout: 10s
@@ -59,7 +102,8 @@ services:
   ## It is a high performance drop in replacement for RabbitMQ.
   ## It is used to communicate between the services.
   lavinmq:
-    env_file: stack.env
+    extends:
+      service: common
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, look at the documentation for lavinmq / rabbitmq on how to secure the service.
     # ports:
@@ -92,9 +136,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file: stack.env
+    extends:
+      service: common
     hostname: knightcrawler-addon
-    image: gabisonfire/knightcrawler-addon:2.0.19
+    image: gabisonfire/knightcrawler-addon:${KC_VER}
     labels:
       logging: promtail
     networks:
@@ -116,8 +161,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file: stack.env
-    image: gabisonfire/knightcrawler-consumer:2.0.19
+    extends:
+      service: common
+    image: gabisonfire/knightcrawler-consumer:${KC_VER}
     labels:
       logging: promtail
     networks:
@@ -137,8 +183,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file: stack.env
-    image: gabisonfire/knightcrawler-debrid-collector:2.0.19
+    extends:
+      service: common
+    image: gabisonfire/knightcrawler-debrid-collector:${KC_VER}
     labels:
       logging: promtail
     networks:
@@ -151,8 +198,9 @@ services:
     depends_on:
       migrator:
         condition: service_completed_successfully
-    env_file: stack.env
-    image: gabisonfire/knightcrawler-metadata:2.0.19
+    extends:
+      service: common
+    image: gabisonfire/knightcrawler-metadata:${KC_VER}
     networks:
       - knightcrawler-network
     restart: "no"
@@ -163,7 +211,7 @@ services:
       postgres:
         condition: service_healthy
     env_file: stack.env
-    image: gabisonfire/knightcrawler-migrator:2.0.19
+    image: gabisonfire/knightcrawler-migrator:${KC_VER}
     networks:
       - knightcrawler-network
     restart: "no"
@@ -181,8 +229,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file: stack.env
-    image: gabisonfire/knightcrawler-producer:2.0.19
+    extends:
+      service: common
+    image: gabisonfire/knightcrawler-producer:${KC_VER}
     labels:
       logging: promtail
     networks:
@@ -204,10 +253,11 @@ services:
         condition: service_healthy
       qbittorrent:
         condition: service_healthy
+    extends:
+      service: common
     deploy:
       replicas: ${QBIT_REPLICAS:-0}
-    env_file: stack.env
-    image: gabisonfire/knightcrawler-qbit-collector:2.0.19
+    image: gabisonfire/knightcrawler-qbit-collector:${KC_VER}
     labels:
       logging: promtail
     networks:
@@ -217,9 +267,10 @@ services:
   ## QBitTorrent is a torrent client that can be used to download torrents. In this case its used to download metadata.
   ## The QBit collector requires this.
   qbittorrent:
+    extends:
+      service: common
     deploy:
       replicas: ${QBIT_REPLICAS:-0}
-    env_file: stack.env
     environment:
       PGID: "1000"
       PUID: "1000"
