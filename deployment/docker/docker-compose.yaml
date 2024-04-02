@@ -43,7 +43,7 @@ x-common-variables: &common-variables
   QBIT_HOST: http://qbittorrent:8080
   QBIT_TRACKERS_URL: https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
   # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
-  QBIT_REPLICAS: 0
+  QBIT_REPLICAS: &replicas 0
   # Addon
   DEBUG_MODE: "false"
   # Producer
@@ -135,7 +135,7 @@ services:
     environment:
       <<: *common-variables
     hostname: knightcrawler-addon
-    image: gabisonfire/knightcrawler-addon:${KC_VER}
+    image: gabisonfire/knightcrawler-addon:2.0.19
     labels:
       logging: promtail
     networks:
@@ -159,7 +159,7 @@ services:
         condition: service_healthy
     environment:
       <<: *common-variables
-    image: gabisonfire/knightcrawler-consumer:${KC_VER}
+    image: gabisonfire/knightcrawler-consumer:2.0.19
     labels:
       logging: promtail
     networks:
@@ -181,7 +181,7 @@ services:
         condition: service_healthy
     environment:
       <<: *common-variables
-    image: gabisonfire/knightcrawler-debrid-collector:${KC_VER}
+    image: gabisonfire/knightcrawler-debrid-collector:2.0.19
     labels:
       logging: promtail
     networks:
@@ -196,7 +196,7 @@ services:
         condition: service_completed_successfully
     environment:
       <<: *common-variables
-    image: gabisonfire/knightcrawler-metadata:${KC_VER}
+    image: gabisonfire/knightcrawler-metadata:2.0.19
     networks:
       - knightcrawler-network
     restart: "no"
@@ -208,7 +208,7 @@ services:
         condition: service_healthy
     environment:
       <<: *common-variables
-    image: gabisonfire/knightcrawler-migrator:${KC_VER}
+    image: gabisonfire/knightcrawler-migrator:2.0.19
     networks:
       - knightcrawler-network
     restart: "no"
@@ -228,7 +228,7 @@ services:
         condition: service_healthy
     environment:
       <<: *common-variables
-    image: gabisonfire/knightcrawler-producer:${KC_VER}
+    image: gabisonfire/knightcrawler-producer:2.0.19
     labels:
       logging: promtail
     networks:
@@ -253,8 +253,8 @@ services:
     environment:
       <<: *common-variables
     deploy:
-      replicas: ${QBIT_REPLICAS:-0}
-    image: gabisonfire/knightcrawler-qbit-collector:${KC_VER}
+      replicas: *replicas
+    image: gabisonfire/knightcrawler-qbit-collector:2.0.19
     labels:
       logging: promtail
     networks:
@@ -265,7 +265,7 @@ services:
   ## The QBit collector requires this.
   qbittorrent:
     deploy:
-      replicas: ${QBIT_REPLICAS:-0}
+      replicas: *replicas
     environment:
       <<: *common-variables
       PGID: "1000"
