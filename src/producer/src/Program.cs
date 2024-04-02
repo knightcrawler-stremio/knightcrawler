@@ -12,6 +12,7 @@ builder.Services
     .RegisterMassTransit()
     .AddDataStorage()
     .AddCrawlers()
+    .AddDmmSupport()
     .AddQuartz(builder.Configuration);
 
 var app = builder.Build();
