@@ -82,11 +82,4 @@ public static class ServiceCollectionExtensions
 
         x.AddConsumer<PerformIngestionConsumer>();
     }
-
-    internal static IServiceCollection AddServiceConfiguration(this IServiceCollection services)
-    {
-        services.AddSingleton<IParseTorrentTitle, ParseTorrentTitle>();
-        
-        return services;
-    }
 }

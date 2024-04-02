@@ -10,7 +10,6 @@ builder.Host
 
 builder.Services
     .RegisterMassTransit()
-    .AddServiceConfiguration()
     .AddDatabase();
 
 var app = builder.Build();

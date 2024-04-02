@@ -13,14 +13,14 @@ public class RankTorrentName : IRankTorrentName
         InitModules();
     }
    
-    public ParseTorrentTitleResponse Parse(string title) =>
+    public ParseTorrentTitleResponse Parse(string title, bool trashGarbage = true) =>
         _pythonEngineService.ExecutePythonOperationWithDefault(
             () =>
             {
-                var result = _rtn?.parse(title);
+                var result = _rtn?.parse(title, trashGarbage);
                 return ParseResult(result);
             }, new ParseTorrentTitleResponse(false, null), nameof(Parse), throwOnErrors: false, logErrors: false);
-    
+
     private static ParseTorrentTitleResponse ParseResult(dynamic result)
     {
         if (result == null)
@@ -34,9 +34,18 @@ public class RankTorrentName : IRankTorrentName
         {
             return new(false, null);
         }
+
+        var mediaType = result.GetAttr("type")?.As<string>();
+        
+        if (string.IsNullOrEmpty(mediaType))
+        {
+            return new(false, null);
+        }
         
         var response = JsonSerializer.Deserialize<RtnResponse>(json);
-
+        
+        response.IsMovie = mediaType.Equals("movie", StringComparison.OrdinalIgnoreCase);
+        
         return new(true, response);
     }
 
