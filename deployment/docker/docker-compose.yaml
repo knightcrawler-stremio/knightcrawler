@@ -12,50 +12,49 @@ volumes:
   lavinmq:
   redis:
 
-services:
-  common:
-    environment:
-      # General environment variables
-      - TZ=London/Europe
-      # PostgreSQL
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=knightcrawler
-      # Redis
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_EXTRA=abortConnect=false,allowAdmin=true
-      # AMQP
-      - RABBITMQ_HOST=lavinmq
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASSWORD=guest
-      - RABBITMQ_CONSUMER_QUEUE_NAME=ingested
-      - RABBITMQ_DURABLE=true
-      - RABBITMQ_MAX_QUEUE_SIZE=0
-      - RABBITMQ_MAX_PUBLISH_BATCH_SIZE=500
-      - RABBITMQ_PUBLISH_INTERVAL_IN_SECONDS=10
-      # Metadata
-      - METADATA_INSERT_BATCH_SIZE=50000
-      # Collectors
-      - COLLECTOR_QBIT_ENABLED=false
-      - COLLECTOR_DEBRID_ENABLED=true
-      - COLLECTOR_REAL_DEBRID_API_KEY=
-      - QBIT_HOST=http://qbittorrent:8080
-      - QBIT_TRACKERS_URL=https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
-      # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
-      - QBIT_REPLICAS=0
-      # Addon
-      - DEBUG_MODE=false
-      # Producer
-      - GITHUB_PAT=
+x-common-variables: &common-variables
+  # General environment variables
+  TZ=London/Europe
+  # PostgreSQL
+  POSTGRES_HOST=postgres
+  POSTGRES_PORT=5432
+  POSTGRES_USER=postgres
+  POSTGRES_PASSWORD=postgres
+  POSTGRES_DB=knightcrawler
+  # Redis
+  REDIS_HOST=redis
+  REDIS_PORT=6379
+  REDIS_EXTRA=abortConnect=false,allowAdmin=true
+  # AMQP
+  RABBITMQ_HOST=lavinmq
+  RABBITMQ_USER=guest
+  RABBITMQ_PASSWORD=guest
+  RABBITMQ_CONSUMER_QUEUE_NAME=ingested
+  RABBITMQ_DURABLE=true
+  RABBITMQ_MAX_QUEUE_SIZE=0
+  RABBITMQ_MAX_PUBLISH_BATCH_SIZE=500
+  RABBITMQ_PUBLISH_INTERVAL_IN_SECONDS=10
+  # Metadata
+  METADATA_INSERT_BATCH_SIZE=50000
+  # Collectors
+  COLLECTOR_QBIT_ENABLED=false
+  COLLECTOR_DEBRID_ENABLED=true
+  COLLECTOR_REAL_DEBRID_API_KEY=
+  QBIT_HOST=http://qbittorrent:8080
+  QBIT_TRACKERS_URL=https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
+  # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
+  QBIT_REPLICAS=0
+  # Addon
+  DEBUG_MODE=false
+  # Producer
+  GITHUB_PAT=
 
+services:
   ## Postgres is the database that is used by the services.
   ## All downloaded metadata is stored in this database.
   postgres:
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     healthcheck:
       test: [ "CMD", "sh", "-c", "pg_isready -h localhost -U $$POSTGRES_USER" ]
       timeout: 10s
@@ -77,8 +76,8 @@ services:
   ## Redis is used as a cache for the services.
   ## It is used to store the infohashes that are currently being processed in sagas, as well as intrim data.
   redis:
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
       timeout: 10s
@@ -99,8 +98,8 @@ services:
   ## It is a high performance drop in replacement for RabbitMQ.
   ## It is used to communicate between the services.
   lavinmq:
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, look at the documentation for lavinmq / rabbitmq on how to secure the service.
     # ports:
@@ -133,8 +132,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     hostname: knightcrawler-addon
     image: gabisonfire/knightcrawler-addon:${KC_VER}
     labels:
@@ -158,8 +157,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-consumer:${KC_VER}
     labels:
       logging: promtail
@@ -180,8 +179,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-debrid-collector:${KC_VER}
     labels:
       logging: promtail
@@ -195,8 +194,8 @@ services:
     depends_on:
       migrator:
         condition: service_completed_successfully
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-metadata:${KC_VER}
     networks:
       - knightcrawler-network
@@ -207,8 +206,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-migrator:${KC_VER}
     networks:
       - knightcrawler-network
@@ -227,8 +226,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-producer:${KC_VER}
     labels:
       logging: promtail
@@ -251,8 +250,8 @@ services:
         condition: service_healthy
       qbittorrent:
         condition: service_healthy
-    extends:
-      service: common
+    environment:
+      <<: *common-variables
     deploy:
       replicas: ${QBIT_REPLICAS:-0}
     image: gabisonfire/knightcrawler-qbit-collector:${KC_VER}
@@ -270,6 +269,7 @@ services:
     deploy:
       replicas: ${QBIT_REPLICAS:-0}
     environment:
+      <<: *common-variables
       PGID: "1000"
       PUID: "1000"
       TORRENTING_PORT: "6881"
