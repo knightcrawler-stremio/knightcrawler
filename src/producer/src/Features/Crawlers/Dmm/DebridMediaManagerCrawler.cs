@@ -12,6 +12,8 @@ public partial class DebridMediaManagerCrawler(
     protected override string Url => "";
     protected override IReadOnlyDictionary<string, string> Mappings => new Dictionary<string, string>();
     protected override string Source => "DMM";
+
+    private const int ParallelismCount = 4;
     
     public override async Task Execute()
     {
@@ -21,26 +23,32 @@ public partial class DebridMediaManagerCrawler(
 
         logger.LogInformation("Found {Files} files to parse", files.Length);
 
-        foreach (var file in files)
+        var options = new ParallelOptions { MaxDegreeOfParallelism = ParallelismCount };
+        
+        await Parallel.ForEachAsync(files, options, async (file, token) =>
         {
             var fileName = Path.GetFileName(file);
             var torrentDictionary = await ExtractPageContents(file, fileName);
 
-            if (torrentDictionary != null)
+            if (torrentDictionary == null)
             {
-                ParseTitlesWithRtn(fileName, torrentDictionary);
-                var results = await ParseTorrents(torrentDictionary);
-
-                if (results.Count > 0)
-                {
-                    await InsertTorrents(results);
-                    await Storage.MarkPageAsIngested(fileName);
-                }
+                return;
             }
-        }
+
+            await ParseTitlesWithRtn(fileName, torrentDictionary);
+            var results = await ParseTorrents(torrentDictionary);
+
+            if (results.Count <= 0)
+            {
+                return;
+            }
+
+            await InsertTorrents(results);
+            await Storage.MarkPageAsIngested(fileName, token);
+        });
     }
 
-    private void ParseTitlesWithRtn(string fileName, IDictionary<string, DmmContent> page)
+    private async Task ParseTitlesWithRtn(string fileName, IDictionary<string, DmmContent> page)
     {
         logger.LogInformation("Parsing titles for {Page}", fileName);
 
@@ -54,17 +62,21 @@ public partial class DebridMediaManagerCrawler(
             .GroupBy(response => response.Response.RawTitle!)
             .ToDictionary(group => group.Key, group => group.First());
 
-        foreach (var infoHash in batchProcessables.Select(t => t.InfoHash))
+        var options = new ParallelOptions { MaxDegreeOfParallelism = ParallelismCount };
+
+        await Parallel.ForEachAsync(batchProcessables.Select(t => t.InfoHash), options, (infoHash, _) =>
         {
             if (page.TryGetValue(infoHash, out var dmmContent) &&
                 successfulResponses.TryGetValue(dmmContent.Filename, out var parsedResponse))
             {
                 page[infoHash] = dmmContent with {ParseResponse = parsedResponse};
             }
-        }
+            
+            return ValueTask.CompletedTask;
+        });
     }
 
-    private async Task<Dictionary<string, DmmContent>?> ExtractPageContents(string filePath, string filenameOnly)
+    private async Task<ConcurrentDictionary<string, DmmContent>?> ExtractPageContents(string filePath, string filenameOnly)
     {
         var (pageIngested, name) = await IsAlreadyIngested(filenameOnly);
 
@@ -112,7 +124,7 @@ public partial class DebridMediaManagerCrawler(
         var torrentDictionary = torrents
             .Where(x => x is not null)
             .GroupBy(x => x.InfoHash)
-            .ToDictionary(g => g.Key, g => new DmmContent(g.First().Filename, g.First().Bytes, null));
+            .ToConcurrentDictionary(g => g.Key, g => new DmmContent(g.First().Filename, g.First().Bytes, null));
 
         logger.LogInformation("Parsed {Torrents} torrents for {Name}", torrentDictionary.Count, name);
 
@@ -123,12 +135,15 @@ public partial class DebridMediaManagerCrawler(
     {
         var ingestedTorrents = new List<IngestedTorrent>();
 
-        foreach (var (infoHash, dmmContent) in page)
+        var options = new ParallelOptions { MaxDegreeOfParallelism = ParallelismCount };
+
+        await Parallel.ForEachAsync(page, options, async (kvp, ct) =>
         {
+            var (infoHash, dmmContent) = kvp;
             var parsedTorrent = dmmContent.ParseResponse;
             if (parsedTorrent is not {Success: true})
             {
-                continue;
+                return;
             }
 
             var torrentType = parsedTorrent.Response.IsMovie ? "movie" : "tvSeries";
@@ -138,22 +153,28 @@ public partial class DebridMediaManagerCrawler(
             if (cached)
             {
                 logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.Response.ParsedTitle);
-                ingestedTorrents.Add(MapToTorrent(cachedResult, dmmContent.Bytes, infoHash, parsedTorrent));
-                continue;
+                lock (ingestedTorrents)
+                {
+                    ingestedTorrents.Add(MapToTorrent(cachedResult, dmmContent.Bytes, infoHash, parsedTorrent));
+                }
+                return;
             }
 
             int? year = parsedTorrent.Response.Year != 0 ? parsedTorrent.Response.Year : null;
-            var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Response.ParsedTitle, torrentType, year);
+            var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Response.ParsedTitle, torrentType, year, ct);
 
             if (imdbEntry is null)
             {
-                continue;
+                return;
             }
 
             await AddToCache(cacheKey, imdbEntry);
             logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", imdbEntry.ImdbId, parsedTorrent.Response.ParsedTitle, imdbEntry.Title, imdbEntry.Score);
-            ingestedTorrents.Add(MapToTorrent(imdbEntry, dmmContent.Bytes, infoHash, parsedTorrent));
-        }
+            lock (ingestedTorrents)
+            {
+                ingestedTorrents.Add(MapToTorrent(imdbEntry, dmmContent.Bytes, infoHash, parsedTorrent));
+            }
+        });
 
         return ingestedTorrents;
     }

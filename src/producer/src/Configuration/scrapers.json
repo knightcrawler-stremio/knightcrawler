@@ -28,7 +28,7 @@
       },
       {
         "Name": "SyncDmmJob",
-        "IntervalSeconds": 1800,
+        "IntervalSeconds": 10800,
         "Enabled": true
       },
       {
