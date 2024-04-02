@@ -1,64 +1,87 @@
 namespace Producer.Features.Crawlers.Dmm;
 
 public partial class DebridMediaManagerCrawler(
-    IHttpClientFactory httpClientFactory,
+    IDMMFileDownloader dmmFileDownloader,
     ILogger<DebridMediaManagerCrawler> logger,
     IDataStorage storage,
-    GithubConfiguration githubConfiguration,
     IRankTorrentName rankTorrentName,
     IDistributedCache cache) : BaseCrawler(logger, storage)
 {
     [GeneratedRegex("""<iframe src="https:\/\/debridmediamanager.com\/hashlist#(.*)"></iframe>""")]
     private static partial Regex HashCollectionMatcher();
-
-    private const string DownloadBaseUrl = "https://raw.githubusercontent.com/debridmediamanager/hashlists/main";
+    protected override string Url => "";
     protected override IReadOnlyDictionary<string, string> Mappings => new Dictionary<string, string>();
-    protected override string Url => "https://api.github.com/repos/debridmediamanager/hashlists/git/trees/main?recursive=1";
     protected override string Source => "DMM";
     
     public override async Task Execute()
     {
-        var client = httpClientFactory.CreateClient("Scraper");
-        client.DefaultRequestHeaders.Authorization = new("Bearer", githubConfiguration.PAT);
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("curl");
+        var tempDirectory = await dmmFileDownloader.DownloadFileToTempPath(CancellationToken.None);
 
-        var jsonBody = await client.GetStringAsync(Url);
+        var files = Directory.GetFiles(tempDirectory, "*.html", SearchOption.AllDirectories);
 
-        var json =  JsonDocument.Parse(jsonBody);
+        logger.LogInformation("Found {Files} files to parse", files.Length);
 
-        var entriesArray = json.RootElement.GetProperty("tree");
-
-        logger.LogInformation("Found {Entries} total DMM pages", entriesArray.GetArrayLength());
-
-        foreach (var entry in entriesArray.EnumerateArray())
+        foreach (var file in files)
         {
-            await ParsePage(entry, client);
+            var fileName = Path.GetFileName(file);
+            var torrentDictionary = await ExtractPageContents(file, fileName);
+
+            if (torrentDictionary != null)
+            {
+                ParseTitlesWithRtn(fileName, torrentDictionary);
+                var results = await ParseTorrents(torrentDictionary);
+
+                if (results.Count > 0)
+                {
+                    await InsertTorrents(results);
+                    await Storage.MarkPageAsIngested(fileName);
+                }
+            }
         }
     }
 
-    private async Task ParsePage(JsonElement entry, HttpClient client)
+    private void ParseTitlesWithRtn(string fileName, IDictionary<string, DmmContent> page)
     {
-        var (pageIngested, name) = await IsAlreadyIngested(entry);
+        logger.LogInformation("Parsing titles for {Page}", fileName);
 
-        if (string.IsNullOrEmpty(name) || pageIngested)
+        var batchProcessables = page.Select(value => new RtnBatchProcessable(value.Key, value.Value.Filename)).ToList();
+        var parsedResponses = rankTorrentName.BatchParse(
+            batchProcessables.Select<RtnBatchProcessable, string>(bp => bp.Filename).ToList(), trashGarbage: false);
+
+        // Filter out unsuccessful responses and match RawTitle to requesting title
+        var successfulResponses = parsedResponses
+            .Where(response => response != null && response.Success)
+            .GroupBy(response => response.Response.RawTitle!)
+            .ToDictionary(group => group.Key, group => group.First());
+
+        foreach (var infoHash in batchProcessables.Select(t => t.InfoHash))
         {
-            return;
+            if (page.TryGetValue(infoHash, out var dmmContent) &&
+                successfulResponses.TryGetValue(dmmContent.Filename, out var parsedResponse))
+            {
+                page[infoHash] = dmmContent with {ParseResponse = parsedResponse};
+            }
         }
-
-        var pageSource = await client.GetStringAsync($"{DownloadBaseUrl}/{name}");
-
-        await ExtractPageContents(pageSource, name);
     }
 
-    private async Task ExtractPageContents(string pageSource, string name)
+    private async Task<Dictionary<string, DmmContent>?> ExtractPageContents(string filePath, string filenameOnly)
     {
+        var (pageIngested, name) = await IsAlreadyIngested(filenameOnly);
+
+        if (pageIngested)
+        {
+            return [];
+        }
+
+        var pageSource = await File.ReadAllTextAsync(filePath);
+        
         var match = HashCollectionMatcher().Match(pageSource);
 
         if (!match.Success)
         {
             logger.LogWarning("Failed to match hash collection for {Name}", name);
-            await Storage.MarkPageAsIngested(name);
-            return;
+            await Storage.MarkPageAsIngested(filenameOnly);
+            return [];
         }
 
         var encodedJson = match.Groups.Values.ElementAtOrDefault(1);
@@ -66,90 +89,83 @@ public partial class DebridMediaManagerCrawler(
         if (string.IsNullOrEmpty(encodedJson?.Value))
         {
             logger.LogWarning("Failed to extract encoded json for {Name}", name);
-            return;
+            return [];
         }
 
-        await ProcessExtractedContentsAsTorrentCollection(encodedJson.Value, name);
-    }
-
-    private async Task ProcessExtractedContentsAsTorrentCollection(string encodedJson, string name)
-    {
-        var decodedJson = LZString.DecompressFromEncodedURIComponent(encodedJson);
+        var decodedJson = LZString.DecompressFromEncodedURIComponent(encodedJson.Value);
 
         var json = JsonDocument.Parse(decodedJson);
+        
+        var torrents = await json.RootElement.EnumerateArray()
+            .ToAsyncEnumerable()
+            .Select(ParsePageContent)
+            .Where(t => t is not null)
+            .ToListAsync();
 
-        await InsertTorrentsForPage(json);
-
-        var result = await Storage.MarkPageAsIngested(name);
-
-        if (!result.IsSuccess)
+        if (torrents.Count == 0)
         {
-            logger.LogWarning("Failed to mark page as ingested: [{Error}]", result.Failure.ErrorMessage);
-            return;
+            logger.LogWarning("No torrents found in {Name}", name);
+            await Storage.MarkPageAsIngested(filenameOnly);
+            return [];
         }
+        
+        var torrentDictionary = torrents
+            .Where(x => x is not null)
+            .GroupBy(x => x.InfoHash)
+            .ToDictionary(g => g.Key, g => new DmmContent(g.First().Filename, g.First().Bytes, null));
 
-        logger.LogInformation("Successfully marked page as ingested");
+        logger.LogInformation("Parsed {Torrents} torrents for {Name}", torrentDictionary.Count, name);
+
+        return torrentDictionary;
     }
 
-    private async Task<IngestedTorrent?> ParseTorrent(JsonElement item)
+    private async Task<List<IngestedTorrent>> ParseTorrents(IDictionary<string, DmmContent> page)
     {
+        var ingestedTorrents = new List<IngestedTorrent>();
 
-        if (!item.TryGetProperty("filename", out var filenameElement) ||
-            !item.TryGetProperty("bytes", out var bytesElement) ||
-            !item.TryGetProperty("hash", out var hashElement))
+        foreach (var (infoHash, dmmContent) in page)
         {
-            return null;
+            var parsedTorrent = dmmContent.ParseResponse;
+            if (parsedTorrent is not {Success: true})
+            {
+                continue;
+            }
+
+            var torrentType = parsedTorrent.Response.IsMovie ? "movie" : "tvSeries";
+            var cacheKey = GetCacheKey(torrentType, parsedTorrent.Response.ParsedTitle, parsedTorrent.Response.Year);
+            var (cached, cachedResult) = await CheckIfInCacheAndReturn(cacheKey);
+
+            if (cached)
+            {
+                logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.Response.ParsedTitle);
+                ingestedTorrents.Add(MapToTorrent(cachedResult, dmmContent.Bytes, infoHash, parsedTorrent));
+                continue;
+            }
+
+            int? year = parsedTorrent.Response.Year != 0 ? parsedTorrent.Response.Year : null;
+            var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Response.ParsedTitle, torrentType, year);
+
+            if (imdbEntry is null)
+            {
+                continue;
+            }
+
+            await AddToCache(cacheKey, imdbEntry);
+            logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", imdbEntry.ImdbId, parsedTorrent.Response.ParsedTitle, imdbEntry.Title, imdbEntry.Score);
+            ingestedTorrents.Add(MapToTorrent(imdbEntry, dmmContent.Bytes, infoHash, parsedTorrent));
         }
 
-        var torrentTitle = filenameElement.GetString();
-
-        if (torrentTitle.IsNullOrEmpty())
-        {
-            return null;
-        }
-        
-        var parsedTorrent = rankTorrentName.Parse(torrentTitle);
-        
-        if (!parsedTorrent.Success)
-        {
-            return null;
-        }
-        
-        var torrentType = parsedTorrent.Response.IsMovie ? "movie" : "tvSeries";
-        
-        var cacheKey = GetCacheKey(torrentType, parsedTorrent.Response.ParsedTitle, parsedTorrent.Response.Year);
-        
-        var (cached, cachedResult) = await CheckIfInCacheAndReturn(cacheKey);
-        
-        if (cached)
-        {
-            logger.LogInformation("[{ImdbId}] Found cached imdb result for {Title}", cachedResult.ImdbId, parsedTorrent.Response.ParsedTitle);
-            return MapToTorrent(cachedResult, bytesElement, hashElement, parsedTorrent);
-        }
-
-        int? year = parsedTorrent.Response.Year != 0 ? parsedTorrent.Response.Year : null;
-        var imdbEntry = await Storage.FindImdbMetadata(parsedTorrent.Response.ParsedTitle, torrentType, year);
-
-        if (imdbEntry is null)
-        {
-            return null;
-        }
-        
-        await AddToCache(cacheKey, imdbEntry);
-        
-        logger.LogInformation("[{ImdbId}] Found best match for {Title}: {BestMatch} with score {Score}", imdbEntry.ImdbId, parsedTorrent.Response.ParsedTitle, imdbEntry.Title, imdbEntry.Score);
-
-        return MapToTorrent(imdbEntry, bytesElement, hashElement, parsedTorrent);
+        return ingestedTorrents;
     }
 
-    private IngestedTorrent MapToTorrent(ImdbEntry result, JsonElement bytesElement, JsonElement hashElement, ParseTorrentTitleResponse parsedTorrent) =>
+    private IngestedTorrent MapToTorrent(ImdbEntry result, long size, string infoHash, ParseTorrentTitleResponse parsedTorrent) =>
         new()
         {
             Source = Source,
             Name = result.Title,
             Imdb = result.ImdbId,
-            Size = bytesElement.GetInt64().ToString(),
-            InfoHash = hashElement.ToString(),
+            Size = size.ToString(),
+            InfoHash = infoHash,
             Seeders = 0,
             Leechers = 0,
             Category = AssignCategory(result),
@@ -179,35 +195,11 @@ public partial class DebridMediaManagerCrawler(
         return (false, null);
     }
 
-    private async Task InsertTorrentsForPage(JsonDocument json)
+    private async Task<(bool Success, string? Name)> IsAlreadyIngested(string filename)
     {
-        var torrents = await json.RootElement.EnumerateArray()
-            .ToAsyncEnumerable()
-            .SelectAwait(async x => await ParseTorrent(x))
-            .Where(t => t is not null)
-            .ToListAsync();
+        var pageIngested = await Storage.PageIngested(filename);
 
-        if (torrents.Count == 0)
-        {
-            logger.LogWarning("No torrents found in {Source} response", Source);
-            return;
-        }
-
-        await InsertTorrents(torrents!);
-    }
-
-    private async Task<(bool Success, string? Name)> IsAlreadyIngested(JsonElement entry)
-    {
-        var name = entry.GetProperty("path").GetString();
-
-        if (string.IsNullOrEmpty(name))
-        {
-            return (false, null);
-        }
-
-        var pageIngested = await Storage.PageIngested(name);
-
-        return (pageIngested, name);
+        return (pageIngested, filename);
     }
     
     private static string AssignCategory(ImdbEntry entry) =>
@@ -219,4 +211,20 @@ public partial class DebridMediaManagerCrawler(
         };
     
     private static string GetCacheKey(string category, string title, int year) => $"{category.ToLowerInvariant()}:{year}:{title.ToLowerInvariant()}";
+    
+    private static ExtractedDMMContent? ParsePageContent(JsonElement item)
+    {
+        if (!item.TryGetProperty("filename", out var filenameElement) ||
+            !item.TryGetProperty("bytes", out var bytesElement) ||
+            !item.TryGetProperty("hash", out var hashElement))
+        {
+            return null;
+        }
+        
+        return new(filenameElement.GetString(), bytesElement.GetInt64(), hashElement.GetString());
+    }
+    
+    private record DmmContent(string Filename, long Bytes, ParseTorrentTitleResponse? ParseResponse);
+    private record ExtractedDMMContent(string Filename, long Bytes, string InfoHash);
+    private record RtnBatchProcessable(string InfoHash, string Filename);
 }
