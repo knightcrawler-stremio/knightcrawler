@@ -67,7 +67,7 @@ common:
       start_period: 10s
     image: eoghan61/pgtuned-kc:latest
     # # If you need the database to be accessible from outside, please open the below port.
-    # # Furthermore, please, please, please, change the username and password in the stack.env file.
+    # # Furthermore, please, please, please, change the username and password above for Postgres.
     # # If you want to enhance your security even more, create a new user for the database with a strong password.
     # ports:
     #   - "5432:5432"
@@ -210,7 +210,8 @@ common:
     depends_on:
       postgres:
         condition: service_healthy
-    env_file: stack.env
+    extends:
+      service: common
     image: gabisonfire/knightcrawler-migrator:${KC_VER}
     networks:
       - knightcrawler-network
