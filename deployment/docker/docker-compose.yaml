@@ -13,46 +13,45 @@ volumes:
   redis:
 
 services:
-
-common:
-  environment:
-     # KnightCrawler Version
-   - KC_VER=2.0.19
-     # General environment variables
-   - TZ=London/Europe
-     # PostgreSQL
-   - POSTGRES_HOST=postgres
-   - POSTGRES_PORT=5432
-   - POSTGRES_USER=postgres
-   - POSTGRES_PASSWORD=postgres
-   - POSTGRES_DB=knightcrawler
-     # Redis
-   - REDIS_HOST=redis
-   - REDIS_PORT=6379
-   - REDIS_EXTRA=abortConnect=false,allowAdmin=true
-     # AMQP
-   - RABBITMQ_HOST=lavinmq
-   - RABBITMQ_USER=guest
-   - RABBITMQ_PASSWORD=guest
-   - RABBITMQ_CONSUMER_QUEUE_NAME=ingested
-   - RABBITMQ_DURABLE=true
-   - RABBITMQ_MAX_QUEUE_SIZE=0
-   - RABBITMQ_MAX_PUBLISH_BATCH_SIZE=500
-   - RABBITMQ_PUBLISH_INTERVAL_IN_SECONDS=10
-     # Metadata
-   - METADATA_INSERT_BATCH_SIZE=50000
-     # Collectors
-   - COLLECTOR_QBIT_ENABLED=false
-   - COLLECTOR_DEBRID_ENABLED=true
-   - COLLECTOR_REAL_DEBRID_API_KEY=
-   - QBIT_HOST=http://qbittorrent:8080
-   - QBIT_TRACKERS_URL=https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
-     # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
-   - QBIT_REPLICAS=0
-     # Addon
-   - DEBUG_MODE=false
-     # Producer
-   - GITHUB_PAT=
+  common:
+    environment:
+      # KnightCrawler Version
+      - KC_VER=2.0.19
+      # General environment variables
+      - TZ=London/Europe
+      # PostgreSQL
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=knightcrawler
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_EXTRA=abortConnect=false,allowAdmin=true
+      # AMQP
+      - RABBITMQ_HOST=lavinmq
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_CONSUMER_QUEUE_NAME=ingested
+      - RABBITMQ_DURABLE=true
+      - RABBITMQ_MAX_QUEUE_SIZE=0
+      - RABBITMQ_MAX_PUBLISH_BATCH_SIZE=500
+      - RABBITMQ_PUBLISH_INTERVAL_IN_SECONDS=10
+      # Metadata
+      - METADATA_INSERT_BATCH_SIZE=50000
+      # Collectors
+      - COLLECTOR_QBIT_ENABLED=false
+      - COLLECTOR_DEBRID_ENABLED=true
+      - COLLECTOR_REAL_DEBRID_API_KEY=
+      - QBIT_HOST=http://qbittorrent:8080
+      - QBIT_TRACKERS_URL=https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
+      # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
+      - QBIT_REPLICAS=0
+      # Addon
+      - DEBUG_MODE=false
+      # Producer
+      - GITHUB_PAT=
 
   ## Postgres is the database that is used by the services.
   ## All downloaded metadata is stored in this database.
