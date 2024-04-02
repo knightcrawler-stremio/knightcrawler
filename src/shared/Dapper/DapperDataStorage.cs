@@ -152,7 +152,8 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
                     INSERT INTO files
                         ("infoHash", "fileIndex", title, "size", "imdbId", "imdbSeason", "imdbEpisode", "kitsuId", "kitsuEpisode", "createdAt", "updatedAt")
                     VALUES
-                        (@InfoHash, @FileIndex, @Title, @Size, @ImdbId, @ImdbSeason, @ImdbEpisode, @KitsuId, @KitsuEpisode, Now(), Now());
+                        (@InfoHash, @FileIndex, @Title, @Size, @ImdbId, @ImdbSeason, @ImdbEpisode, @KitsuId, @KitsuEpisode, Now(), Now())
+                    ON CONFLICT ("infoHash", "fileIndex") DO NOTHING;
                     """;
                 
                 await connection.ExecuteAsync(query, files);
@@ -167,7 +168,8 @@ public class DapperDataStorage(PostgresConfiguration configuration, RabbitMqConf
                     INSERT INTO subtitles
                         ("infoHash", "fileIndex", "fileId", "title")
                     VALUES
-                        (@InfoHash, @FileIndex, @FileId, @Title);
+                        (@InfoHash, @FileIndex, @FileId, @Title)
+                    ON CONFLICT ("infoHash", "fileIndex") DO NOTHING;
                     """;
                 
                 await connection.ExecuteAsync(query, subtitles);
