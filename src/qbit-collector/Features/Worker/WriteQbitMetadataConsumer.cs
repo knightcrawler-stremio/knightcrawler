@@ -5,6 +5,12 @@ public class WriteQbitMetadataConsumer(IRankTorrentName rankTorrentName, IDataSt
     public async Task Consume(ConsumeContext<WriteQbitMetadata> context)
     {
         var request = context.Message;
+        
+        if (request.Metadata.Metadata.Count == 0)
+        {
+            await context.Publish(new QbitMetadataWritten(request.Metadata, false));
+            return;
+        }
 
         var torrentFiles = QbitMetaToTorrentMeta.MapMetadataToFilesCollection(
             rankTorrentName, request.Torrent, request.ImdbId, request.Metadata.Metadata, logger);
