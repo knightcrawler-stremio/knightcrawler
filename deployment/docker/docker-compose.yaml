@@ -15,8 +15,6 @@ volumes:
 services:
   common:
     environment:
-      # KnightCrawler Version
-      - KC_VER=2.0.19
       # General environment variables
       - TZ=London/Europe
       # PostgreSQL
