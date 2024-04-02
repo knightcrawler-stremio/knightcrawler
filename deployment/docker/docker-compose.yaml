@@ -278,7 +278,7 @@ services:
       interval: 10s
       retries: 3
       start_period: 10s
-    image: ghcr.io/eoghan2t9/docker-qbittorrent:master
+    image: eoghan61/kc-qbittorrent:latest
     networks:
       - knightcrawler-network
     ports:
