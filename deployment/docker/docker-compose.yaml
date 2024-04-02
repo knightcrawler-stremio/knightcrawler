@@ -278,7 +278,7 @@ services:
       interval: 10s
       retries: 3
       start_period: 10s
-    image: lscr.io/linuxserver/qbittorrent:latest
+    image: ghcr.io/eoghan2t9/docker-qbittorrent:master
     networks:
       - knightcrawler-network
     ports:
@@ -287,5 +287,3 @@ services:
     # if you want to expose the webui, uncomment the following line
       # - "8001:8080"
     restart: unless-stopped
-    volumes:
-      - ./config/qbit/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf
