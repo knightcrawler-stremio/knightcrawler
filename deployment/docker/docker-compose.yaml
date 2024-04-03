@@ -42,6 +42,7 @@ x-common-variables: &common-variables
   COLLECTOR_REAL_DEBRID_API_KEY:
   QBIT_HOST: http://qbittorrent:8080
   QBIT_TRACKERS_URL: https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
+  QBIT_CONCURRENCY: 8
   # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
   QBIT_REPLICAS: &replicas 0
   # Addon
