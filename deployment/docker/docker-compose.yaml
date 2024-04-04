@@ -16,7 +16,7 @@ x-common-variables: &common-variables
   # General environment variables
   TZ: London/Europe
   # PostgreSQL
-  POSTGRES_HOST: postgres
+  POSTGRES_HOST: citus
   POSTGRES_PORT: 5432
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
