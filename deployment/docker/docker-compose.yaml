@@ -8,24 +8,63 @@ networks:
     driver: bridge
 
 volumes:
-  postgres:
+  citus:
   lavinmq:
-  redis:
+  keydb:
+
+x-common-variables: &common-variables
+  # General environment variables
+  TZ: London/Europe
+  # PostgreSQL
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: knightcrawler
+  # keydb
+  REDIS_HOST: keydb
+  REDIS_PORT: 6379
+  REDIS_EXTRA: abortConnect=false,allowAdmin=true
+  # AMQP
+  RABBITMQ_HOST: lavinmq
+  RABBITMQ_USER: guest
+  RABBITMQ_PASSWORD: guest
+  RABBITMQ_CONSUMER_QUEUE_NAME: ingested
+  RABBITMQ_DURABLE: "true"
+  RABBITMQ_MAX_QUEUE_SIZE: 0
+  RABBITMQ_MAX_PUBLISH_BATCH_SIZE: 500
+  RABBITMQ_PUBLISH_INTERVAL_IN_SECONDS: 10
+  # Metadata
+  METADATA_INSERT_BATCH_SIZE: 50000
+  # Collectors
+  COLLECTOR_QBIT_ENABLED: "false"
+  COLLECTOR_DEBRID_ENABLED: "true"
+  COLLECTOR_REAL_DEBRID_API_KEY:
+  QBIT_HOST: http://qbittorrent:8080
+  QBIT_TRACKERS_URL: https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
+  QBIT_CONCURRENCY: 8
+  # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
+  QBIT_REPLICAS: &replicas 0
+  # Addon
+  DEBUG_MODE: "false"
+  # Producer
+  GITHUB_PAT: 
 
 services:
   ## Postgres is the database that is used by the services.
   ## All downloaded metadata is stored in this database.
-  postgres:
-    env_file: stack.env
+  citus:
+    environment:
+      <<: *common-variables
     healthcheck:
       test: [ "CMD", "sh", "-c", "pg_isready -h localhost -U $$POSTGRES_USER" ]
       timeout: 10s
       interval: 10s
       retries: 3
       start_period: 10s
-    image: postgres:latest
+    image: citusdata/citus:12.1
     # # If you need the database to be accessible from outside, please open the below port.
-    # # Furthermore, please, please, please, change the username and password in the stack.env file.
+    # # Furthermore, please, please, please, change the username and password above for Postgres.
     # # If you want to enhance your security even more, create a new user for the database with a strong password.
     # ports:
     #   - "5432:5432"
@@ -33,33 +72,36 @@ services:
       - knightcrawler-network
     restart: unless-stopped
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - citus:/var/lib/postgresql/data
 
-  ## Redis is used as a cache for the services.
+  ## keydb is used as a cache for the services.
   ## It is used to store the infohashes that are currently being processed in sagas, as well as intrim data.
-  redis:
-    env_file: stack.env
+  keydb:
+    environment:
+      <<: *common-variables
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping"]
+      test: ["CMD-SHELL", "keydb-cli ping"]
       timeout: 10s
       interval: 10s
       retries: 3
       start_period: 10s
-    image: redis/redis-stack:latest
-    # # If you need redis to be accessible from outside, please open the below port.
+    image: eqalpha/keydb:latest
+    # # If you need keydb to be accessible from outside, please open the below port.
     # ports:
     #   - "6379:6379"
+    command: keydb-server /etc/keydb/redis.conf --server-threads 4
     networks:
       - knightcrawler-network
     restart: unless-stopped
     volumes:
-      - redis:/data
+      - keydb:/data
 
   ## LavinMQ is used as a message broker for the services.
   ## It is a high performance drop in replacement for RabbitMQ.
   ## It is used to communicate between the services.
   lavinmq:
-    env_file: stack.env
+    environment:
+      <<: *common-variables
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, look at the documentation for lavinmq / rabbitmq on how to secure the service.
     # ports:
@@ -86,13 +128,14 @@ services:
         condition: service_completed_successfully
       migrator:
         condition: service_completed_successfully
-      postgres:
+      citus:
         condition: service_healthy
       lavinmq:
         condition: service_healthy
-      redis:
+      keydb:
         condition: service_healthy
-    env_file: stack.env
+    environment:
+      <<: *common-variables
     hostname: knightcrawler-addon
     image: gabisonfire/knightcrawler-addon:2.0.21
     labels:
@@ -110,13 +153,14 @@ services:
         condition: service_completed_successfully
       migrator:
         condition: service_completed_successfully
-      postgres:
+      citus:
         condition: service_healthy
       lavinmq:
         condition: service_healthy
-      redis:
+      keydb:
         condition: service_healthy
-    env_file: stack.env
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-consumer:2.0.21
     labels:
       logging: promtail
@@ -131,13 +175,14 @@ services:
         condition: service_completed_successfully
       migrator:
         condition: service_completed_successfully
-      postgres:
+      citus:
         condition: service_healthy
       lavinmq:
         condition: service_healthy
-      redis:
+      keydb:
         condition: service_healthy
-    env_file: stack.env
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-debrid-collector:2.0.21
     labels:
       logging: promtail
@@ -151,7 +196,8 @@ services:
     depends_on:
       migrator:
         condition: service_completed_successfully
-    env_file: stack.env
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-metadata:2.0.21
     networks:
       - knightcrawler-network
@@ -160,9 +206,10 @@ services:
   ## The migrator is responsible for migrating the database schema.
   migrator:
     depends_on:
-      postgres:
+      citus:
         condition: service_healthy
-    env_file: stack.env
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-migrator:2.0.21
     networks:
       - knightcrawler-network
@@ -175,13 +222,14 @@ services:
         condition: service_completed_successfully
       migrator:
         condition: service_completed_successfully
-      postgres:
+      citus:
         condition: service_healthy
       lavinmq:
         condition: service_healthy
-      redis:
+      keydb:
         condition: service_healthy
-    env_file: stack.env
+    environment:
+      <<: *common-variables
     image: gabisonfire/knightcrawler-producer:2.0.21
     labels:
       logging: promtail
@@ -196,17 +244,18 @@ services:
         condition: service_completed_successfully
       migrator:
         condition: service_completed_successfully
-      postgres:
+      citus:
         condition: service_healthy
       lavinmq:
         condition: service_healthy
-      redis:
+      keydb:
         condition: service_healthy
       qbittorrent:
         condition: service_healthy
+    environment:
+      <<: *common-variables
     deploy:
-      replicas: ${QBIT_REPLICAS:-0}
-    env_file: stack.env
+      replicas: *replicas
     image: gabisonfire/knightcrawler-qbit-collector:2.0.21
     labels:
       logging: promtail
@@ -218,9 +267,9 @@ services:
   ## The QBit collector requires this.
   qbittorrent:
     deploy:
-      replicas: ${QBIT_REPLICAS:-0}
-    env_file: stack.env
+      replicas: *replicas
     environment:
+      <<: *common-variables
       PGID: "1000"
       PUID: "1000"
       TORRENTING_PORT: "6881"
@@ -231,7 +280,7 @@ services:
       interval: 10s
       retries: 3
       start_period: 10s
-    image: lscr.io/linuxserver/qbittorrent:latest
+    image: eoghan61/kc-qbittorrent:latest
     networks:
       - knightcrawler-network
     ports:
@@ -240,5 +289,3 @@ services:
     # if you want to expose the webui, uncomment the following line
       # - "8001:8080"
     restart: unless-stopped
-    volumes:
-      - ./config/qbit/qbittorrent.conf:/config/qBittorrent/qBittorrent.conf
