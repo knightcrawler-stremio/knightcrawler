@@ -1,0 +1,289 @@
+version: "3.9"
+
+name: knightcrawler
+
+networks:
+  knightcrawler-network:
+    name: knightcrawler-network
+    driver: bridge
+
+volumes:
+  citus:
+  lavinmq:
+  keydb:
+
+x-common-variables: &common-variables
+  # General environment variables
+  TZ: London/Europe
+  # PostgreSQL
+  POSTGRES_HOST: citus
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: knightcrawler
+  # keydb
+  REDIS_HOST: keydb
+  REDIS_PORT: 6379
+  REDIS_EXTRA: abortConnect=false,allowAdmin=true
+  # AMQP
+  RABBITMQ_HOST: lavinmq
+  RABBITMQ_USER: guest
+  RABBITMQ_PASSWORD: guest
+  RABBITMQ_CONSUMER_QUEUE_NAME: ingested
+  RABBITMQ_DURABLE: "true"
+  RABBITMQ_MAX_QUEUE_SIZE: 0
+  RABBITMQ_MAX_PUBLISH_BATCH_SIZE: 500
+  RABBITMQ_PUBLISH_INTERVAL_IN_SECONDS: 10
+  # Metadata
+  METADATA_INSERT_BATCH_SIZE: 50000
+  # Collectors
+  COLLECTOR_QBIT_ENABLED: "false"
+  COLLECTOR_DEBRID_ENABLED: "true"
+  COLLECTOR_REAL_DEBRID_API_KEY:
+  QBIT_HOST: http://qbittorrent:8080
+  QBIT_TRACKERS_URL: https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
+  QBIT_CONCURRENCY: 8
+  # Number of replicas for the qBittorrent collector and qBitTorrent client. Should be 0 or 1.
+  QBIT_REPLICAS: &replicas 0
+  # Addon
+  DEBUG_MODE: "false"
+
+services:
+  ## Postgres is the database that is used by the services.
+  ## All downloaded metadata is stored in this database.
+  citus:
+    environment:
+      <<: *common-variables
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "pg_isready -h localhost -U $$POSTGRES_USER" ]
+      timeout: 10s
+      interval: 10s
+      retries: 3
+      start_period: 10s
+    image: citusdata/citus:12.1
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, change the username and password above for Postgres.
+    # # If you want to enhance your security even more, create a new user for the database with a strong password.
+    # ports:
+    #   - "5432:5432"
+    networks:
+      - knightcrawler-network
+    restart: unless-stopped
+    volumes:
+      - citus:/var/lib/postgresql/data
+
+  ## keydb is used as a cache for the services.
+  ## It is used to store the infohashes that are currently being processed in sagas, as well as intrim data.
+  keydb:
+    environment:
+      <<: *common-variables
+    healthcheck:
+      test: ["CMD-SHELL", "keydb-cli ping"]
+      timeout: 10s
+      interval: 10s
+      retries: 3
+      start_period: 10s
+    image: eqalpha/keydb:latest
+    # # If you need keydb to be accessible from outside, please open the below port.
+    # ports:
+    #   - "6379:6379"
+    command: keydb-server /etc/keydb/redis.conf --server-threads 4
+    networks:
+      - knightcrawler-network
+    restart: unless-stopped
+    volumes:
+      - keydb:/data
+
+  ## LavinMQ is used as a message broker for the services.
+  ## It is a high performance drop in replacement for RabbitMQ.
+  ## It is used to communicate between the services.
+  lavinmq:
+    environment:
+      <<: *common-variables
+    # # If you need the database to be accessible from outside, please open the below port.
+    # # Furthermore, please, please, please, look at the documentation for lavinmq / rabbitmq on how to secure the service.
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+    #   - "15692:15692"
+    image: cloudamqp/lavinmq:latest
+    healthcheck:
+      test: ["CMD-SHELL", "lavinmqctl status"]
+      timeout: 10s
+      interval: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - knightcrawler-network
+    volumes:
+      - lavinmq:/var/lib/lavinmq/
+
+  ## The addon. This is what is used in stremio
+  addon:
+    depends_on:
+      metadata:
+        condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
+      citus:
+        condition: service_healthy
+      lavinmq:
+        condition: service_healthy
+      keydb:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    hostname: knightcrawler-addon
+    image: gabisonfire/knightcrawler-addon:2.0.21
+    labels:
+      logging: promtail
+    networks:
+      - knightcrawler-network
+    ports:
+      - "7000:7000"
+    restart: unless-stopped
+
+  ## The consumer is responsible for consuming infohashes and orchestrating download of metadata.
+  consumer:
+    depends_on:
+      metadata:
+        condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
+      citus:
+        condition: service_healthy
+      lavinmq:
+        condition: service_healthy
+      keydb:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    image: gabisonfire/knightcrawler-consumer:2.0.21
+    labels:
+      logging: promtail
+    networks:
+      - knightcrawler-network
+    restart: unless-stopped
+
+  ## The debrid collector is responsible for downloading metadata from debrid services. (Currently only RealDebrid is supported)
+  debridcollector:
+    depends_on:
+      metadata:
+        condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
+      citus:
+        condition: service_healthy
+      lavinmq:
+        condition: service_healthy
+      keydb:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    image: gabisonfire/knightcrawler-debrid-collector:2.0.21
+    labels:
+      logging: promtail
+    networks:
+      - knightcrawler-network
+    restart: unless-stopped
+
+  ## The metadata service is responsible for downloading imdb publically available datasets.
+  ## This is used to enrich the metadata during production of ingested infohashes.
+  metadata:
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    environment:
+      <<: *common-variables
+    image: gabisonfire/knightcrawler-metadata:2.0.21
+    networks:
+      - knightcrawler-network
+    restart: "no"
+
+  ## The migrator is responsible for migrating the database schema.
+  migrator:
+    depends_on:
+      citus:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    image: gabisonfire/knightcrawler-migrator:2.0.21
+    networks:
+      - knightcrawler-network
+    restart: "no"
+
+  ## The producer is responsible for producing infohashes by acquiring for various sites, including DMM.
+  producer:
+    depends_on:
+      metadata:
+        condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
+      citus:
+        condition: service_healthy
+      lavinmq:
+        condition: service_healthy
+      keydb:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    image: gabisonfire/knightcrawler-producer:2.0.21
+    labels:
+      logging: promtail
+    networks:
+      - knightcrawler-network
+    restart: unless-stopped
+
+  ## QBit collector utilizes QBitTorrent to download metadata.
+  qbitcollector:
+    depends_on:
+      metadata:
+        condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
+      citus:
+        condition: service_healthy
+      lavinmq:
+        condition: service_healthy
+      keydb:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    deploy:
+      replicas: *replicas
+    image: gabisonfire/knightcrawler-qbit-collector:2.0.21
+    labels:
+      logging: promtail
+    networks:
+      - knightcrawler-network
+    restart: unless-stopped
+
+  ## QBitTorrent is a torrent client that can be used to download torrents. In this case its used to download metadata.
+  ## The QBit collector requires this.
+  qbittorrent:
+    deploy:
+      replicas: *replicas
+    environment:
+      <<: *common-variables
+      PGID: "1000"
+      PUID: "1000"
+      TORRENTING_PORT: "6881"
+      WEBUI_PORT: "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080"]
+      timeout: 10s
+      interval: 10s
+      retries: 3
+      start_period: 10s
+    image: eoghan61/kc-qbittorrent:latest
+    networks:
+      - knightcrawler-network
+    ports:
+      - "6881:6881/tcp"
+      - "6881:6881/udp"
+    # if you want to expose the webui, uncomment the following line
+      # - "8001:8080"
+    restart: unless-stopped
