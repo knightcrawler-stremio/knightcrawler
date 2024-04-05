@@ -47,8 +47,6 @@ x-common-variables: &common-variables
   QBIT_REPLICAS: &replicas 0
   # Addon
   DEBUG_MODE: "false"
-  # Producer
-  GITHUB_PAT: 
 
 services:
   ## Postgres is the database that is used by the services.
