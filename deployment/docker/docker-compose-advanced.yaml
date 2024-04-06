@@ -120,7 +120,7 @@ services:
       interval: 10s
       retries: 3
       start_period: 10s
-    image: citusdata/citus:12.1
+    image: citusdata/citus:latest
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, change the username and password above for Postgres.
     # # If you want to enhance your security even more, create a new user for the database with a strong password.
@@ -142,7 +142,7 @@ services:
       interval: 10s
       retries: 3
       start_period: 10s
-    # If your stack doesn't start correctly try commenting out the lastest image and uncomment the unstable image.  
+    # If your stack doesn't start correctly try commenting out the latest image and uncomment the unstable image.  
     image: eqalpha/keydb:latest  
     #image: eqalpha/keydb:unstable
     # # If you need keydb to be accessible from outside, please open the below port.
