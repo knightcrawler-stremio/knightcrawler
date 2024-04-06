@@ -6,27 +6,34 @@ networks:
   knightcrawler-network:
     name: knightcrawler-network
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.55.0/24
+          gateway: 192.168.55.1    
 
 volumes:
   citus:
   lavinmq:
   keydb:
+  cloudbeaver:
+  vpn:
 
 x-common-variables: &common-variables
   # General environment variables
   TZ: London/Europe
   # PostgreSQL
-  POSTGRES_HOST: citus
+  POSTGRES_HOST: 192.168.55.10
   POSTGRES_PORT: 5432
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
   POSTGRES_DB: knightcrawler
   # keydb
-  REDIS_HOST: keydb
+  REDIS_HOST: 192.168.55.10
   REDIS_PORT: 6379
   REDIS_EXTRA: abortConnect=false,allowAdmin=true
   # AMQP
-  RABBITMQ_HOST: lavinmq
+  RABBITMQ_HOST: 192.168.55.10
   RABBITMQ_USER: guest
   RABBITMQ_PASSWORD: guest
   RABBITMQ_CONSUMER_QUEUE_NAME: ingested
@@ -39,7 +46,7 @@ x-common-variables: &common-variables
   # Collectors
   COLLECTOR_QBIT_ENABLED: "false"
   COLLECTOR_DEBRID_ENABLED: "true"
-  COLLECTOR_REAL_DEBRID_API_KEY:
+  COLLECTOR_REAL_DEBRID_API_KEY: 
   QBIT_HOST: http://qbittorrent:8080
   QBIT_TRACKERS_URL: https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_http.txt
   QBIT_CONCURRENCY: 8
@@ -49,6 +56,59 @@ x-common-variables: &common-variables
   DEBUG_MODE: "false"
 
 services:
+  gluetun:
+    image: qmcgaw/gluetun
+    # container_name: gluetun
+    # line above must be uncommented to allow external containers to connect.
+    # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/connect-a-container-to-gluetun.md#external-container-to-gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      # VPN PORTS
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # Shadowsocks
+      # QBittorrent Ports
+      - 6881:6881/tcp
+      - 6881:6881/udp
+      # if you want to expose the webui, uncomment the following line
+      - 8001:8080
+      # CloudBeaver
+      - 8080:8978
+      # KnightCrawler Addon
+      - 7000:7000
+      # LavinMQ
+      - 5672:5672
+      - 15672:15672
+      - 15692:15692
+      # Citus
+      - 5432:5432
+      # KeyDB
+      - 6379:6379
+    volumes:
+      - vpn:/gluetun
+    environment:
+      # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
+      - VPN_SERVICE_PROVIDER=private internet access
+      - VPN_TYPE=openvpn
+      # OpenVPN:
+      - OPENVPN_USER=
+      - OPENVPN_PASSWORD=
+      - SERVER_REGIONS=
+      # Wireguard:
+      # - WIREGUARD_PRIVATE_KEY=wOEI9rqqbDwnN8/Bpp22sVz48T71vJ4fYmFWujulwUU=
+      # - WIREGUARD_ADDRESSES=10.64.222.21/32
+      # Timezone for accurate log times
+      - TZ=Europe/London
+      # Server list updater
+      # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
+      - UPDATER_PERIOD=24h
+    networks:
+      knightcrawler-network:
+        ipv4_address: 192.168.55.10      
+
   ## Postgres is the database that is used by the services.
   ## All downloaded metadata is stored in this database.
   citus:
@@ -64,10 +124,9 @@ services:
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, change the username and password above for Postgres.
     # # If you want to enhance your security even more, create a new user for the database with a strong password.
-    # ports:
-    #   - "5432:5432"
-    networks:
-      - knightcrawler-network
+    #ports:
+    #  - "5432:5432"
+    network_mode: "service:gluetun"
     restart: unless-stopped
     volumes:
       - citus:/var/lib/postgresql/data
@@ -83,13 +142,14 @@ services:
       interval: 10s
       retries: 3
       start_period: 10s
-    image: eqalpha/keydb:latest
+    # If your stack doesn't start correctly try commenting out the lastest image and uncomment the unstable image.  
+    image: eqalpha/keydb:latest  
+    #image: eqalpha/keydb:unstable
     # # If you need keydb to be accessible from outside, please open the below port.
-    # ports:
-    #   - "6379:6379"
+    #ports:
+    #  - "6379:6379"
     command: keydb-server /etc/keydb/redis.conf --server-threads 4
-    networks:
-      - knightcrawler-network
+    network_mode: "service:gluetun"
     restart: unless-stopped
     volumes:
       - keydb:/data
@@ -102,10 +162,10 @@ services:
       <<: *common-variables
     # # If you need the database to be accessible from outside, please open the below port.
     # # Furthermore, please, please, please, look at the documentation for lavinmq / rabbitmq on how to secure the service.
-    # ports:
-    #   - "5672:5672"
-    #   - "15672:15672"
-    #   - "15692:15692"
+    #ports:
+    #  - "5672:5672"
+    #  - "15672:15672"
+    #  - "15692:15692"
     image: cloudamqp/lavinmq:latest
     healthcheck:
       test: ["CMD-SHELL", "lavinmqctl status"]
@@ -114,8 +174,7 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
-    networks:
-      - knightcrawler-network
+    network_mode: "service:gluetun"
     volumes:
       - lavinmq:/var/lib/lavinmq/
 
@@ -131,17 +190,16 @@ services:
       lavinmq:
         condition: service_healthy
       keydb:
-        condition: service_healthy
+        condition: service_healthy 
     environment:
       <<: *common-variables
-    hostname: knightcrawler-addon
+    # hostname: knightcrawler-addon
     image: gabisonfire/knightcrawler-addon:2.0.21
     labels:
       logging: promtail
-    networks:
-      - knightcrawler-network
-    ports:
-      - "7000:7000"
+    network_mode: "service:gluetun"  
+    #ports:
+    # - "7000:7000"
     restart: unless-stopped
 
   ## The consumer is responsible for consuming infohashes and orchestrating download of metadata.
@@ -156,14 +214,13 @@ services:
       lavinmq:
         condition: service_healthy
       keydb:
-        condition: service_healthy
+        condition: service_healthy  
     environment:
       <<: *common-variables
     image: gabisonfire/knightcrawler-consumer:2.0.21
     labels:
       logging: promtail
-    networks:
-      - knightcrawler-network
+    network_mode: "service:gluetun"  
     restart: unless-stopped
 
   ## The debrid collector is responsible for downloading metadata from debrid services. (Currently only RealDebrid is supported)
@@ -178,14 +235,13 @@ services:
       lavinmq:
         condition: service_healthy
       keydb:
-        condition: service_healthy
+        condition: service_healthy  
     environment:
       <<: *common-variables
     image: gabisonfire/knightcrawler-debrid-collector:2.0.21
     labels:
       logging: promtail
-    networks:
-      - knightcrawler-network
+    network_mode: "service:gluetun"
     restart: unless-stopped
 
   ## The metadata service is responsible for downloading imdb publically available datasets.
@@ -193,24 +249,22 @@ services:
   metadata:
     depends_on:
       migrator:
-        condition: service_completed_successfully
+        condition: service_completed_successfully  
     environment:
       <<: *common-variables
     image: gabisonfire/knightcrawler-metadata:2.0.21
-    networks:
-      - knightcrawler-network
+    network_mode: "service:gluetun"
     restart: "no"
 
   ## The migrator is responsible for migrating the database schema.
   migrator:
     depends_on:
       citus:
-        condition: service_healthy
+        condition: service_healthy  
     environment:
       <<: *common-variables
     image: gabisonfire/knightcrawler-migrator:2.0.21
-    networks:
-      - knightcrawler-network
+    network_mode: "service:gluetun"
     restart: "no"
 
   ## The producer is responsible for producing infohashes by acquiring for various sites, including DMM.
@@ -225,14 +279,13 @@ services:
       lavinmq:
         condition: service_healthy
       keydb:
-        condition: service_healthy
+        condition: service_healthy  
     environment:
       <<: *common-variables
     image: gabisonfire/knightcrawler-producer:2.0.21
     labels:
       logging: promtail
-    networks:
-      - knightcrawler-network
+    network_mode: "service:gluetun"
     restart: unless-stopped
 
   ## QBit collector utilizes QBitTorrent to download metadata.
@@ -249,7 +302,7 @@ services:
       keydb:
         condition: service_healthy
       qbittorrent:
-        condition: service_healthy
+        condition: service_healthy  
     environment:
       <<: *common-variables
     deploy:
@@ -257,8 +310,7 @@ services:
     image: gabisonfire/knightcrawler-qbit-collector:2.0.21
     labels:
       logging: promtail
-    networks:
-      - knightcrawler-network
+    network_mode: "service:gluetun"
     restart: unless-stopped
 
   ## QBitTorrent is a torrent client that can be used to download torrents. In this case its used to download metadata.
@@ -279,11 +331,19 @@ services:
       retries: 3
       start_period: 10s
     image: eoghan61/kc-qbittorrent:latest
-    networks:
-      - knightcrawler-network
-    ports:
-      - "6881:6881/tcp"
-      - "6881:6881/udp"
-    # if you want to expose the webui, uncomment the following line
-      # - "8001:8080"
+    network_mode: "service:gluetun" 
+    #ports:
+    #  - "6881:6881/tcp"
+     # - "6881:6881/udp"
+      #  if you want to expose the webui, uncomment the following line
+    #  - "8001:8080"
     restart: unless-stopped
+    
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    #ports:
+    # - 8080:8978
+    volumes: 
+      - cloudbeaver:/opt/cloudbeaver/workspace
