@@ -4,27 +4,34 @@
       {
         "Name": "SyncEzTvJob",
         "IntervalSeconds": 60,
-        "Enabled": true
+        "Enabled": true,
+        "Url": "https://eztv1.xyz/ezrss.xml",
+        "XmlNamespace": "http://xmlns.ezrss.it/0.1/"
       },
       {
         "Name": "SyncNyaaJob",
         "IntervalSeconds": 60,
-        "Enabled": true
+        "Enabled": true,
+        "Url": "https://nyaa.si/?page=rss&c=1_2&f=0",
+        "XmlNamespace": "https://nyaa.si/xmlns/nyaa"
       },
       {
         "Name": "SyncTpbJob",
         "IntervalSeconds": 60,
-        "Enabled": true
+        "Enabled": true,
+        "Url": "https://apibay.org/precompiled/data_top100_recent.json"
       },
       {
         "Name": "SyncYtsJob",
         "IntervalSeconds": 60,
-        "Enabled": true
+        "Enabled": true,
+        "Url": "https://yts.am/rss"
       },
       {
         "Name": "SyncTgxJob",
         "IntervalSeconds": 60,
-        "Enabled": true
+        "Enabled": true,
+        "Url": "https://tgx.rs/rss"
       },
       {
         "Name": "SyncDmmJob",

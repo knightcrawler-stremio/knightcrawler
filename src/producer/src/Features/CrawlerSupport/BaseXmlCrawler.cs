@@ -4,6 +4,12 @@ public abstract class BaseXmlCrawler(IHttpClientFactory httpClientFactory, ILogg
 {
     public override async Task Execute()
     {
+        if (string.IsNullOrWhiteSpace(Url))
+        {
+            logger.LogWarning("No URL provided for {Source} crawl", Source);
+            return;
+        }
+        
         logger.LogInformation("Starting {Source} crawl", Source);
 
         using var client = httpClientFactory.CreateClient(Literals.CrawlerClient);

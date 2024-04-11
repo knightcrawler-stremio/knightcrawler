@@ -6,6 +6,12 @@ public abstract class BaseJsonCrawler(IHttpClientFactory httpClientFactory, ILog
 
     protected virtual async Task Execute(string collectionName)
     {
+        if (string.IsNullOrWhiteSpace(Url))
+        {
+            logger.LogWarning("No URL provided for {Source} crawl", Source);
+            return;
+        }
+        
         logger.LogInformation("Starting {Source} crawl", Source);
 
         using var client = httpClientFactory.CreateClient("Scraper");
