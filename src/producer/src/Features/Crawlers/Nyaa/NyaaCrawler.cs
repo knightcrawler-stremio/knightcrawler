@@ -4,7 +4,7 @@ public class NyaaCrawler(IHttpClientFactory httpClientFactory, ILogger<NyaaCrawl
 {
     protected override string Url => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncNyaaJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
     protected override string Source => "Nyaa";
-    private XNamespace XmlNamespace => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncNyaaJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
+    private XNamespace XmlNamespace => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncNyaaJob", StringComparison.OrdinalIgnoreCase))?.XmlNamespace ?? string.Empty;
 
     protected override IReadOnlyDictionary<string, string> Mappings =>
         new Dictionary<string, string>
