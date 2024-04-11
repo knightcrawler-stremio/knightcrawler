@@ -1,8 +1,8 @@
 namespace Producer.Features.Crawlers.Tpb;
 
-public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler> logger, IDataStorage storage) : BaseJsonCrawler(httpClientFactory, logger, storage)
+public class TpbCrawler(IHttpClientFactory httpClientFactory, ILogger<TpbCrawler> logger, IDataStorage storage, ScrapeConfiguration scrapeConfiguration) : BaseJsonCrawler(httpClientFactory, logger, storage)
 {
-    protected override string Url => "https://apibay.org/precompiled/data_top100_recent.json";
+    protected override string Url => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncTpbJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
 
     protected override string Source => "TPB";
     

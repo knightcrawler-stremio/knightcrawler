@@ -1,13 +1,13 @@
 namespace Producer.Features.Crawlers.Tgx;
 
-public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<TgxCrawler> logger, IDataStorage storage) : BaseXmlCrawler(httpClientFactory, logger, storage)
+public partial class TgxCrawler(IHttpClientFactory httpClientFactory, ILogger<TgxCrawler> logger, IDataStorage storage, ScrapeConfiguration scrapeConfiguration) : BaseXmlCrawler(httpClientFactory, logger, storage)
 {
     [GeneratedRegex(@"Size:\s+(.+?)\s+Added")]
     private static partial Regex SizeStringExtractor();
     [GeneratedRegex(@"(?i)\b(\d+(\.\d+)?)\s*([KMGT]?B)\b", RegexOptions.None, "en-GB")]
     private static partial Regex SizeStringParser();
 
-    protected override string Url => "https://tgx.rs/rss";
+    protected override string Url => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncTgxJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
 
     protected override string Source => "TorrentGalaxy";
     protected override IReadOnlyDictionary<string, string> Mappings

@@ -1,11 +1,10 @@
 namespace Producer.Features.Crawlers.EzTv;
 
-public class EzTvCrawler(IHttpClientFactory httpClientFactory, ILogger<EzTvCrawler> logger, IDataStorage storage) : BaseXmlCrawler(httpClientFactory, logger, storage)
+public class EzTvCrawler(IHttpClientFactory httpClientFactory, ILogger<EzTvCrawler> logger, IDataStorage storage, ScrapeConfiguration scrapeConfiguration) : BaseXmlCrawler(httpClientFactory, logger, storage)
 {
-    protected override string Url => "https://eztv1.xyz/ezrss.xml";
+    protected override string Url => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncEzTvJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
     protected override string Source => "EZTV";
-
-    private static readonly XNamespace XmlNamespace = "http://xmlns.ezrss.it/0.1/";
+    private XNamespace XmlNamespace => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncEzTvJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
 
     protected override IReadOnlyDictionary<string, string> Mappings =>
         new Dictionary<string, string>
