@@ -1,6 +1,6 @@
 ﻿namespace QBitCollector.Features.Qbit;
 
-public class QbitRequestProcessor(IQBittorrentClient client, ITrackersService trackersService, ILogger<QbitRequestProcessor> logger)
+public class QbitRequestProcessor(IQBittorrentClient client, ITrackersService trackersService, ILogger<QbitRequestProcessor> logger, QbitConfiguration configuration)
 {
     public async Task<IReadOnlyList<TorrentContent>?> ProcessAsync(string infoHash, CancellationToken cancellationToken = default)
     {
@@ -14,7 +14,7 @@ public class QbitRequestProcessor(IQBittorrentClient client, ITrackersService tr
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(30));
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(60));
 
         try
         {
@@ -30,7 +30,7 @@ public class QbitRequestProcessor(IQBittorrentClient client, ITrackersService tr
                     break;
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(1), timeoutCts.Token);
+                await Task.Delay(TimeSpan.FromMilliseconds(200), timeoutCts.Token);
             }
         }
         catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)

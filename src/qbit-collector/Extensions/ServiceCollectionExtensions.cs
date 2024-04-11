@@ -44,6 +44,7 @@ public static class ServiceCollectionExtensions
     {
         var rabbitConfiguration = services.LoadConfigurationFromEnv<RabbitMqConfiguration>();
         var redisConfiguration = services.LoadConfigurationFromEnv<RedisConfiguration>();
+        var qbitConfiguration = services.LoadConfigurationFromEnv<QbitConfiguration>();
 
         services.AddStackExchangeRedisCache(
             option =>
@@ -80,8 +81,8 @@ public static class ServiceCollectionExtensions
                     e.ConfigureConsumer<WriteQbitMetadataConsumer>(context);
                     e.ConfigureConsumer<PerformQbitMetadataRequestConsumer>(context);
                     e.ConfigureSaga<QbitMetadataSagaState>(context);
-                    e.ConcurrentMessageLimit = 5;
-                    e.PrefetchCount = 5;
+                    e.ConcurrentMessageLimit = qbitConfiguration.Concurrency;
+                    e.PrefetchCount = qbitConfiguration.Concurrency;
                 });
             });
         });
@@ -98,7 +99,7 @@ public static class ServiceCollectionExtensions
                     cfg.UseTimeout(
                         timeout =>
                         {
-                            timeout.Timeout = TimeSpan.FromMinutes(1);
+                            timeout.Timeout = TimeSpan.FromMinutes(3);
                         });
                 })
             .RedisRepository(redisConfiguration.ConnectionString, options =>
@@ -110,7 +111,7 @@ public static class ServiceCollectionExtensions
     {
         var qbitConfiguration = services.LoadConfigurationFromEnv<QbitConfiguration>();
         var client = new QBittorrentClient(new(qbitConfiguration.Host));
-        client.Timeout = TimeSpan.FromSeconds(10);
+        client.Timeout = TimeSpan.FromSeconds(20);
 
         services.AddSingleton<IQBittorrentClient>(client);
     }
