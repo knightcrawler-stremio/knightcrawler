@@ -4,7 +4,7 @@ public class EzTvCrawler(IHttpClientFactory httpClientFactory, ILogger<EzTvCrawl
 {
     protected override string Url => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncEzTvJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
     protected override string Source => "EZTV";
-    private XNamespace XmlNamespace => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncEzTvJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
+    private XNamespace XmlNamespace => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncEzTvJob", StringComparison.OrdinalIgnoreCase))?.XmlNamespace ?? string.Empty;
 
     protected override IReadOnlyDictionary<string, string> Mappings =>
         new Dictionary<string, string>
