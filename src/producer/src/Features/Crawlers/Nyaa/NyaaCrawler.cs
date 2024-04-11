@@ -1,11 +1,10 @@
 namespace Producer.Features.Crawlers.Nyaa;
 
-public class NyaaCrawler(IHttpClientFactory httpClientFactory, ILogger<NyaaCrawler> logger, IDataStorage storage) : BaseXmlCrawler(httpClientFactory, logger, storage)
+public class NyaaCrawler(IHttpClientFactory httpClientFactory, ILogger<NyaaCrawler> logger, IDataStorage storage, ScrapeConfiguration scrapeConfiguration) : BaseXmlCrawler(httpClientFactory, logger, storage)
 {
-    protected override string Url => "https://nyaa.si/?page=rss&c=1_2&f=0";
+    protected override string Url => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncNyaaJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
     protected override string Source => "Nyaa";
-
-    private static readonly XNamespace XmlNamespace = "https://nyaa.si/xmlns/nyaa";
+    private XNamespace XmlNamespace => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncNyaaJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
 
     protected override IReadOnlyDictionary<string, string> Mappings =>
         new Dictionary<string, string>

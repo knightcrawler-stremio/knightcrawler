@@ -1,9 +1,8 @@
 namespace Producer.Features.Crawlers.Yts;
 
-public class YtsCrawler(IHttpClientFactory httpClientFactory, ILogger<YtsCrawler> logger, IDataStorage storage) : BaseXmlCrawler(httpClientFactory, logger, storage)
+public class YtsCrawler(IHttpClientFactory httpClientFactory, ILogger<YtsCrawler> logger, IDataStorage storage, ScrapeConfiguration scrapeConfiguration) : BaseXmlCrawler(httpClientFactory, logger, storage)
 {
-    protected override string Url => "https://yts.am/rss";
-
+    protected override string Url => scrapeConfiguration.Scrapers.FirstOrDefault(x => x.Name.Equals("SyncYtsJob", StringComparison.OrdinalIgnoreCase))?.Url ?? string.Empty;
     protected override string Source => "YTS";
     protected override IReadOnlyDictionary<string, string> Mappings
         => new Dictionary<string, string>
