@@ -99,7 +99,7 @@ export function getImdbIdSeriesEntries(imdbId, season, episode) {
             imdbSeason: { [Op.eq]: season },
             imdbEpisode: { [Op.eq]: episode }
         },
-        include: [Torrent],
+        include: { model: Torrent, required: true },
         limit: 500,
         order: [
             [Torrent, 'size', 'DESC']
@@ -112,7 +112,7 @@ export function getKitsuIdMovieEntries(kitsuId) {
         where: {
             kitsuId: { [Op.eq]: kitsuId }
         },
-        include: [Torrent],
+        include: { model: Torrent, required: true },
         limit: 500,
         order: [
             [Torrent, 'size', 'DESC']
@@ -126,7 +126,7 @@ export function getKitsuIdSeriesEntries(kitsuId, episode) {
             kitsuId: { [Op.eq]: kitsuId },
             kitsuEpisode: { [Op.eq]: episode }
         },
-        include: [Torrent],
+        include: { model: Torrent, required: true },
         limit: 500,
         order: [
             [Torrent, 'size', 'DESC']
