@@ -84,7 +84,7 @@ export function getImdbIdMovieEntries(imdbId) {
         where: {
             imdbId: { [Op.eq]: imdbId }
         },
-        include: [Torrent],
+        include: { model: Torrent, required: true },
         limit: 500,
         order: [
             [Torrent, 'size', 'DESC']
