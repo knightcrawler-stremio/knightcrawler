@@ -3,6 +3,7 @@ import { addonBuilder } from 'stremio-addon-sdk';
 import { cacheWrapStream } from './lib/cache.js';
 import { dummyManifest } from './lib/manifest.js';
 import * as repository from './lib/repository.js';
+import applyFilters from "./lib/filter.js";
 import applySorting from './lib/sort.js';
 import { toStreamInfo, applyStaticInfo } from './lib/streamInfo.js';
 import { Type } from './lib/types.js';
@@ -32,6 +33,7 @@ builder.defineStreamHandler((args) => {
       .then(records => records
           .sort((a, b) => b.torrent.seeders - a.torrent.seeders || b.torrent.uploadDate - a.torrent.uploadDate)
           .map(record => toStreamInfo(record)))))
+      .then(streams => applyFilters(streams, args.extra))
       .then(streams => applySorting(streams, args.extra))
       .then(streams => applyStaticInfo(streams))
       .then(streams => applyMochs(streams, args.extra))
