@@ -5,7 +5,7 @@
         "Name": "SyncEzTvJob",
         "IntervalSeconds": 60,
         "Enabled": true,
-        "Url": "https://eztv1.xyz/ezrss.xml",
+        "Url": "https://eztvx.to/ezrss.xml",
         "XmlNamespace": "http://xmlns.ezrss.it/0.1/"
       },
       {
