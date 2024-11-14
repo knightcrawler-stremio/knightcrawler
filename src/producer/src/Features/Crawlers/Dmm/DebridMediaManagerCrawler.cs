@@ -14,7 +14,7 @@ public partial class DebridMediaManagerCrawler(
     protected override string Source => "DMM";
 
     private const int ParallelismCount = 4;
-    
+
     public override async Task Execute()
     {
         var tempDirectory = await dmmFileDownloader.DownloadFileToTempPath(CancellationToken.None);
@@ -24,7 +24,7 @@ public partial class DebridMediaManagerCrawler(
         logger.LogInformation("Found {Files} files to parse", files.Length);
 
         var options = new ParallelOptions { MaxDegreeOfParallelism = ParallelismCount };
-        
+
         await Parallel.ForEachAsync(files, options, async (file, token) =>
         {
             var fileName = Path.GetFileName(file);
@@ -69,9 +69,9 @@ public partial class DebridMediaManagerCrawler(
             if (page.TryGetValue(infoHash, out var dmmContent) &&
                 successfulResponses.TryGetValue(dmmContent.Filename, out var parsedResponse))
             {
-                page[infoHash] = dmmContent with {ParseResponse = parsedResponse};
+                page[infoHash] = dmmContent with { ParseResponse = parsedResponse };
             }
-            
+
             return ValueTask.CompletedTask;
         });
     }
@@ -86,7 +86,7 @@ public partial class DebridMediaManagerCrawler(
         }
 
         var pageSource = await File.ReadAllTextAsync(filePath);
-        
+
         var match = HashCollectionMatcher().Match(pageSource);
 
         if (!match.Success)
@@ -106,9 +106,34 @@ public partial class DebridMediaManagerCrawler(
 
         var decodedJson = LZString.DecompressFromEncodedURIComponent(encodedJson.Value);
 
-        var json = JsonDocument.Parse(decodedJson);
-        
-        var torrents = await json.RootElement.EnumerateArray()
+        JsonElement arrayToProcess;
+        try
+        {
+            var json = JsonDocument.Parse(decodedJson);
+
+            if (json.RootElement.ValueKind == JsonValueKind.Object &&
+                json.RootElement.TryGetProperty("torrents", out var torrentsProperty) &&
+                torrentsProperty.ValueKind == JsonValueKind.Array)
+            {
+                arrayToProcess = torrentsProperty;
+            }
+            else if (json.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                arrayToProcess = json.RootElement;
+            }
+            else
+            {
+                logger.LogWarning("Unexpected JSON format in {Name}", name);
+                return [];
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Failed to parse JSON {decodedJson} for {Name}: {Exception}", decodedJson, name, ex);
+            return [];
+        }
+
+        var torrents = await arrayToProcess.EnumerateArray()
             .ToAsyncEnumerable()
             .Select(ParsePageContent)
             .Where(t => t is not null)
@@ -120,7 +145,7 @@ public partial class DebridMediaManagerCrawler(
             await Storage.MarkPageAsIngested(filenameOnly);
             return [];
         }
-        
+
         var torrentDictionary = torrents
             .Where(x => x is not null)
             .GroupBy(x => x.InfoHash)
@@ -141,7 +166,7 @@ public partial class DebridMediaManagerCrawler(
         {
             var (infoHash, dmmContent) = kvp;
             var parsedTorrent = dmmContent.ParseResponse;
-            if (parsedTorrent is not {Success: true})
+            if (parsedTorrent is not { Success: true })
             {
                 return;
             }
@@ -192,7 +217,7 @@ public partial class DebridMediaManagerCrawler(
             Category = AssignCategory(result),
             RtnResponse = parsedTorrent.Response.ToJson(),
         };
-    
+
 
     private Task AddToCache(string cacheKey, ImdbEntry best)
     {
@@ -200,19 +225,19 @@ public partial class DebridMediaManagerCrawler(
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1),
         };
-        
+
         return cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(best), cacheOptions);
     }
 
     private async Task<(bool Success, ImdbEntry? Entry)> CheckIfInCacheAndReturn(string cacheKey)
     {
         var cachedImdbId = await cache.GetStringAsync(cacheKey);
-        
+
         if (!string.IsNullOrEmpty(cachedImdbId))
         {
             return (true, JsonSerializer.Deserialize<ImdbEntry>(cachedImdbId));
         }
-        
+
         return (false, null);
     }
 
@@ -222,7 +247,7 @@ public partial class DebridMediaManagerCrawler(
 
         return (pageIngested, filename);
     }
-    
+
     private static string AssignCategory(ImdbEntry entry) =>
         entry.Category.ToLower() switch
         {
@@ -230,9 +255,9 @@ public partial class DebridMediaManagerCrawler(
             var category when string.Equals(category, "tvSeries", StringComparison.OrdinalIgnoreCase) => "tv",
             _ => "unknown",
         };
-    
+
     private static string GetCacheKey(string category, string title, int year) => $"{category.ToLowerInvariant()}:{year}:{title.ToLowerInvariant()}";
-    
+
     private static ExtractedDMMContent? ParsePageContent(JsonElement item)
     {
         if (!item.TryGetProperty("filename", out var filenameElement) ||
@@ -241,10 +266,10 @@ public partial class DebridMediaManagerCrawler(
         {
             return null;
         }
-        
+
         return new(filenameElement.GetString(), bytesElement.GetInt64(), hashElement.GetString());
     }
-    
+
     private record DmmContent(string Filename, long Bytes, ParseTorrentTitleResponse? ParseResponse);
     private record ExtractedDMMContent(string Filename, long Bytes, string InfoHash);
     private record RtnBatchProcessable(string InfoHash, string Filename);
