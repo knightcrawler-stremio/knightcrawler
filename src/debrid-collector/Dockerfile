@@ -15,7 +15,7 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1
 
-RUN apk add --update --no-cache python3=~3.11.9-r0 py3-pip && ln -sf python3 /usr/bin/python
+RUN apk add --update --no-cache python3=~3.11 py3-pip && ln -sf python3 /usr/bin/python
 
 COPY --from=build /src/out .
 

@@ -134,7 +134,7 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
     {
         try
         {
-            await using var connection = CreateNpgsqlConnection();
+            await using var connection = new NpgsqlConnection(configuration.StorageConnectionString);
             await connection.OpenAsync();
 
             await operation(connection);
@@ -143,16 +143,6 @@ public class ImdbDbService(PostgresConfiguration configuration, ILogger<ImdbDbSe
         {
             logger.LogError(e, errorMessage);
         }
-    }
-
-    private NpgsqlConnection CreateNpgsqlConnection()
-    {
-        var connectionStringBuilder = new NpgsqlConnectionStringBuilder(configuration.StorageConnectionString)
-        {
-            CommandTimeout = 3000,
-        };
-
-        return new(connectionStringBuilder.ConnectionString);
     }
 
     private async Task ExecuteCommandWithTransactionAsync(Func<NpgsqlConnection, NpgsqlTransaction, Task> operation, NpgsqlTransaction transaction, string errorMessage)
