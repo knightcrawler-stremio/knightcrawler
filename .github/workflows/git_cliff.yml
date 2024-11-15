@@ -32,3 +32,8 @@ jobs:
           git add CHANGELOG.md
           git commit -m "[skip ci] Update changelog"
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git feat/changelog_$(date +"%d_%m")
+
+      - name: create pull request
+        run: gh pr create -B main -H feat/changelog_$(date +"%d_%m") --title '[skip ci] Update changelog'
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
