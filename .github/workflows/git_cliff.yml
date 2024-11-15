@@ -31,4 +31,4 @@ jobs:
           git checkout -b feat/changelog_$(date +"%d_%m")
           git add CHANGELOG.md
           git commit -m "[skip ci] Update changelog"
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git  ${{ github.ref }}
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git origin feat/changelog_$(date +"%d_%m")
