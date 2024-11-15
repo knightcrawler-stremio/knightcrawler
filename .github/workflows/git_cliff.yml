@@ -34,6 +34,6 @@ jobs:
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git feat/changelog_$(date +"%d_%m")
 
       - name: create pull request
-        run: gh pr create -B main -H feat/changelog_$(date +"%d_%m") --title '[skip ci] Update changelog'
+        run: gh pr create -B main -H feat/changelog_$(date +"%d_%m") --title '[skip ci] Update changelog' --body 'Changelog update by git-cliff'
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
