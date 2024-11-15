@@ -12,6 +12,9 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+1.
+2.
+3.
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
@@ -23,6 +26,7 @@ If the logs are short, make sure to triple backtick them, or use https://pastebi
 **Hardware:**
  - OS and distro: [e.g. Raspberry Pi OS, Ubuntu, Rocky]
  - Server: [e.g. VM, Baremetal, Pi]
+ - Knightcrawler Version: [2.0.xx]
 
 **Additional context**
 Add any other context about the problem here.

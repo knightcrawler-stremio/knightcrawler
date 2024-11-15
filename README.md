@@ -67,30 +67,6 @@ Then set any of the values you wouldd like to customize.
 
 By default, Knight Crawler is configured to be *relatively* conservative in its resource usage. If running on a decent machine (16GB RAM, i5+ or equivalent), you can increase some settings to increase consumer throughput. This is especially helpful if you have a large backlog from [importing databases](#importing-external-dumps).
 
-### DebridMediaManager setup (optional)
-
-There are some optional steps you should take to maximise the number of movies/tv shows we can find.
-
-We can search DebridMediaManager hash lists which are hosted on GitHub. This allows us to add hundreds of thousands of movies and tv shows, but it requires a Personal Access Token to be generated. The software only needs read access and only for public repositories. To generate one, please follow these steps:
-
-1. Navigate to GitHub settings -> Developer Settings -> Personal access tokens -> Fine-grained tokens (click [here](https://github.com/settings/tokens?type=beta) for a direct link)
-2. Press `Generate new token`
-3. Fill out the form (example data below):
-   ```
-    Token name:
-        KnightCrawler
-    Expiration:
-        90 days
-    Description:
-        <blank>
-    Repository access
-        (checked) Public Repositories (read-only)
-   ```
-4. Click `Generate token`
-5. Take the new token and add it to the bottom of the [stack.env](deployment/docker/stack.env) file
-   ```
-   GITHUB_PAT=<YOUR TOKEN HERE>
-   ```
 ### Configure external access
 
 Please choose which applies to you:
