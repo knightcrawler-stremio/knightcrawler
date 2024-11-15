@@ -28,6 +28,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           set +e
+          git checkout -b feat/changelog_$(date +"%d_%m")
           git add CHANGELOG.md
-          git commit -m "Update changelog"
+          git commit -m "[skip ci] Update changelog"
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git  ${{ github.ref }}
